@@ -25,11 +25,14 @@ This is a long-term hobby project with ambitions of eventually becoming somethin
 5. [Knowledge Graph](#5-knowledge-graph)
 6. [AI Layer](#6-ai-layer)
 7. [Desktop Environment](#7-desktop-environment)
-8. [App Ecosystem](#8-app-ecosystem)
-9. [Security & Privacy](#9-security--privacy)
-10. [Developer Experience & Infrastructure](#10-developer-experience--infrastructure)
-11. [Roadmap](#11-roadmap)
-12. [Appendix: Technology Decisions](#12-appendix-technology-decisions)
+8. [Design Language & Theming](#8-design-language--theming)
+9. [Plugin & Module System](#9-plugin--module-system)
+10. [App Ecosystem](#10-app-ecosystem)
+11. [Gaming & Windows Compatibility](#11-gaming--windows-compatibility)
+12. [Security & Privacy](#12-security--privacy)
+13. [Developer Experience & Infrastructure](#13-developer-experience--infrastructure)
+14. [Roadmap](#14-roadmap)
+15. [Appendix: Technology Decisions](#15-appendix-technology-decisions)
 
 ------
 
@@ -101,20 +104,60 @@ block-beta
 
 ## 3. OS Base
 
-> TODO: Finalize base distribution choice
+This system is built on top of an existing Linux distribution rather than from scratch. The kernel, init system, package manager, and base toolchain come from the chosen distro. Everything above that - the desktop environment, event system, knowledge graph, AI layer - is custom.
 
-### Open questions
+### Base Distribution: OpenSUSE Slowroll
 
-- Base distro: OpenSUSE Slowroll vs. Arch vs. Debian vs. other
-- Filesystem: btrfs (likely), anything custom?
-- Init system: systemd (default assumption)
-- Package manager: keep base distro's, or add a layer on top?
+**What Slowroll is:**
+OpenSUSE Slowroll is a rolling-release distribution that sits between Tumbleweed (fully bleeding-edge rolling) and Leap (traditional fixed releases). It pulls packages from Tumbleweed but applies them with a delay - typically a few weeks - after they have been validated by the broader Tumbleweed community. This gives a good balance: packages are modern enough for current toolchains, but the delay provides a buffer against regressions.
+
+**Why Slowroll specifically:**
+
+Tumbleweed would work for development but updates arrive continuously and can occasionally break things. For a system you use daily as your own developer machine, unexpected regressions are a real cost. Slowroll's validation window means the community has already hit and reported obvious problems before they reach you.
+
+Leap is too conservative - packages are old enough that current Rust toolchains, Wayland protocol extensions, and Kuzu bindings may not be available or may require significant workarounds.
+
+Slowroll hits the sweet spot: recent enough to build against, stable enough to rely on.
+
+**European alignment:**
+SUSE has German roots and significant European presence, which aligns with the project's stance on European software independence. This is not the primary reason for the choice, but it is a relevant factor.
+
+**Note on SUSE ownership:**
+SUSE (the company behind OpenSUSE) is currently owned by EQT, a Swedish private equity firm, following several ownership changes (Novell → Attachmate → Micro Focus → EQT). It is not purely independent - this should be kept in mind when making claims about European sovereignty in a marketing context.
+
+### Filesystem: btrfs
+
+btrfs is the default filesystem. Key reasons:
+
+**Snapshots via snapper:** Before every system update, snapper automatically takes a btrfs snapshot. If an update breaks something, rolling back is one command. This is particularly valuable during heavy development when system packages change frequently.
+
+**Subvolumes:** Clean separation of `/`, `/home`, and other directories as btrfs subvolumes. Snapshots can be taken per-subvolume, so a system rollback does not affect user data.
+
+**Copy-on-write:** Files are not overwritten in place - writes go to new blocks. This makes the filesystem more resilient to corruption from unexpected shutdowns.
+
+### Init System: systemd
+
+systemd is the default and assumed throughout. No alternative is planned. systemd-homed is used for user home directory management (see Security chapter).
+
+### Package Manager: zypper + OBS
+
+zypper is the native OpenSUSE package manager. It handles base system packages.
+
+**Open Build Service (OBS):** OBS is OpenSUSE's build infrastructure and is one of the strongest arguments for the OpenSUSE ecosystem. It allows building packages for multiple distributions and architectures from a single spec file, with a web interface and CI integration. All custom packages for this project will be built and distributed via OBS.
+
+**Packman repository:** Packman is a third-party OpenSUSE repository that provides packages not included in the base distribution for licensing reasons - notably multimedia codecs, Wine, and some gaming-related packages. Packman is enabled by default on this system.
 
 ### Constraints
 
-- Must support eBPF out of the box (modern kernel required)
-- Stability matters more than bleeding edge (startup/company use case in mind)
-- European origin or governance preferred where possible
+- Kernel 6.6+ required (for eBPF, Intel CET/Shadow Stack support, and recent Wayland protocol support)
+- Vulkan support required at the driver level (for DXVK/gaming compatibility)
+- systemd 255+ for full systemd-homed support
+
+### Open Questions
+
+- Custom kernel configuration vs. stock OpenSUSE kernel?
+- Own OBS project for all packages, or integrate into existing OpenSUSE infrastructure?
+- Release cadence: follow Slowroll's schedule or define independent snapshots?
 
 ------
 
@@ -472,69 +515,418 @@ The AI layer translates natural language questions into graph queries (Cypher), 
 
 ## 7. Desktop Environment
 
-### Architecture
+The desktop environment is the most visible part of the system and the primary differentiator for new users. The goal is a fast, coherent, modern-looking desktop that does not feel like a patched-together collection of independent projects.
 
-- **Compositor/WM core:** Rust (performance, safety)
-- **UI layer (shell, taskbar, panels):** TypeScript + Tailwind CSS
-- Communication between Rust core and UI layer: TBD (IPC, likely custom protocol or WebSocket-style)
+The stack is deliberately split: performance-critical and system-close code is Rust, everything visual is TypeScript + Tailwind CSS. The two halves communicate over well-defined interfaces.
 
-### Wayland
+### 7.1 Compositor & Window Manager
 
-Full Wayland compositor, no X11 fallback by default. XWayland support for legacy apps.
+**Framework: Smithay**
 
-### Theming & Design language
+The Wayland compositor is built on [Smithay](https://smithay.github.io/), a Rust framework for building Wayland compositors. Smithay provides the low-level plumbing: Wayland protocol handling, DRM/KMS (kernel display interfaces), input via libinput, buffer management. The compositor logic - window placement, focus, workspaces - is built on top.
 
-- System-wide theme token system: one change propagates everywhere
-- No per-app theming chaos
-- Target: looks good out of the box, customizable without breaking coherence
+Building a Wayland compositor from scratch without a framework is an enormous undertaking. Smithay gives the foundation without dictating the design. Notable compositors built on Smithay include **cosmic-comp** (System76's COSMIC desktop compositor) - worth studying as a reference for a Rust-first desktop project with similar goals.
 
-### Core components
+**Window management: hybrid**
 
-- Compositor + WM
-- Taskbar / Launcher
-- Settings app
-- File Manager
-- Terminal
+The window manager supports both floating and tiling layouts, switchable per workspace. No forced paradigm - the user decides per workspace how windows are arranged. Workspaces are supported natively.
 
-### Open questions
+**Wayland protocol extensions:**
 
-- Exact IPC mechanism between Rust and TypeScript UI
-- App framework for own apps (same stack as shell, or separate?)
-- How to handle apps that don't follow system theming?
+The compositor implements the following Wayland protocol extensions relevant to the shell:
+
+- `wlr-layer-shell` - positions the taskbar and panels at screen edges, above other windows
+- `wlr-foreign-toplevel-management` - exposes the list of open windows (title, app ID, state) to the taskbar
+- `wlr-workspace-management` - workspace state and control for the taskbar
+- `xdg-shell` - standard protocol for normal application windows
+- `xdg-output` - monitor information for multi-monitor setups
+- `xdg-desktop-portal` - screensharing, file picker, and other OS-level dialogs for sandboxed apps
+
+**XWayland:**
+
+X11 compatibility is provided via XWayland - an X11 server that runs as a Wayland client. Legacy X11 applications (older tools, some Electron apps that lack native Wayland support) run transparently through XWayland without the user needing to configure anything.
+
+XWayland is enabled by default. It starts on demand when the first X11 application is launched and shuts down when no X11 apps are running. Users who do not need X11 compatibility can disable XWayland entirely in Settings for a reduced attack surface (see Security chapter for why X11 has weaker isolation guarantees).
+
+Known limitations of XWayland:
+- Copy-paste between X11 and Wayland apps requires a clipboard synchronization bridge
+- Drag and drop across protocol boundaries is unreliable
+- X11 apps cannot use xdg-desktop-portal for screensharing - they see only the XWayland surface
+- X11 has no inter-app isolation: one X11 app can read input events of other X11 apps (KeyLogger-class attack). This is logged in the audit log when X11 apps are active.
+
+### 7.2 Shell & Taskbar
+
+The shell - taskbar, launcher, system tray, notifications, panels - is built with **Tauri** (Rust backend, WebView frontend) using TypeScript and Tailwind CSS for the UI layer.
+
+Tauri renders the UI in a WebView powered by **WebKitGTK** on Linux. This is a full browser engine - Tailwind CSS, modern JavaScript, and any standard web technology works without modification. The shell is a Wayland client that uses `wlr-layer-shell` to anchor itself to screen edges.
+
+**Core shell components:**
+
+- Taskbar with open window list, workspace switcher, system tray
+- App launcher / application menu
+- Notification center
+- Quick settings panel (volume, network, Bluetooth, theme toggle)
+- Lock screen
+
+### 7.3 IPC Architecture
+
+Communication between the Smithay compositor core and the Tauri shell happens over two channels:
+
+```mermaid
+flowchart LR
+  SC["Smithay Core\n(Rust)"] <-->|"Wayland Protocols\n(layer-shell, toplevel-mgmt,\nworkspace-mgmt)"| TS["Tauri Shell\n(Rust backend)"]
+  SC <-->|"Unix Socket\n(JSON, custom events)"| TS
+  TS <-->|"Tauri Command Bridge\n(invoke / events)"| UI["TypeScript/Tailwind UI"]
+```
+
+**Channel 1: Wayland protocols**
+Window management data (open windows, focus, workspaces, monitor layout) flows via standard Wayland protocol extensions. This is the correct channel for anything Wayland standardizes - no reinventing the wheel.
+
+**Channel 2: Unix socket (custom events)**
+System-specific events that have no Wayland protocol equivalent use a Unix domain socket between the compositor and shell. Examples: theme token updates, module lifecycle events, graph-related notifications, performance metrics. Messages are JSON during development; migration to protobuf is planned once the schema stabilizes.
+
+**Channel 3: Tauri command bridge**
+Within Tauri, the Rust backend and TypeScript frontend communicate via Tauri's built-in command system. The frontend calls Rust functions via `invoke()`, Rust emits events to the frontend via Tauri's event system. This is typed and handled by Tauri's serialization layer.
+
+```rust
+// Rust side
+#[tauri::command]
+fn get_workspaces(state: State<CompositorState>) -> Vec<Workspace> {
+    state.workspaces()
+}
+```
+
+```typescript
+// TypeScript side
+import { invoke } from "@tauri-apps/api"
+const workspaces = await invoke<Workspace[]>("get_workspaces")
+```
+
+### 7.4 App Framework
+
+All first-party system apps (File Manager, Settings, Terminal, Store) are built with the same stack as the shell: Tauri + TypeScript + Tailwind CSS.
+
+**ui-kit - shared component library:**
+
+A shared TypeScript package (`ui-kit`) is the foundation for all visual consistency. All first-party apps import from it. It is based on **shadcn/ui** - not a traditional npm dependency but components that are copied into the project and fully owned. shadcn/ui is Tailwind-based, well-structured, and ships with accessibility built in.
+
+ui-kit contains three layers:
+
+**Design Tokens** - CSS custom properties that define the visual language. Changing a token propagates everywhere.
+
+```css
+:root {
+  --color-accent: #5b8af0;
+  --color-surface: #1a1a2e;
+  --color-surface-elevated: #22223b;
+  --radius-default: 8px;
+  --spacing-base: 4px;
+}
+```
+
+**Base Components** - Button, Input, Dialog, Dropdown, Toast, Card, etc. All built on shadcn/ui, styled with design tokens.
+
+**System Components** - OS-specific components: `WindowChrome` (title bar), `AppShell` (standard app layout), `ContextMenu`, `FileIcon`, `NotificationToast`.
+
+**os-sdk - shared Rust crate:**
+
+Parallel to ui-kit, a shared Rust crate (`os-sdk`) provides every first-party app with system integration out of the box:
+
+```
+os-sdk/
+  ├── graph.rs      ← Graph Daemon client
+  ├── events.rs     ← Event Bus client
+  ├── mcp.rs        ← MCP server boilerplate
+  └── config.rs     ← config system (TOML-based)
+```
+
+A new first-party app starts with Tauri + ui-kit + os-sdk and immediately has: graph access, event emission, MCP server, config handling, and consistent UI - without writing any infrastructure code.
+
+**Standard app structure:**
+
+```
+app-files/
+├── src-tauri/
+│   ├── Cargo.toml        ← includes os-sdk
+│   └── src/
+│       ├── main.rs       ← Tauri setup
+│       ├── commands.rs   ← Tauri command handlers
+│       └── mcp.rs        ← this app's MCP server
+└── src/
+    ├── main.tsx
+    ├── components/       ← app-specific components (uses ui-kit)
+    └── pages/
+```
+
+### Open Questions
+
+- Exact Unix socket message schema (to be defined as shell features solidify)
+- How does the shell handle multi-monitor setups with different DPI?
+- Community app certification: can third-party apps use ui-kit and appear as "native-looking"?
 
 ------
 
-## 8. App Ecosystem
+## 8. Design Language & Theming
 
-### Own apps
+> **Note:** The specific visual design language (aesthetics, color palettes, motion design) is not finalized and will be decided separately. This chapter documents the technical theming architecture - how themes work, how they propagate, and what needs to be implemented - independent of the final visual choices.
 
-All core system apps built in-house. Follow shared design language, implement MCP servers, emit structured events.
+### 8.1 Token System
 
-### Third-party app strategy
+The theming system is built on **design tokens** - named variables that define all visual properties. Nothing in the system hard-codes a color, spacing value, or border radius. Everything references a token.
 
-- Wrappers for popular apps that add MCP interfaces and structured event emission
-- Wrappers shipped alongside packages in the package manager where possible
-- Log-based LLM extraction as fallback for apps with no wrapper
+A single source of truth (a TOML or JSON file) defines all tokens. From this file, the build system generates:
 
-### Shared standards
+- **CSS custom properties** for the Tauri shell and all first-party apps
+- **GTK3 CSS** for GTK3 applications
+- **GTK4 CSS** for GTK4 applications
+- **Qt palette / QSS** for Qt applications
+- **Wine .msstyles** for Windows applications running via Wine/Proton
 
-- Common config format/location conventions
-- Common theming interface
-- Common notification system
-- MCP server interface spec for apps that want to integrate
+This means changing the accent color in Settings updates every layer simultaneously - first-party apps, GTK apps, Qt apps, and Wine apps all reflect the change.
 
-### Open questions
+### 8.2 Built-in Themes
 
-- Config format (TOML likely, but needs decision)
+Three built-in themes ship with the system. The exact aesthetics are TBD but the structure is defined:
+
+- **Dark** - dark background, appropriate contrast ratios
+- **Light** - light background variant
+- **[Third theme TBD]** - design language decision pending
+
+Themes are full token sets. Switching themes replaces the entire token set, which propagates to all layers as described above. Theme switching happens live - no logout required.
+
+### 8.3 GTK & Qt Integration
+
+GTK and Qt have entirely different theming systems. Making third-party GTK and Qt apps look consistent with the rest of the desktop requires generating valid themes for both toolkits from the same token source.
+
+**GTK3:** Theme via CSS. GTK3's theming API is well-established but quirky - some visual properties require non-obvious CSS selectors. A complete GTK3 theme must cover hundreds of widget states.
+
+**GTK4:** GTK4 also uses CSS but with a different, cleaner API than GTK3. GTK4 themes are not backward-compatible with GTK3 - both must be maintained separately.
+
+**Qt:** Qt theming is handled via QSS (Qt Style Sheets, a CSS subset) and palette configuration. Qt's styling model differs significantly from GTK, requiring separate implementation.
+
+> TODO: This is significant implementation work. GTK and Qt theme generation from tokens will be a dedicated project phase. Scope and timeline TBD.
+
+### 8.4 Open Questions
+
+- Final visual design language (separate design phase)
+- Third built-in theme - LiquidGlass-style translucency? Separate dark/light variants?
+- Tooling for token-to-GTK/Qt generation (write custom generator or adapt existing tools like Style Dictionary?)
+- Community theme format: same token file structure, distributed via the Store
+
+---
+
+## 9. Plugin & Module System
+
+The shell is extensible. Users can install modules from the Store that add widgets, alternative taskbars, panel elements, and custom themes. This is the mechanism for community contributions to the desktop experience.
+
+### 9.1 Module Types
+
+Four distinct module types, each with different placement and capabilities:
+
+| Type | Description | Example |
+|---|---|---|
+| `widget` | A UI element placed on the desktop or in a panel | Clock, weather, system stats |
+| `taskbar-element` | A slot within the main taskbar | Custom launcher, media controls |
+| `panel` | A full alternative panel anchored to a screen edge | Alternative taskbar, dock, sidebar |
+| `theme` | CSS/token overrides only, no executable code | Community color schemes |
+
+### 9.2 Module Structure
+
+A module is a package with a manifest and compiled assets:
+
+```toml
+[module]
+id = "com.example.weather-widget"
+name = "Weather Widget"
+version = "1.0.0"
+type = "widget"
+entry = "dist/widget.js"
+slots = ["taskbar-right", "desktop"]
+
+[permissions]
+network = ["api.openweathermap.org"]
+graph = ["Session.started_at"]
+system = ["clock"]
+
+[sandbox]
+allow_network = true
+allow_graph = false
+allow_filesystem = false
+```
+
+The manifest defines what the module is allowed to do. The module itself cannot declare or expand its own permissions - those come from the manifest reviewed during Store submission.
+
+**Theme modules** are a special case: they contain only CSS and token overrides, no JavaScript. No sandbox needed, no permissions. Anyone who can write CSS can publish a theme.
+
+### 9.3 Module Runtime
+
+A dedicated **Module Runtime** daemon manages the lifecycle of all installed modules. It is responsible for loading, sandboxing, and monitoring modules:
+
+```mermaid
+flowchart TD
+  MR["Module Runtime\n(Rust daemon)"] --> IV1["Isolated WebView\nWidget: Clock"]
+  MR --> IV2["Isolated WebView\nWidget: Weather"]
+  MR --> IV3["Isolated WebView\nPanel: Dock"]
+  MR --> SAPI["Shell API\n(restricted)"]
+  SAPI --> SC["Smithay Core"]
+  SAPI --> GD["Graph Daemon"]
+```
+
+Each module runs in its **own isolated WebView context** - completely separate from the shell's WebView. A module crash does not affect the shell or other modules. The runtime detects crashes, logs them, and either restarts the module or marks it as failed.
+
+### 9.4 Shell API
+
+Modules do not have direct access to Smithay or the Graph Daemon. They interact with the system through a restricted JavaScript API provided by the Module Runtime:
+
+```typescript
+import { shell } from "@os/module-sdk"
+
+// Window management
+const windows = await shell.getWindows()
+const active = await shell.getActiveWindow()
+
+// Workspaces
+const workspaces = await shell.getWorkspaces()
+await shell.switchWorkspace(2)
+
+// System info
+const stats = await shell.getSystemStats()  // CPU, RAM, disk
+const time = await shell.getClock()
+
+// Theme
+const accent = await shell.theme.getToken("color-accent")
+
+// Graph (requires explicit permission in manifest)
+const recent = await shell.graph.query("MATCH (f:File) RETURN f LIMIT 5")
+```
+
+What is not in the SDK is not accessible. No raw DOM access to the shell, no arbitrary network calls beyond declared endpoints, no filesystem access unless explicitly permitted.
+
+### 9.5 Developer Experience
+
+The barrier to writing a module should be as low as possible. A CLI tool scaffolds a complete module project:
+
+```bash
+npx create-os-module my-widget
+```
+
+This produces a fully configured project with Vite, TypeScript, Tailwind CSS, the module-sdk, and a manifest template. During development, hot-reload works directly in the running shell - changes appear immediately without restarting anything.
+
+The build output is a signed package ready for Store submission or local installation.
+
+### 9.6 Store Integration
+
+From the user's perspective, installing a module is identical to installing an app. The Store shows modules and apps in the same interface, distinguished by a tag. Internally, the package manager recognizes the module manifest and installs it to the correct location where the Module Runtime picks it up.
+
+---
+
+## 10. App Ecosystem
+
+### First-Party Apps
+
+All core system applications are built in-house using the standard app stack (Tauri + ui-kit + os-sdk). Every first-party app:
+
+- Follows the shared design language via ui-kit
+- Implements an MCP server for AI integration
+- Emits structured events to the Event Bus
+- Uses the shared config system (TOML)
+
+Core apps planned:
+
+- **File Manager** - with graph-aware features (recent files by project, related files)
+- **Terminal** - with MCP server exposing command history and output
+- **Settings** - system-wide configuration including theming, permissions, AI level
+- **Store** - app and module discovery, installation, updates
+- **Text Editor** - basic editor, primarily for config files
+- **System Monitor** - process list, resource usage, anomaly alerts
+
+### Third-Party App Strategy
+
+Third-party apps are not rewritten. Integration happens in layers:
+
+**Layer 1: eBPF baseline.** Every app gets passive tracking via eBPF regardless of cooperation - file access, network connections, process lifecycle. No app changes required.
+
+**Layer 2: Log wrappers.** A wrapper around the app captures its stdout/stderr and passes it through async LLM extraction to produce graph entities. Wrappers are shipped alongside packages in the package manager where possible.
+
+**Layer 3: MCP server wrappers.** For popular apps, dedicated MCP server wrappers expose structured interfaces to the AI layer. These are maintained as separate packages, ideally contributed back to the community.
+
+**Layer 4: Native integration.** Apps that explicitly support this system's APIs get full structured event emission and native MCP servers. Long-term goal for popular open-source apps.
+
+### Shared Standards
+
+All apps - first-party and third-party that choose to integrate - work with:
+
+- **Config:** TOML files in `~/.config/<app-id>/`
+- **Theming:** CSS custom properties from the token system (for apps that render via WebView)
+- **Notifications:** A common notification daemon with a unified notification center
+- **MCP:** A published MCP server interface specification
+
+### Open Questions
+
 - How deep does wrapper support go for major apps (Firefox, VSCode, etc.)?
+- Certification program for third-party apps that meet integration standards?
+- Config format for non-Tauri apps that cannot use TOML directly?
+
+---
+
+## 11. Gaming & Windows Compatibility
+
+Gaming and Windows application compatibility are first-class features, not afterthoughts. The required components are pre-installed and pre-configured - no manual setup required.
+
+### 11.1 Wine & Proton
+
+**Wine** provides compatibility for Windows applications on Linux. **Proton** is Valve's fork of Wine, optimized for gaming and maintained with extensive patches from Valve's Linux gaming team. For gaming specifically, Proton is substantially better than vanilla Wine.
+
+Both are pre-installed:
+
+- Wine for general Windows application compatibility
+- Proton for Steam games and gaming-specific use cases
+- **DXVK** - translates Direct3D 9/10/11 calls to Vulkan. Bundled with Proton, also available standalone for Wine
+- **vkd3d-proton** - translates Direct3D 12 calls to Vulkan. Valve's fork, maintained separately from upstream vkd3d
+- **Winetricks** - a helper script for installing Windows components (Visual C++ runtimes, DirectX, etc.) into Wine prefixes
+
+Steam is available in the Store and works out of the box with Proton enabled. Non-Steam Windows games and applications use Wine directly, with a simple UI for creating and managing Wine prefixes.
+
+**Vulkan requirement:**
+DXVK and vkd3d-proton require Vulkan. Mesa (the open-source GPU driver stack) ships with Vulkan support for AMD and Intel GPUs by default on OpenSUSE. Nvidia requires the proprietary driver for Vulkan support - the Store provides clear guidance for Nvidia users.
+
+### 11.2 Wine Theming
+
+By default, Wine applications render with a Windows Classic or Windows 7-era appearance - completely out of place on a modern desktop. Wine supports custom visual themes via Windows `.msstyles` files.
+
+A first-party Wine theme is maintained as part of the project. It is generated from the same design token system used for GTK and Qt theming - meaning it automatically updates when the system theme changes. Wine apps do not look native, but they look consistent with the rest of the system rather than like a time traveler from 2001.
+
+The Wine theme is applied automatically to all Wine prefixes managed by the system. Users who prefer the default Windows appearance can opt out per-prefix.
+
+### 11.3 Performance Tooling
+
+**Gamemode** (by Feral Interactive) is pre-installed and enabled. It applies system-level performance optimizations when a game is running: CPU governor switches to performance mode, I/O scheduler optimized, kernel scheduler hints applied. Games request Gamemode via a simple library call that Proton handles automatically.
+
+**MangoHud** is pre-installed - an in-game overlay showing FPS, GPU/CPU usage, temperatures, and frame timing. Optional, disabled by default, toggled via a keyboard shortcut.
+
+### 11.4 Knowledge Graph Integration
+
+Gaming activity is tracked in the Knowledge Graph like any other activity:
+
+- Which games were played, when, for how long
+- Which Wine/Proton versions were used per game
+- Performance data (from MangoHud, if enabled) linked to sessions
+
+This enables queries like "how many hours did I play last week" or "which Proton version worked best for this game" without relying on any external service.
+
+### Open Questions
+
+- UI for Wine prefix management (built into the Store or a separate app?)
+- Automatic Proton version selection per game (ProtonDB integration?)
+- Controller support configuration UI
 
 ------
 
-## 9. Security & Privacy
+## 12. Security & Privacy
 
 Security is not a feature added on top of this system. It is a foundational design constraint that shapes every architectural decision. This chapter documents what threats we address, how we address them, and why.
 
-### 9.1 Principles
+### 12.1 Principles
 
 A few non-negotiables that drive everything in this chapter:
 
@@ -550,7 +942,7 @@ A few non-negotiables that drive everything in this chapter:
 
 ------
 
-### 9.2 Full Disk Encryption
+### 12.2 Full Disk Encryption
 
 **What it is:** Full Disk Encryption (FDE) means that everything stored on the disk is encrypted at rest. Without the correct unlock credentials, the raw data on the disk is unreadable - even if someone physically removes the drive and connects it to another machine.
 
@@ -568,7 +960,7 @@ TPM-based unlock is opt-in. Passphrase is always the fallback.
 
 ------
 
-### 9.3 Secure Boot & Boot Integrity
+### 12.3 Secure Boot & Boot Integrity
 
 **What Secure Boot is:** Secure Boot is a UEFI firmware feature that verifies the cryptographic signature of every piece of code executed during the boot process - the bootloader, the kernel, and kernel modules. If any component is not signed by a trusted key, the firmware refuses to execute it.
 
@@ -593,7 +985,7 @@ Secure Boot + Measured Boot together make this attack significantly harder. The 
 
 ------
 
-### 9.4 Knowledge Graph Permissions
+### 12.4 Knowledge Graph Permissions
 
 The Knowledge Graph is the most sensitive component in the system. It accumulates a detailed record of everything the user does - files accessed, apps used, network connections, work patterns. Getting its access control right is critical.
 
@@ -645,7 +1037,7 @@ An app that requests more than it declared at install time is rejected outright 
 
 ------
 
-### 9.5 AI Security
+### 12.5 AI Security
 
 The AI layer has broader graph access than most apps by necessity - it needs context to give useful answers. This makes it a higher-risk component that requires its own security model.
 
@@ -697,7 +1089,7 @@ Current language models **cannot** reliably distinguish between content they sho
 
 ------
 
-### 9.6 Audit Log
+### 12.6 Audit Log
 
 Every access to the Knowledge Graph, every AI action, and every permission grant or denial is recorded in the audit log. This serves two purposes: giving the user visibility into what is happening on their system, and providing the data needed for anomaly detection.
 
@@ -736,7 +1128,7 @@ Three tiers of read access:
 
 ------
 
-### 9.7 Anomaly Detector
+### 12.7 Anomaly Detector
 
 The Anomaly Detector is a system daemon that reads the audit log and identifies unusual patterns. It is not a traditional antivirus - it does not match file signatures or scan for known malware. It is a behavioral analysis tool that understands what normal looks like on this specific machine and flags deviations.
 
@@ -758,7 +1150,7 @@ The Anomaly Detector is a system daemon that reads the audit log and identifies 
 
 ------
 
-### 9.8 App Sandboxing
+### 12.8 App Sandboxing
 
 Every application runs in a restricted environment that limits what it can do even if it is fully compromised. Sandboxing is the defense-in-depth layer that contains the blast radius of a successful attack.
 
@@ -782,7 +1174,7 @@ An app cannot open a socket and talk directly to another app without that channe
 
 ------
 
-### 9.9 Network Security
+### 12.9 Network Security
 
 **Default Deny:** On a conventional Linux system, any process can open a network connection to anywhere by default. This is the wrong default. On this system, outbound network access is denied unless explicitly permitted.
 
@@ -811,7 +1203,7 @@ The system enforces this via a combination of eBPF-based network filtering and t
 
 ------
 
-### 9.10 Physical Access
+### 12.10 Physical Access
 
 Full Disk Encryption handles the most common physical threat: a stolen or lost device. But physical access threats go beyond that.
 
@@ -842,7 +1234,7 @@ In a managed deployment, this can be used as a network access gate: a device tha
 
 ------
 
-### 9.11 Memory Safety
+### 12.11 Memory Safety
 
 Memory safety bugs - buffer overflows, use-after-free errors, race conditions on shared memory - are the most common source of exploitable vulnerabilities in system software. They are structural problems with C and C++ that persist even with experienced developers and extensive testing.
 
@@ -862,7 +1254,7 @@ This is supported by the Linux kernel since version 6.6 and is enabled by defaul
 
 ------
 
-### 9.12 Multi-User
+### 12.12 Multi-User
 
 When multiple users share a system, their data must be completely isolated from each other. On this system, that isolation goes deeper than traditional Unix file permissions because there is more sensitive state to protect: the Knowledge Graph, the AI configuration, the audit log, and the sandbox profiles.
 
@@ -904,7 +1296,7 @@ The admin sees that something unusual happened (via anomaly alerts), but not wha
 
 ------
 
-### 9.13 Managed Environments
+### 12.13 Managed Environments
 
 For enterprise deployments where this system runs on many machines administered centrally, additional infrastructure is needed. This section describes the managed environment architecture.
 
@@ -946,7 +1338,7 @@ Organizations deploying this system should seek legal counsel to define appropri
 
 ------
 
-## 10. Developer Experience & Infrastructure
+## 13. Developer Experience & Infrastructure
 
 ### Repository structure
 
@@ -981,7 +1373,7 @@ Looking at `mkosi` for image generation. To be decided.
 
 ------
 
-## 11. Roadmap
+## 14. Roadmap
 
 > TODO: Define phases with rough scope
 
@@ -1008,7 +1400,7 @@ Looking at `mkosi` for image generation. To be decided.
 
 ------
 
-## 12. Appendix: Technology Decisions
+## 15. Appendix: Technology Decisions
 
 ### Knowledge Graph: Why Kuzu
 
