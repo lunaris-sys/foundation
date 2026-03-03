@@ -153,11 +153,34 @@ zypper is the native OpenSUSE package manager. It handles base system packages.
 - Vulkan support required at the driver level (for DXVK/gaming compatibility)
 - systemd 255+ for full systemd-homed support
 
+### 3.6 Config Format
+
+All system components and first-party apps use **TOML** as the configuration format. This is not just a convention - it is a system-wide standard.
+
+**Why TOML:**
+
+TOML is human-readable and human-writable, like YAML, but without YAML's well-known parsing edge cases (implicit type coercion, indentation-sensitive syntax, the Norway problem). It maps cleanly to Rust's `serde` ecosystem via the `toml` crate, which is the de-facto standard for Rust configuration. It is less verbose than JSON and does not require a schema to be readable.
+
+Config files live at `~/.config/<app-id>/config.toml`. System-wide daemon configs live at `/etc/<daemon-name>/config.toml`.
+
+**Non-Tauri apps and legacy software:**
+
+Some third-party apps cannot read TOML natively - they expect environment variables, INI files, or JSON. A small **config-helper** binary bridges this gap:
+
+```bash
+# Export a TOML config as environment variables
+eval $(os-config-helper export --toml ~/.config/myapp/config.toml --format env)
+
+# Export as JSON to stdout
+os-config-helper export --toml ~/.config/myapp/config.toml --format json
+```
+
+This means the source of truth is always TOML, even for apps that consume other formats. The config-helper is a thin wrapper with no business logic.
+
 ### Open Questions
 
 - Custom kernel configuration vs. stock OpenSUSE kernel?
-- Own OBS project for all packages, or integrate into existing OpenSUSE infrastructure?
-- Release cadence: follow Slowroll's schedule or define independent snapshots?
+- Own OBS project for all packages, or integrate into existing OpenSUSE infrastructure?- Release cadence: follow Slowroll's schedule or define independent snapshots?
 
 ------
 
@@ -249,11 +272,147 @@ The payload is a type-specific message. For example, a `file.opened` event carri
 
 **Other consumers:** The bus is not exclusively for the Knowledge Graph. In the future, other components could subscribe - for example, a proactive AI agent (opt-in) or a system monitoring dashboard.
 
+### 4.2 Event Schema
+
+Every event, regardless of source, shares a common envelope:
+
+```protobuf
+message Event {
+  string id         = 1;  // UUID v7 (time-sortable)
+  string type       = 2;  // "file.opened", "window.focused", "app.action" etc.
+  int64  timestamp  = 3;  // microseconds since epoch
+  string source     = 4;  // "ebpf", "wayland", "app:<id>", "system:<daemon>"
+  uint32 pid        = 5;  // PID of the originating process
+  string session_id = 6;  // which user session
+  bytes  payload    = 7;  // type-specific protobuf message (see below)
+}
+```
+
+UUID v7 is used instead of v4 because v7 is time-sortable - events are inherently ordered by time and the ID should reflect that.
+
+**eBPF event payloads (low-level, high-frequency):**
+
+```protobuf
+message FileAccessEvent {
+  string path      = 1;
+  string app_name  = 2;
+  string operation = 3;  // "open", "read", "write", "close", "delete"
+  uint32 flags     = 4;  // O_RDONLY, O_WRONLY etc.
+}
+
+message ProcessEvent {
+  string operation  = 1;  // "fork", "exec", "exit"
+  uint32 parent_pid = 2;
+  string binary     = 3;
+  int32  exit_code  = 4;  // only present on exit
+}
+
+message NetworkEvent {
+  string operation = 1;  // "connect", "accept", "close"
+  string dest_ip   = 2;
+  uint32 dest_port = 3;
+  string protocol  = 4;  // "tcp", "udp"
+}
+```
+
+**Wayland event payloads (medium-level):**
+
+```protobuf
+message WindowFocusEvent {
+  string app_id = 1;
+  string title  = 2;
+  bool   gained = 3;  // true = focus gained, false = lost
+}
+
+message WindowLifecycleEvent {
+  string app_id    = 1;
+  string operation = 2;  // "opened", "closed", "minimized", "maximized"
+}
+
+message ClipboardEvent {
+  string app_id    = 1;
+  string operation = 2;  // "copy", "paste"
+  string mime_type = 3;  // "text/plain", "image/png" etc. - no content logged
+}
+```
+
+Clipboard content is never logged - only that an operation occurred and its MIME type. This is a deliberate privacy decision.
+
+**App event payloads (high-level, structured):**
+
+```protobuf
+message AppEvent {
+  string category               = 1;  // "document", "browser", "terminal", "media"
+  string action                 = 2;  // "opened", "saved", "searched", "played"
+  string subject                = 3;  // filename, URL, search term - context-dependent
+  map<string, string> metadata  = 4;  // app-specific extra fields
+}
+```
+
+App events are intentionally generic - a specific app fills in category/action/subject meaningfully without requiring a dedicated type per app.
+
+**eBPF noise filtering:**
+
+eBPF can produce thousands of events per second. Two filters in the eBPF Normalizer reduce noise before events hit the bus:
+
+- **Deduplication:** Same operation, same process, same file within 100ms collapses to one event with an updated timestamp.
+- **Relevance filter:** `/proc`, `/sys`, `/dev`, `/tmp`, and shared libraries under `/usr/lib` are ignored entirely. These have no semantic value in the Knowledge Graph.
+
+### 4.3 Backpressure
+
+Kuzu is optimized for analytical workloads, not high-frequency single-row writes. Batch inserts are fast; individual inserts are slow. The write strategy reflects this.
+
+**Architecture: Ring Buffer + Batch Writer**
+
+```mermaid
+flowchart LR
+  EB["Event Bus"] --> RB["Ring Buffer
+10k slots"]
+  RB -->|"buffer full + duplicate"| DD["Deduplicate
+(update timestamp)"]
+  RB -->|"buffer full + no duplicate"| PD["Priority Drop
+(low-value events first)"]
+  RB -->|"normal"| BW["Batch Writer
+every 500ms or 1k events"]
+  DD --> BW
+  PD --> BW
+  BW --> KZ[("Kuzu")]
+```
+
+The Graph Writer Daemon maintains a **ring buffer of 10,000 event slots**. Events are written to Kuzu in batches rather than one at a time.
+
+**Batch triggers** - whichever comes first:
+- **Time:** every 500ms - ensures events are never stuck in the buffer for long
+- **Size:** 1,000 events - prevents buffer overflow under high load
+
+Both values are configurable in the system config.
+
+**When the buffer is full - three tiers:**
+
+**Tier 1 - Deduplicate:** Check if an identical event (same type, same source, same subject) already exists in the buffer. If yes, update the existing entry's timestamp instead of inserting a new one. No data loss.
+
+**Tier 2 - Priority drop:** No duplicate found. Drop the lowest-value event currently in the buffer to make room:
+- Drop first: raw eBPF `read()`/`write()` events with no app-level context
+- Never drop: AppEvents, WindowFocusEvents, ProcessEvents (exec/exit), NetworkEvents
+
+**Tier 3 - Hard drop:** Truly no room even after priority dropping. The new event is discarded with a log warning. This should never happen in normal operation - if it does, it signals that batch size or Kuzu config needs tuning.
+
+**Monitoring:**
+
+The Graph Writer Daemon exposes metrics that feed back into the Knowledge Graph:
+- Current buffer utilization
+- Drop rate per tier
+- Average batch write duration
+
+The Anomaly Detector watches these metrics. Sustained high drop rates trigger a system alert.
+
+**Event stream persistence:**
+
+The raw event stream is not persisted independently of the Knowledge Graph by default. The graph is the persistent store. If replay or debugging is needed during development, the Event Bus can be configured to additionally write events to a rotating log file. This is off by default in production.
+
 ### Open Questions
 
-- Exact event schema per type (to be designed per source)
-- Backpressure strategy - what happens when the Graph Writer can't keep up with event volume?
-- Whether to persist the event stream independently of the graph (useful for replay/debugging)
+- Whether to persist the event stream independently of the graph (useful for replay/debugging) - off by default, opt-in for dev environments
 
 ------
 
@@ -504,10 +663,64 @@ This matters because AI models have a **context window** - a limit on how much t
 
 The AI layer translates natural language questions into graph queries (Cypher), executes them against Kuzu, and feeds the structured results to the model as context. The model never needs to see the raw event stream.
 
+### 6.4 Natural Language to Cypher
+
+The AI layer translates user questions into valid Kuzu Cypher queries. This section describes how that translation works reliably and safely.
+
+**The problem with unconstrained generation:**
+
+LLMs can generate Cypher, but without constraints they produce three failure modes: hallucinated node types or relations that don't exist in the schema (query fails or returns garbage), poorly formed queries that trigger full graph scans (slow on large graphs), and queries that attempt to traverse unauthorized relations (caught by the Graph Daemon but better prevented earlier).
+
+**Strategy: schema-constrained generation**
+
+The model generates Cypher within a strict context that includes the current graph schema and a set of hard rules:
+
+```
+System prompt:
+You are a read-only Cypher query generator for a personal knowledge graph.
+Schema: [current schema injected here]
+
+Rules:
+- Only use node types and relations defined above
+- Queries must be read-only (no CREATE, SET, DELETE, MERGE, REMOVE)
+- Always include LIMIT (max 100)
+- Never use FOREACH or complex MERGE patterns
+```
+
+**Validation layer:**
+
+```mermaid
+flowchart LR
+  NL["Natural Language"] --> LLM1["LLM - Cypher generator"]
+  LLM1 --> VAL["Query Validator"]
+  VAL -->|"invalid"| RETRY["Error + retry (max 2x)"]
+  RETRY --> LLM1
+  VAL -->|"valid"| GD["Graph Daemon
+(permission check)"]
+  GD --> KZ[("Kuzu")]
+  KZ --> FMT["LLM - result formatter"]
+  FMT --> USR["User"]
+```
+
+The validator checks: only known node types and relations, no write operations, LIMIT present. If validation fails, the error is sent back for a retry. After 2 failed attempts the user is informed the question could not be answered - no silent fallback.
+
+Generation and formatting are two separate LLM calls. Combining them causes the model to bias the query toward a desired-sounding answer rather than accurately querying the schema.
+
+Cypher generation is a constrained task that does not require a large model - a small local 7B model handles it well and keeps latency low. Result formatting benefits from a larger model.
+
+**Temporal resolution:**
+
+Relative time expressions are resolved to absolute UTC timestamps before the generation call. The model always receives concrete timestamps:
+
+```
+"last week"    -> 2026-02-23T00:00:00Z to 2026-03-01T23:59:59Z
+"yesterday"    -> 2026-03-02T00:00:00Z to 2026-03-02T23:59:59Z
+"this morning" -> 2026-03-03T06:00:00Z to 2026-03-03T12:00:00Z
+```
+
 ### Open Questions
 
 - Which local models to officially support and recommend at launch?
-- How to translate natural language to Cypher reliably (fine-tuned model? few-shot prompting?)
 - Permission model: which MCP servers can the AI access by default, which require explicit user approval per session?
 - Audit log for AI actions - what gets recorded, where, for how long?
 
@@ -661,8 +874,40 @@ app-files/
 ### Open Questions
 
 - Exact Unix socket message schema (to be defined as shell features solidify)
-- How does the shell handle multi-monitor setups with different DPI?
 - Community app certification: can third-party apps use ui-kit and appear as "native-looking"?
+
+### 7.5 Multi-Monitor & HiDPI
+
+**What Wayland solves for free:**
+
+Wayland treats multi-monitor and HiDPI as first-class concepts. Each output (monitor) has its own scale factor. Smithay exposes this via `wl_output` and `xdg-output-v1`. Every Wayland-native app queries its output properties and renders at the correct scale automatically. WebKitGTK (Tauri's WebView) respects the Wayland scale factor transparently - Tailwind layouts look identical on 4K and 1080p without any extra work.
+
+**What needs explicit implementation:**
+
+**Shell per output:** The taskbar runs as a separate `layer-shell` surface per monitor. Smithay informs the shell about every output via `wlr-output-management`. The shell spawns one independent layer-shell surface per output, each correctly sized and scaled for that monitor.
+
+**Monitor config persistence:** Resolution, refresh rate, scale, position, and rotation per monitor are stored in `~/.config/display/config.toml` and loaded at compositor startup.
+
+Hot-plug flow:
+1. New monitor connected - Smithay detects new output via DRM
+2. Known monitor (saved config exists): apply immediately, no user interaction needed
+3. Unknown monitor: apply sensible defaults (native resolution, auto scale based on reported DPI), show notification "New display detected - configure in Settings?"
+
+**Fractional scaling:**
+
+Scale 1.0 and 2.0 (integer scaling) work cleanly everywhere. Scale 1.5 (common on 1440p monitors) uses the `wp-fractional-scale-v1` Wayland protocol. WebKitGTK supports this. Native Wayland apps that implement the protocol render crisply at fractional scales. Apps that do not implement it are rendered at the nearest integer scale - slightly soft but acceptable. Documented behavior, not a bug.
+
+**Windows crossing monitor boundaries:**
+
+Dragging a window from a 4K monitor to a 1080p monitor requires re-rendering at the new scale. Modern Wayland apps handle this smoothly. Older apps may show a brief resize artifact during the transition. No perfect compositor-level solution exists - this is documented and accepted.
+
+**XWayland and DPI:**
+
+X11 has no per-monitor DPI concept. XWayland uses a single global DPI set to match the primary monitor. X11 apps do not re-scale when moved between monitors. This is a structural X11 limitation - documented behavior, not fixable at the compositor level.
+
+**Settings UI:**
+
+The Settings app provides a monitor configuration screen with: drag-to-arrange monitor layout, resolution and refresh rate selection per monitor, scale factor (with fractional scale options), primary monitor selection, and rotation.
 
 ------
 
