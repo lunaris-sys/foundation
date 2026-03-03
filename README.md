@@ -920,14 +920,78 @@ All apps - first-party and third-party that choose to integrate - work with:
 
 - **Config:** TOML files in `~/.config/<app-id>/`
 - **Theming:** CSS custom properties from the token system (for apps that render via WebView)
-- **Notifications:** A common notification daemon with a unified notification center
+- **Notifications:** A common notification daemon with a unified notification center (see 10.4 below)
 - **MCP:** A published MCP server interface specification
+
+### 10.4 Notification System
+
+**Architecture:**
+
+```mermaid
+flowchart LR
+  A["libnotify\n(D-Bus Standard)"] --> ND["Notification Daemon\n(Rust)"]
+  B["Native Apps\n(Event Bus)"] --> ND
+  C["System Components\n(Anomaly Detector,\nUpdate System...)"] --> ND
+  ND --> T["Toast Renderer\n(Tauri)"]
+  ND --> NC["Notification Center\n(Tauri, in Shell)"]
+  ND --> AL[("Audit Log")]
+```
+
+The **Notification Daemon** is the single entry point for all notifications. It receives from two sources:
+
+- **D-Bus** (`org.freedesktop.Notifications`) - the standard Linux notification protocol. Every third-party app that uses `libnotify` or `notify-send` works automatically without changes.
+- **Event Bus** - native system components (Anomaly Detector, Update System, AI layer) send richer notifications with additional metadata, priority, and graph context.
+
+The daemon normalizes both into a common schema, applies grouping and priority logic, and forwards to the Toast Renderer and Notification Center.
+
+Notifications are recorded in the Audit Log - not their content, but the fact that an app sent a notification. This is relevant for the Anomaly Detector: an app that suddenly sends many notifications is suspicious.
+
+**Priority levels:**
+
+| Level | Behavior | Do Not Disturb |
+|---|---|---|
+| Critical | Persistent toast, no auto-close | Always shown, never silenced |
+| High | Toast auto-closes after ~8s | Delayed, not blocked |
+| Normal | Toast auto-closes after ~4s | Silenced |
+| Low | No toast - goes silently to Center only | Silenced |
+
+Critical is reserved for system-level alerts only: Anomaly Detector warnings, component compatibility failures, security events. Apps cannot self-assign Critical priority.
+
+**Grouping:**
+
+Notifications from the same app are grouped in the Notification Center:
+
+```
+Firefox (3)                    v expandable
+  +-- Download complete: report.pdf
+  +-- Password saved for github.com
+  +-- Update available: Firefox 134
+```
+
+As a toast, only the most recent notification from an app is shown - with a counter if a previous one from the same app is still visible. No stacking tower of toasts.
+
+**Do Not Disturb:**
+
+Three modes, configurable in Settings and togglable from the taskbar quick panel:
+
+- **Off** - everything normal
+- **On** - only Critical shown, everything else goes silently to Center
+- **Scheduled** - automatically activates at configured times (e.g. 22:00-08:00)
+
+**Notification Center:**
+
+Accessible via a bell icon in the taskbar. Shows all recent notifications grouped by app, with timestamps. Actions (buttons embedded in notifications) work directly from the Center, not just from the toast. Notifications can be dismissed individually or per-group.
+
+**Visual placement:**
+
+Toasts appear top-right. They stack vertically if multiple arrive simultaneously. Maximum three toasts visible at once - further notifications queue and appear as previous ones dismiss.
 
 ### Open Questions
 
 - How deep does wrapper support go for major apps (Firefox, VSCode, etc.)?
 - Certification program for third-party apps that meet integration standards?
 - Config format for non-Tauri apps that cannot use TOML directly?
+- Notification history retention - how long are dismissed notifications kept in the Center?
 
 ---
 
@@ -1402,36 +1466,113 @@ Organizations deploying this system should seek legal counsel to define appropri
 
 ## 13. Developer Experience & Infrastructure
 
-### Repository structure
+### 13.1 Repository Structure
 
-GitHub Organization (name TBD). Multi-repo:
+GitHub Organization (name TBD). Multi-repo - each component has its own repository, release cycle, and CI pipeline:
 
-```bash
+```
 org/
-├── docs             ← this document and more
-├── kernel-layer     ← eBPF, Event Bus
-├── knowledge        ← Kuzu integration, graph schema
-├── ai-layer         ← provider abstraction, MCP
-├── compositor       ← Wayland WM core (Rust)
-├── desktop-shell    ← Taskbar, Launcher (TypeScript/Tailwind)
-├── apps-*           ← individual core apps
-└── distro           ← build system, ISO generation
+├── blueprint            ← this document and architecture docs
+├── kernel-layer         ← eBPF programs, Event Bus daemon
+├── knowledge            ← Kuzu integration, graph schema, Graph Daemon
+├── ai-layer             ← provider abstraction, MCP client
+├── compositor           ← Smithay-based Wayland compositor (Rust)
+├── desktop-shell        ← Taskbar, Launcher, Shell (Tauri + TypeScript)
+├── ui-kit               ← shared component library (TypeScript + Tailwind)
+├── os-sdk               ← shared Rust crate for system integration
+├── app-files            ← File Manager
+├── app-settings         ← Settings
+├── app-terminal         ← Terminal
+├── app-store            ← Store
+├── module-sdk           ← SDK for shell module development
+├── themes               ← GTK4, Wine .msstyles, token source
+└── distro               ← build system, ISO generation, meta-packages
 ```
 
-### Build system
+Multi-repo means each component can be developed, tested, and released independently - as long as it does not introduce breaking interface changes (see Update System below).
 
-Looking at `mkosi` for image generation. To be decided.
+### 13.2 Build System
 
-### CI/CD
+**mkosi** is the target tool for image generation. mkosi (maintained by the systemd team) builds bootable OS images from a declarative configuration - specifying which packages to include, which files to add, and how to configure the system. It produces UEFI-bootable images directly, supports multiple output formats (ISO, disk image, container), and integrates cleanly with OBS.
 
-- Per-repo: GitHub Actions, unit + integration tests
-- Full system: QEMU-based VM tests
+> TODO: Evaluate mkosi in practice once base system components exist. Confirm it handles the full build pipeline before committing.
 
-### Open questions
+**OBS (Open Build Service)** is used for packaging all custom components. OBS handles building RPM packages for OpenSUSE Slowroll across architectures, signing packages with the project GPG key, and hosting the package repository that end-user systems pull from.
 
-- Exact build system choice
-- How to handle cross-repo dependencies and versioning?
-- Release cadence
+### 13.3 CI/CD
+
+- **Per-repo:** GitHub Actions. Each repo runs its own unit and integration tests on every push. Rust components use `cargo test`, TypeScript components use Vitest.
+- **Cross-component:** Integration tests that verify IPC compatibility between components run on a schedule against the latest versions of all components combined.
+- **Full system:** QEMU-based VM tests that boot a complete image and run smoke tests. These are slower and run on release candidates, not every commit.
+
+### 13.4 Update System
+
+**Two independent update streams:**
+
+The system receives updates from two sources that are managed separately:
+
+**Base system** (kernel, OpenSUSE packages): handled by zypper pulling from Slowroll repos. Standard OpenSUSE update process. snapper takes a btrfs snapshot before every zypper update automatically.
+
+**Project components** (compositor, shell, event bus, graph daemon, AI layer, apps): distributed via the project's own OBS repository as RPM packages. Managed as a coordinated meta-package (see below).
+
+**Update behavior:**
+
+The goal is updates that happen without interrupting the user and without forcing anything:
+
+- **Security updates** for both streams: downloaded automatically in the background, applied at next shutdown or reboot. Never during an active session. No forced reboots, no countdown timers. The boot screen shows "Applying updates..." if updates are pending - the user sees it for a few seconds and moves on.
+- **All other updates:** downloaded in the background silently. A single calm notification appears: "Updates available." No badge, no urgency, no daily reminders. The user applies them when convenient via Settings.
+- **Managed environments:** admins can configure mandatory update windows (e.g. weeknights between 2-4am). Even then, no mid-session interruption.
+
+**Rollback:**
+
+btrfs + snapper takes a snapshot before every update. If something breaks after an update, the user can boot into the previous snapshot from the boot menu and roll back the entire system. This requires no special tooling - it is standard OpenSUSE behavior.
+
+**Versioning between project components:**
+
+Project components communicate over defined IPC interfaces (Unix sockets, Wayland protocols, protobuf schemas). A change that breaks an interface cannot be deployed to one component without updating all components that depend on it.
+
+This is enforced via a **meta-package** that groups all project components at compatible versions:
+
+```
+project-system-1.4.0
+  ├── project-compositor-1.4.0
+  ├── project-shell-1.4.0
+  ├── project-event-bus-1.4.0
+  ├── project-graph-daemon-1.4.0
+  └── project-ai-layer-1.4.0
+```
+
+Each component uses **semantic versioning**. As long as the major version of an interface does not change, updates are backward-compatible and components can be updated independently. A breaking interface change increments the major version and must be shipped as a coordinated meta-package update - all affected components update together.
+
+Components verify interface compatibility at startup:
+
+```rust
+fn check_compatibility() -> Result<()> {
+    let daemon_version = get_graph_daemon_version()?;
+    if daemon_version.major != EXPECTED_MAJOR {
+        bail!("Graph Daemon interface version mismatch. Run system update.");
+    }
+    Ok(())
+}
+```
+
+If versions are incompatible, the component refuses to start and surfaces a clear message. The only resolution is applying the pending system update.
+
+**Update UI:**
+
+A dedicated section in Settings shows:
+- Currently installed versions of all project components
+- Available updates with changelogs
+- Last update timestamp
+- Snapshot history with one-click rollback to any previous snapshot
+- Update schedule configuration (for managed environments)
+
+### 13.5 Open Questions
+
+- Confirm mkosi works for the full build pipeline in practice
+- GPG key management for package signing - where is the signing key stored, who has access?
+- Release cadence for project components - rolling or versioned releases?
+- How are module/theme packages from the Store updated? Same mechanism or separate?
 
 ------
 
