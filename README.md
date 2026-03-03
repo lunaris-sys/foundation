@@ -668,50 +668,112 @@ app-files/
 
 ## 8. Design Language & Theming
 
-> **Note:** The specific visual design language (aesthetics, color palettes, motion design) is not finalized and will be decided separately. This chapter documents the technical theming architecture - how themes work, how they propagate, and what needs to be implemented - independent of the final visual choices.
+> **Note:** The specific visual design language - aesthetics, motion design, exact color palettes, component shapes - is not finalized and will be decided in a separate design phase. This chapter documents the technical theming architecture and the realistic scope of what gets implemented where.
 
 ### 8.1 Token System
 
-The theming system is built on **design tokens** - named variables that define all visual properties. Nothing in the system hard-codes a color, spacing value, or border radius. Everything references a token.
+The theming system is built on **design tokens** - named CSS custom properties that define all visual values. Nothing in the system hard-codes a color, spacing value, or border radius. Everything references a token.
 
-A single source of truth (a TOML or JSON file) defines all tokens. From this file, the build system generates:
+A single source of truth (a TOML file) defines all tokens. From this, the build system generates:
 
-- **CSS custom properties** for the Tauri shell and all first-party apps
-- **GTK3 CSS** for GTK3 applications
-- **GTK4 CSS** for GTK4 applications
-- **Qt palette / QSS** for Qt applications
-- **Wine .msstyles** for Windows applications running via Wine/Proton
+- **CSS custom properties** for all Tauri-based apps and the shell
+- **GTK4 CSS variables** for the GTK4 theme
+- **GTK3 CSS** (only for base dark/light, no dynamic values)
+- **Qt palette** (only for base dark/light)
 
-This means changing the accent color in Settings updates every layer simultaneously - first-party apps, GTK apps, Qt apps, and Wine apps all reflect the change.
+```toml
+# tokens.toml - source of truth
+[colors]
+accent         = "#5b8af0"
+surface        = "#1a1a2e"
+surface-elevated = "#22223b"
+text-primary   = "#e8e8f0"
+text-secondary = "#9090a8"
 
-### 8.2 Built-in Themes
+[shape]
+radius-default = "8px"
+radius-large   = "12px"
 
-Three built-in themes ship with the system. The exact aesthetics are TBD but the structure is defined:
+[spacing]
+base = "4px"
+```
 
-- **Dark** - dark background, appropriate contrast ratios
-- **Light** - light background variant
-- **[Third theme TBD]** - design language decision pending
+### 8.2 Theming Per Layer
 
-Themes are full token sets. Switching themes replaces the entire token set, which propagates to all layers as described above. Theme switching happens live - no logout required.
+**Tauri Apps & Shell - fully dynamic:**
 
-### 8.3 GTK & Qt Integration
+CSS custom properties are set on `:root`. Changing a token is one line:
 
-GTK and Qt have entirely different theming systems. Making third-party GTK and Qt apps look consistent with the rest of the desktop requires generating valid themes for both toolkits from the same token source.
+```javascript
+document.documentElement.style.setProperty('--color-accent', newValue)
+```
 
-**GTK3:** Theme via CSS. GTK3's theming API is well-established but quirky - some visual properties require non-obvious CSS selectors. A complete GTK3 theme must cover hundreds of widget states.
+The Settings daemon broadcasts token changes over the Unix socket to all running Tauri processes. They update instantly - no reload, no restart. This works for theme switching (dark/light) and for any individual token change (accent color, radius, etc.).
 
-**GTK4:** GTK4 also uses CSS but with a different, cleaner API than GTK3. GTK4 themes are not backward-compatible with GTK3 - both must be maintained separately.
+**GTK4 - custom theme, abridged:**
 
-**Qt:** Qt theming is handled via QSS (Qt Style Sheets, a CSS subset) and palette configuration. Qt's styling model differs significantly from GTK, requiring separate implementation.
+A custom GTK4 theme is written that reflects the same visual language as the Tauri components - same border radius, same spacing proportions, same color relationships. It is not a pixel-perfect replica of every Tauri component, but it is recognizably the same design family.
 
-> TODO: This is significant implementation work. GTK and Qt theme generation from tokens will be a dedicated project phase. Scope and timeline TBD.
+The theme is generated with values from `tokens.toml` so it stays in sync automatically when tokens change. Two theme files are produced: dark and light variants.
 
-### 8.4 Open Questions
+Dynamic switching between dark and light:
 
-- Final visual design language (separate design phase)
-- Third built-in theme - LiquidGlass-style translucency? Separate dark/light variants?
-- Tooling for token-to-GTK/Qt generation (write custom generator or adapt existing tools like Style Dictionary?)
-- Community theme format: same token file structure, distributed via the Store
+```bash
+gsettings set org.gnome.desktop.interface gtk-theme "projectname-dark"
+```
+
+The Settings daemon calls this programmatically. GTK4 apps reload the theme immediately.
+
+For apps built on **libadwaita** (most modern GTK4 apps), accent color changes propagate via `AdwStyleManager` without a full theme reload - this is a libadwaita built-in feature.
+
+Scope of the custom GTK4 theme: buttons, inputs, checkboxes, switches, dropdowns, dialogs, popovers, header bars, lists, scrollbars. Animations and micro-interactions are minimal - the goal is visual consistency, not exact parity with the Tauri components.
+
+**GTK3 - base themes only:**
+
+GTK3 is legacy. New apps are not being written against it. A fixed adwaita-derived dark and light theme is shipped as a placeholder. No custom design work, no dynamic token updates. When the user switches dark/light, the appropriate base theme is applied.
+
+This may be revisited later but is not a priority.
+
+**Qt - base themes only:**
+
+Same approach as GTK3. A fixed dark and light Qt palette is provided. No custom design work for now. Qt theming is complex (QSS differs significantly from GTK CSS) and the ROI is low until there is a concrete list of Qt apps that need to look good on this system.
+
+**Wine - custom .msstyles theme:**
+
+Wine supports Windows Visual Styles via `.msstyles` files - the same theming format Windows itself uses. Without a custom theme, Wine apps render with a Windows Classic or Windows 7 appearance that looks completely out of place on a modern desktop.
+
+A first-party Wine theme is maintained as part of the project and generated from the same `tokens.toml` source. It applies the same colors, border radius, and spacing proportions as the rest of the system. Wine apps will not look fully native, but they will look consistent rather than like a relic from 2003.
+
+The Wine theme is applied automatically to all Wine prefixes managed by the system. Users who prefer the default Windows appearance can opt out per-prefix in Settings.
+
+### 8.3 Theme Variants
+
+Two built-in themes ship: **Dark** and **Light**. Both are generated from the same token set with different base values.
+
+A third theme variant is planned but not yet designed - deferred to the visual design phase.
+
+**Community themes** can be distributed as Store packages. A theme package contains only a `tokens.toml` override file - no executable code. The system merges the override with the base tokens and regenerates the CSS. Anyone who can edit a TOML file can publish a theme.
+
+### 8.4 Live Theme Switching
+
+Switching themes is instant and requires no logout:
+
+1. User selects a theme in Settings
+2. Settings daemon loads the new `tokens.toml`
+3. Broadcasts new CSS custom property values over Unix socket to all Tauri processes
+4. Calls `gsettings` to switch the GTK4 theme file
+5. Updates `AdwStyleManager` accent color for libadwaita apps
+
+The entire switch completes in under a second from the user's perspective.
+
+### 8.5 Open Questions
+
+- Visual design language - exact aesthetics, component shapes, motion design (separate design phase, TODO)
+- Third built-in theme variant (pending design phase)
+- Tooling for token-to-GTK4-CSS generation: write a custom generator or adapt Style Dictionary?
+- At what point does the GTK3 placeholder get replaced with something custom, if ever?
+- Wine .msstyles generation tooling - existing tools are sparse, likely needs a custom generator
+- How complete does the Wine theme need to be? (common controls vs. every possible Win32 widget)
 
 ---
 
