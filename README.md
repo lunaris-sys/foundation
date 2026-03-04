@@ -627,9 +627,6 @@ The Knowledge Graph lives inside the user's systemd-homed encrypted home directo
 ### Open Questions
 
 - Full schema definition (draft above is a starting point)
-- Retention policy - how long is data kept? Should old events be compressed/summarized?
-- Query interface for the AI layer (direct Cypher vs. abstraction layer?)
-- How to handle high event volume without writing bottlenecks on Kuzu
 
 ------
 
@@ -833,7 +830,6 @@ Apps from the Store can ship MCP servers. These are always in the write/action c
 ### Open Questions
 
 - Which local models to officially support and recommend at launch?
-- Permission model: which MCP servers can the AI access by default, which require explicit user approval per session?
 - Audit log for AI actions - what gets recorded, where, for how long?
 
 ------
@@ -1054,7 +1050,7 @@ This is the foundation everything else builds on.
 
 ### 8.2 Built-in Themes
 
-Three themes ship with the system. All three are generated from the same shadcn/ui variable structure.
+Four themes ship with the system. All four are generated from the same shadcn/ui variable structure.
 
 **Dark**
 Classic dark theme. Deep dark backgrounds, light text, standard high-contrast dark palette. For users who prefer a uniform dark environment.
@@ -1072,11 +1068,16 @@ Panda is not a dark/light average - it is a deliberate split-surface design. Dif
 
 This creates a high-contrast split that feels modern and focused - dark framing around bright content. The name comes from the obvious visual analogy. This is the default because it is the most distinctive and best represents the project's visual identity.
 
-The exact palette values for all three themes are finalized in the design phase. The structure is fixed.
+**High Contrast**
+Targets WCAG AAA (7:1 contrast ratio minimum). No transparency effects, no subtle shadows, no gradients. Thicker focus rings, stronger color boundaries, no information conveyed through color alone. For users with visual impairments for whom Dark and Light do not provide sufficient contrast.
+
+High Contrast is a first-class theme generated from the same token system as the others - not an afterthought. It has both a dark and light variant selectable in Settings.
+
+The exact palette values for all four themes are finalized in the design phase. The structure is fixed.
 
 ### 8.3 Token System
 
-All three base themes are defined in TOML and compiled to CSS custom properties and framework-specific outputs:
+All four base themes are defined in TOML and compiled to CSS custom properties and framework-specific outputs:
 
 ```toml
 # tokens.toml - source of truth for a theme
@@ -1216,7 +1217,7 @@ Full switch completes in under a second for token-based themes. Full CSS themes 
 
 ### 8.6 Open Questions
 
-- Exact color values for Dark, Light, and Panda (separate design phase - TODO)
+- Exact color values for Dark, Light, Panda, and High Contrast (separate design phase - TODO)
 - Tooling for token-to-GTK4-CSS generation: custom generator or adapt Style Dictionary?
 - Wine .msstyles generation tooling - existing tools are sparse, likely needs a custom generator
 - How complete does the Wine theme need to be? (common controls vs. every Win32 widget)
@@ -1437,7 +1438,6 @@ Toasts appear top-right. They stack vertically if multiple arrive simultaneously
 
 - How deep does wrapper support go for major apps (Firefox, VSCode, etc.)?
 - Certification program for third-party apps that meet integration standards?
-- Config format for non-Tauri apps that cannot use TOML directly?
 - Notification history retention - how long are dismissed notifications kept in the Center?
 
 ---
