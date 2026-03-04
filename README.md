@@ -1025,112 +1025,202 @@ The Settings app provides a monitor configuration screen with: drag-to-arrange m
 
 ## 8. Design Language & Theming
 
-> **Note:** The specific visual design language - aesthetics, motion design, exact color palettes, component shapes - is not finalized and will be decided in a separate design phase. This chapter documents the technical theming architecture and the realistic scope of what gets implemented where.
+> **Note:** The specific visual design language - exact color palettes, component shapes, motion design - is not finalized and will be decided in a separate design phase. This chapter documents the technical theming architecture: how themes are structured, how they propagate across layers, and how Store themes work.
 
-### 8.1 Token System
+### 8.1 Component Base: shadcn/ui
 
-The theming system is built on **design tokens** - named CSS custom properties that define all visual values. Nothing in the system hard-codes a color, spacing value, or border radius. Everything references a token.
+The UI component foundation is **shadcn/ui**. Unlike a traditional npm dependency, shadcn/ui components are copied directly into the project and fully owned. They are Tailwind-based, accessibility-first, and define all visual properties via CSS custom properties - which is exactly what makes the theming system work.
 
-A single source of truth (a TOML file) defines all tokens. From this, the build system generates:
+shadcn/ui defines its entire visual system as CSS custom properties on `:root` (light mode) and `.dark` (dark mode). Every color, radius, and surface value is a variable. A theme is nothing more than a set of overrides for these variables - no component code needs to change.
 
-- **CSS custom properties** for all Tauri-based apps and the shell
-- **GTK4 CSS variables** for the GTK4 theme
-- **GTK3 CSS** (only for base dark/light, no dynamic values)
-- **Qt palette** (only for base dark/light)
+```css
+/* shadcn base - light */
+:root {
+  --background: 0 0% 100%;
+  --foreground: 224 71.4% 4.1%;
+  --card: 0 0% 100%;
+  --primary: 220.9 39.3% 11%;
+  --radius: 0.5rem;
+}
+
+/* shadcn base - dark */
+.dark {
+  --background: 224 71.4% 4.1%;
+  --foreground: 210 20% 98%;
+}
+```
+
+This is the foundation everything else builds on.
+
+### 8.2 Built-in Themes
+
+Three themes ship with the system. All three are generated from the same shadcn/ui variable structure.
+
+**Dark**
+Classic dark theme. Deep dark backgrounds, light text, standard high-contrast dark palette. For users who prefer a uniform dark environment.
+
+**Light**
+Classic light theme. White/near-white backgrounds, dark text. Clean and minimal.
+
+**Panda** *(default)*
+Panda is not a dark/light average - it is a deliberate split-surface design. Different UI regions are intentionally dark or light based on their function:
+
+- Shell topbar and window chrome: near-black (`#0a0a0a`)
+- Window content areas: white/very light
+- Sidebars and panels: dark grey
+- Modals and dialogs: white
+
+This creates a high-contrast split that feels modern and focused - dark framing around bright content. The name comes from the obvious visual analogy. This is the default because it is the most distinctive and best represents the project's visual identity.
+
+The exact palette values for all three themes are finalized in the design phase. The structure is fixed.
+
+### 8.3 Token System
+
+All three base themes are defined in TOML and compiled to CSS custom properties and framework-specific outputs:
 
 ```toml
-# tokens.toml - source of truth
+# tokens.toml - source of truth for a theme
 [colors]
-accent         = "#5b8af0"
-surface        = "#1a1a2e"
-surface-elevated = "#22223b"
-text-primary   = "#e8e8f0"
-text-secondary = "#9090a8"
+shell-bg        = "#0a0a0a"     # topbar, window chrome
+content-bg      = "#ffffff"     # window content areas
+sidebar-bg      = "#1a1a1a"     # sidebars, panels
+accent          = "#5b8af0"
+text-primary    = "#111111"     # on light surfaces
+text-inverted   = "#f0f0f0"     # on dark surfaces
 
 [shape]
-radius-default = "8px"
-radius-large   = "12px"
+radius-default  = "8px"
+radius-large    = "12px"
 
 [spacing]
-base = "4px"
+base            = "4px"
+
+[typography]
+size-base       = "16px"
+size-scale      = 1.0
 ```
 
-### 8.2 Theming Per Layer
+From this TOML, the build system generates:
+- **CSS custom properties** for Tauri shell and all first-party apps
+- **GTK4 CSS** for the GTK4 theme
+- **Wine .msstyles** for Wine/Proton apps
+- **GTK3 CSS** (base dark/light only, no Panda)
+- **Qt palette** (base dark/light only, no Panda)
 
-**Tauri Apps & Shell - fully dynamic:**
+### 8.4 Theming Per Layer
 
-CSS custom properties are set on `:root`. Changing a token is one line:
+**Tauri shell & apps - fully dynamic:**
+
+CSS custom properties update live. The Settings daemon broadcasts new values over the Unix socket to all running Tauri processes. No reload, no restart needed.
 
 ```javascript
-document.documentElement.style.setProperty('--color-accent', newValue)
+document.documentElement.style.setProperty('--background', newValue)
 ```
 
-The Settings daemon broadcasts token changes over the Unix socket to all running Tauri processes. They update instantly - no reload, no restart. This works for theme switching (dark/light) and for any individual token change (accent color, radius, etc.).
+Full Panda split-surface design works here because CSS custom properties can be applied per-component - the shell topbar gets `--shell-bg`, the content area gets `--content-bg`.
 
-**GTK4 - custom theme, abridged:**
+**GTK4 - custom theme from tokens:**
 
-A custom GTK4 theme is written that reflects the same visual language as the Tauri components - same border radius, same spacing proportions, same color relationships. It is not a pixel-perfect replica of every Tauri component, but it is recognizably the same design family.
+A custom GTK4 CSS theme is generated from `tokens.toml`. It covers the same visual language - same radius, same color relationships - in an abridged form. Not pixel-perfect parity, but recognizably the same design family.
 
-The theme is generated with values from `tokens.toml` so it stays in sync automatically when tokens change. Two theme files are produced: dark and light variants.
+Scope: buttons, inputs, checkboxes, switches, dropdowns, dialogs, popovers, header bars, lists, scrollbars.
 
-Dynamic switching between dark and light:
-
+Dynamic switching:
 ```bash
-gsettings set org.gnome.desktop.interface gtk-theme "projectname-dark"
+gsettings set org.gnome.desktop.interface gtk-theme "projectname-panda"
 ```
 
-The Settings daemon calls this programmatically. GTK4 apps reload the theme immediately.
-
-For apps built on **libadwaita** (most modern GTK4 apps), accent color changes propagate via `AdwStyleManager` without a full theme reload - this is a libadwaita built-in feature.
-
-Scope of the custom GTK4 theme: buttons, inputs, checkboxes, switches, dropdowns, dialogs, popovers, header bars, lists, scrollbars. Animations and micro-interactions are minimal - the goal is visual consistency, not exact parity with the Tauri components.
+libadwaita apps get accent color updates via `AdwStyleManager` without a full theme reload.
 
 **GTK3 - base themes only:**
 
-GTK3 is legacy. New apps are not being written against it. A fixed adwaita-derived dark and light theme is shipped as a placeholder. No custom design work, no dynamic token updates. When the user switches dark/light, the appropriate base theme is applied.
-
-This may be revisited later but is not a priority.
+GTK3 is legacy. A fixed adwaita-derived dark and light theme ships as placeholder. No Panda variant for GTK3 - the split-surface design requires component-level control that GTK3 CSS does not provide cleanly. GTK3 apps get Dark or Light based on which base is closer to the active theme.
 
 **Qt - base themes only:**
 
-Same approach as GTK3. A fixed dark and light Qt palette is provided. No custom design work for now. Qt theming is complex (QSS differs significantly from GTK CSS) and the ROI is low until there is a concrete list of Qt apps that need to look good on this system.
+Same as GTK3. Fixed dark and light Qt palette. No Panda variant. Low priority until there is a concrete list of Qt apps that need deeper integration.
 
 **Wine - custom .msstyles theme:**
 
-Wine supports Windows Visual Styles via `.msstyles` files - the same theming format Windows itself uses. Without a custom theme, Wine apps render with a Windows Classic or Windows 7 appearance that looks completely out of place on a modern desktop.
+A first-party Wine `.msstyles` theme generated from `tokens.toml`. Wine apps render with consistent colors, border radius, and spacing rather than Windows Classic defaults. Applied automatically to all managed Wine prefixes. Per-prefix opt-out available in Settings.
 
-A first-party Wine theme is maintained as part of the project and generated from the same `tokens.toml` source. It applies the same colors, border radius, and spacing proportions as the rest of the system. Wine apps will not look fully native, but they will look consistent rather than like a relic from 2003.
+Wine gets a Panda variant: dark chrome elements (title bars, menu bars) with light content areas - which maps naturally to how Windows theming works anyway.
 
-The Wine theme is applied automatically to all Wine prefixes managed by the system. Users who prefer the default Windows appearance can opt out per-prefix in Settings.
+### 8.5 Store Themes
 
-### 8.3 Theme Variants
+Community themes are distributed via the Store. A theme package can cover any subset of layers - not every theme needs to cover everything. The package declares what it covers in its manifest:
 
-Two built-in themes ship: **Dark** and **Light**. Both are generated from the same token set with different base values.
+```toml
+[theme]
+id      = "com.example.mytheme"
+name    = "Midnight"
+version = "1.0.0"
+base    = "panda"       # inherits from panda, overrides only what's declared
 
-A third theme variant is planned but not yet designed - deferred to the visual design phase.
+[covers]
+tauri   = true          # Tauri shell + all first-party apps
+gtk4    = true          # GTK4 theme
+gtk3    = false         # falls back to base theme
+wine    = false         # falls back to base theme
+qt      = false         # falls back to base theme
+```
 
-**Community themes** can be distributed as Store packages. A theme package contains only a `tokens.toml` override file - no executable code. The system merges the override with the base tokens and regenerates the CSS. Anyone who can edit a TOML file can publish a theme.
+The Store displays this clearly:
 
-### 8.4 Live Theme Switching
+```
+Midnight Theme  ★ 4.8
+─────────────────────────────────────
+Covers:  ✓ Shell & Apps   ✓ GTK4
+         ✗ GTK3           ✗ Wine   ✗ Qt
+Base fallback: Panda
+```
 
-Switching themes is instant and requires no logout:
+Users know before installing exactly what changes and what stays at the base theme.
 
-1. User selects a theme in Settings
-2. Settings daemon loads the new `tokens.toml`
-3. Broadcasts new CSS custom property values over Unix socket to all Tauri processes
-4. Calls `gsettings` to switch the GTK4 theme file
-5. Updates `AdwStyleManager` accent color for libadwaita apps
+**Two formats for theme content:**
 
-The entire switch completes in under a second from the user's perspective.
+**Token overrides (simple):** A `tokens.toml` with only the values being changed. The build system merges this with the base theme tokens and regenerates all declared outputs. Easiest for theme authors - just override colors and radius values.
 
-### 8.5 Open Questions
+```toml
+# Only overrides what changes - rest inherits from base
+[colors]
+accent    = "#e040fb"
+shell-bg  = "#1a0030"
+```
 
-- Visual design language - exact aesthetics, component shapes, motion design (separate design phase, TODO)
-- Third built-in theme variant (pending design phase)
-- Tooling for token-to-GTK4-CSS generation: write a custom generator or adapt Style Dictionary?
-- At what point does the GTK3 placeholder get replaced with something custom, if ever?
+**Full CSS/GTK files (advanced):** For themes that want more control than token swaps allow - custom animations, structural layout changes, non-token-based styling. The theme package includes fully compiled CSS for Tauri and/or GTK4 directly. More work for the author, but maximum flexibility.
+
+Both formats can coexist in one package - token overrides for some layers, full CSS for others.
+
+**Theme inheritance chain:**
+
+```
+shadcn/ui defaults
+  └── Base theme (Dark / Light / Panda)
+        └── Store theme overrides         ← only declared layers
+              └── User token adjustments  ← accent color, font scale etc.
+```
+
+Each layer overrides only what it declares. The rest falls through to the layer below. Predictable and composable.
+
+**Live theme switching:**
+
+1. User installs and selects a Store theme in Settings
+2. Settings daemon loads the theme package
+3. Merges token overrides with base theme
+4. Broadcasts new CSS custom properties to all Tauri processes (instant)
+5. Regenerates and applies GTK4 theme if covered
+6. Updates Wine prefix theme if covered
+
+Full switch completes in under a second for token-based themes. Full CSS themes for GTK4 may take 1-2 seconds to apply on slower hardware.
+
+### 8.6 Open Questions
+
+- Exact color values for Dark, Light, and Panda (separate design phase - TODO)
+- Tooling for token-to-GTK4-CSS generation: custom generator or adapt Style Dictionary?
 - Wine .msstyles generation tooling - existing tools are sparse, likely needs a custom generator
-- How complete does the Wine theme need to be? (common controls vs. every possible Win32 widget)
+- How complete does the Wine theme need to be? (common controls vs. every Win32 widget)
+- At what point does the GTK3 placeholder get a proper Panda-inspired theme?
 
 ---
 
