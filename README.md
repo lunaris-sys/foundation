@@ -559,6 +559,71 @@ Once populated, the graph enables queries that are simply not possible on a conv
 
 These are answered by graph traversals, not by grepping logs or searching the filesystem.
 
+### 5.4 Retention Policy
+
+The Knowledge Graph accumulates data indefinitely if left unchecked. Storage grows, query performance degrades, and the privacy surface area expands. The retention policy defines how long data lives, what happens when it ages out, and who controls it.
+
+**The core tension:**
+
+More historical data means better AI context, more accurate "what did I work on last month" queries, and a better baseline for the Anomaly Detector. Less historical data means smaller storage footprint, faster queries, and reduced exposure if the device is compromised. Neither extreme is correct - the policy is a calibrated middle ground with user control.
+
+**Three retention tiers:**
+
+**Tier 1: Raw eBPF events - 30 days**
+
+Low-level syscall events (file opens, network connections, process forks) are the highest-volume, lowest-semantic-value data in the graph. By the time they are ingested, the Graph Writer has already built higher-value nodes and relations from them. The raw event nodes are largely redundant after ingestion.
+
+Default retention: 30 days, then automatically purged. Not configurable below 7 days (Anomaly Detector needs recent history to establish baselines). Configurable upward if the user wants longer raw event history.
+
+**Tier 2: Semantic nodes - 1 year rolling window**
+
+File nodes, App nodes, Session nodes, NetworkConnection nodes - the meaningful entities that represent actual work and activity. This is where AI query value lives.
+
+Default retention: 12 months rolling, user-configurable between 90 days and unlimited. Nodes that age past the retention window are not deleted - they are **summarized** (see below).
+
+**Tier 3: Pinned nodes - permanent**
+
+Nodes explicitly marked by the user, Project nodes, and nodes actively referenced in AI queries are never automatically purged. Only manual deletion removes them.
+
+**Summarization instead of deletion:**
+
+Hard deletion of aged nodes loses information abruptly. Instead, nodes past the retention window are compacted into summary nodes:
+
+```
+Before summarization:
+  File "/home/tim/thesis.pdf"
+    OPENED_BY Firefox        (342 individual events)
+    OPENED_BY Evince         (28 individual events)
+    MODIFIED_BY LibreOffice  (15 individual events)
+    last_accessed: 2025-03-01
+
+After summarization:
+  File "/home/tim/thesis.pdf"  [summarized: 2026-03-01]
+    access_count:   385
+    primary_app:    Firefox
+    last_accessed:  2025-03-01
+    active_period:  2024-09-01 to 2025-03-01
+```
+
+The node still exists. AI queries still find it. The granular individual events are gone, but the summary carries enough information for meaningful queries. Graph size is reduced substantially with minimal semantic loss.
+
+**Progressive summarization - frequency-based, not time-based:**
+
+Summarization is not triggered by a fixed age threshold but by access frequency:
+
+- Nodes not queried in the last 6 months are candidates for summarization regardless of age
+- Nodes queried regularly are kept granular regardless of age
+
+Active projects stay detailed. Old finished projects compact automatically. A background daemon runs nightly, identifies candidates, and processes them during idle periods.
+
+**User control:**
+
+Settings exposes: retention window per tier (with sensible minimums), manual "summarize now" for specific time ranges, manual deletion of any node or subgraph, export of the full graph before deletion (GDPR right to portability), and storage usage breakdown by tier and time range.
+
+**Privacy implications:**
+
+The Knowledge Graph lives inside the user's systemd-homed encrypted home directory. The retention policy provides a second layer: data that no longer exists cannot be exposed. In managed environments, admins cannot shorten the user's configured retention window - the user controls how long their personal data lives. Admins can only set a minimum retention for compliance-relevant audit events in the Audit Log, which is separate from the Knowledge Graph.
+
 ### Open Questions
 
 - Full schema definition (draft above is a starting point)
@@ -717,6 +782,53 @@ Relative time expressions are resolved to absolute UTC timestamps before the gen
 "yesterday"    -> 2026-03-02T00:00:00Z to 2026-03-02T23:59:59Z
 "this morning" -> 2026-03-03T06:00:00Z to 2026-03-03T12:00:00Z
 ```
+
+### 6.5 MCP Permission Model
+
+MCP servers are the interfaces through which the AI interacts with apps - reading files, checking calendar, suggesting terminal commands, creating notes. The question is which of these the AI can access by default and which require explicit authorization.
+
+**Two categories of MCP servers:**
+
+**Read-only MCP servers: allowed by default** (within the user's configured AI Permission Level)
+
+| MCP Server | What it exposes |
+|---|---|
+| File Manager | Directory listings, file metadata |
+| Calendar | Upcoming and past events |
+| Browser | History, open tabs (no passwords, no form data) |
+| System Monitor | Process list, resource usage |
+| Notes | Note titles and content |
+
+Rationale: reading information to answer a question is what the user expects when asking the AI something. "What meetings do I have today?" should work without confirmation dialogs. Reading does not change state. The AI Permission Level (0-4, defined in the Security chapter) still gates what data the AI can see from these servers regardless.
+
+**Write/action MCP servers: require explicit per-session authorization**
+
+| MCP Server | What it can do |
+|---|---|
+| Terminal | Execute shell commands |
+| File Manager | Create, move, rename, delete files |
+| Calendar | Create or modify events |
+| Email | Compose and send messages |
+| Store | Install or remove packages |
+
+The user grants authorization once per session ("yes, you can manage files in this session") and the AI can act within that scope for the rest of the session - unless the action falls into the hardcoded confirmation list below. Authorization expires at session end and is not persisted.
+
+**Hardcoded confirmation list - always requires confirmation, no exceptions:**
+
+Certain actions require explicit confirmation every single time regardless of session permissions. This list is not configurable:
+
+- Permanent file deletion (not trash - actual deletion)
+- Sending any email or external message
+- Installing or removing system packages
+- Modifying system configuration files outside `~/.config`
+- Any network request to a host not in the app's declared network permissions
+- Running commands with elevated privileges
+
+These are irreversible or high-consequence actions. The cost of a false confirmation is low; the cost of a silent mistake is high.
+
+**Third-party MCP servers:**
+
+Apps from the Store can ship MCP servers. These are always in the write/action category by default - they require per-session authorization regardless of what the server claims to expose. A community MCP server that claims to be read-only is still treated as action-requiring until a review process exists to certify otherwise.
 
 ### Open Questions
 
