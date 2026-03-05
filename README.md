@@ -56,6 +56,8 @@ The goal here is to build a desktop OS that takes modern technology seriously as
 
 **Coherent, not cobbled together.** Shared config standards, shared theming, shared interfaces across all system components. Change the accent color once and it propagates everywhere. No app that looks like it was designed in a different decade by a different team.
 
+**Single source of truth for configuration.** Any setting that affects multiple components lives in exactly one place. Keybindings, gestures, theme tokens, retention policy - all configured centrally and read by every component that needs them. No more "change this in three different config files and hope they stay in sync".
+
 **Pragmatic, not ideological.** No purity tests. The goal is a useful, trustworthy system - not proving a point about software freedom. That said: no ads, no tracking, no dark patterns. Not because of ideology, but because that stuff is just bad product design.
 
 ### What this is not
@@ -1227,106 +1229,177 @@ Full switch completes in under a second for token-based themes. Full CSS themes 
 
 ## 9. Plugin & Module System
 
-The shell is extensible. Users can install modules from the Store that add widgets, alternative taskbars, panel elements, and custom themes. This is the mechanism for community contributions to the desktop experience.
+The system is extensible at multiple layers: the visual shell, the Spotlight search, AI tool integrations, and theming. All of these use the same install mechanism (the Store) and the same manifest format, but they operate as separate subsystems with separate APIs. A package from the Store can bundle multiple module types together - a "Dark Forest" package could ship a theme, a Spotlight background provider, and a topbar widget in one install.
 
-### 9.1 Module Types
+### 9.1 Module Categories
 
-Four distinct module types, each with different placement and capabilities:
+Modules fall into distinct categories, each serving a different extension point in the system:
 
-| Type | Description | Example |
+| Category | Extension Point | Example |
 |---|---|---|
-| `widget` | A UI element placed on the desktop or in a panel | Clock, weather, system stats |
-| `taskbar-element` | A slot within the main taskbar | Custom launcher, media controls |
-| `panel` | A full alternative panel anchored to a screen edge | Alternative taskbar, dock, sidebar |
-| `theme` | CSS/token overrides only, no executable code | Community color schemes |
+| `theme` | Design Language & Theming layer | Community color schemes, Panda variants |
+| `spotlight.provider` | Spotlight search results | Web search, calculator, stock prices |
+| `spotlight.action` | Spotlight command actions | "Create task in Asana", "Send message" |
+| `shell.topbar` | Topbar element slot | Custom tray item, status widget |
+| `shell.widget` | Desktop widget area | Clock, weather, system stats |
+| `mcp.server` | AI MCP integration | Connects AI to external services |
+| `keybinding.profile` | Global input manager | Alternative keyboard layout profiles |
 
-### 9.2 Module Structure
+Theme modules are a special case: CSS and token overrides only, no executable code, no sandbox needed. All other categories run sandboxed with declared permissions.
 
-A module is a package with a manifest and compiled assets:
+A single Store package can provide multiple categories:
 
 ```toml
-[module]
-id = "com.example.weather-widget"
-name = "Weather Widget"
+[package]
+id      = "com.example.dark-forest"
+name    = "Dark Forest"
 version = "1.0.0"
-type = "widget"
-entry = "dist/widget.js"
-slots = ["taskbar-right", "desktop"]
+
+[provides]
+theme            = true
+spotlight.provider = true
+shell.topbar     = true
+```
+
+### 9.2 Manifest & Dependencies
+
+Every module package has a single manifest. Dependencies are declared explicitly and the Store resolves them automatically before installation.
+
+**Three dependency types:**
+
+**Extension point dependency** - the Shell version must expose the required extension point:
+```toml
+[dependencies]
+shell = ">=1.2"   # spotlight.provider extension point exists from Shell 1.2
+```
+
+**Module-on-module dependency** - another Store package must be installed:
+```toml
+[dependencies]
+modules = ["com.example.ai-core"]
+```
+
+**Conflict declaration** - incompatible with another module (e.g. two packages that both replace the same shell component):
+```toml
+[conflicts]
+modules = ["com.other.topbar-replacement"]
+```
+
+Full example manifest:
+
+```toml
+[package]
+id      = "com.example.ai-spotlight"
+name    = "AI Spotlight Provider"
+version = "1.0.0"
+
+[provides]
+spotlight.provider = true
+
+[dependencies]
+shell   = ">=1.2"
+modules = ["com.example.ai-core"]
+
+[conflicts]
+modules = []
 
 [permissions]
-network = ["api.openweathermap.org"]
-graph = ["Session.started_at"]
-system = ["clock"]
+network = ["api.openai.com"]
+graph   = ["read"]
 
 [sandbox]
-allow_network = true
-allow_graph = false
+allow_network    = true
 allow_filesystem = false
 ```
 
-The manifest defines what the module is allowed to do. The module itself cannot declare or expand its own permissions - those come from the manifest reviewed during Store submission.
+The module cannot declare or expand its own permissions beyond what the manifest specifies. Permissions are reviewed during Store submission.
 
-**Theme modules** are a special case: they contain only CSS and token overrides, no JavaScript. No sandbox needed, no permissions. Anyone who can write CSS can publish a theme.
+**Deinstallation behavior:**
+
+When a module is removed and other modules depend on it, those dependents are automatically **deactivated** - not deleted. The user's data is preserved. The Store notifies the user which modules were deactivated and offers to either reinstall the dependency or remove the dependents cleanly.
 
 ### 9.3 Module Runtime
 
-A dedicated **Module Runtime** daemon manages the lifecycle of all installed modules. It is responsible for loading, sandboxing, and monitoring modules:
+A dedicated **Module Runtime** daemon manages lifecycle, sandboxing, and crash recovery for all active modules:
 
 ```mermaid
 flowchart TD
-  MR["Module Runtime\n(Rust daemon)"] --> IV1["Isolated WebView\nWidget: Clock"]
-  MR --> IV2["Isolated WebView\nWidget: Weather"]
-  MR --> IV3["Isolated WebView\nPanel: Dock"]
-  MR --> SAPI["Shell API\n(restricted)"]
+  MR["Module Runtime\n(Rust daemon)"] --> IV1["Isolated WebView\nspotlight: AI Provider"]
+  MR --> IV2["Isolated WebView\nshell.topbar: Weather"]
+  MR --> IV3["Isolated WebView\nshell.widget: Clock"]
+  MR --> SAPI["Shell API\n(restricted SDK)"]
   SAPI --> SC["Smithay Core"]
   SAPI --> GD["Graph Daemon"]
 ```
 
-Each module runs in its **own isolated WebView context** - completely separate from the shell's WebView. A module crash does not affect the shell or other modules. The runtime detects crashes, logs them, and either restarts the module or marks it as failed.
+Each module runs in its own isolated WebView context, separate from the shell's WebView. A module crash does not affect the shell or other modules. The runtime detects crashes, logs them, and either restarts the module or marks it as failed with a visible indicator in Settings.
 
 ### 9.4 Shell API
 
-Modules do not have direct access to Smithay or the Graph Daemon. They interact with the system through a restricted JavaScript API provided by the Module Runtime:
+Modules interact with the system through a restricted SDK - no direct Smithay or Graph Daemon access. What is not in the SDK is not accessible.
 
 ```typescript
 import { shell } from "@os/module-sdk"
 
 // Window management
 const windows = await shell.getWindows()
-const active = await shell.getActiveWindow()
+const active  = await shell.getActiveWindow()
 
-// Workspaces
-const workspaces = await shell.getWorkspaces()
-await shell.switchWorkspace(2)
+// Virtual desktops
+const desktops = await shell.getDesktops()
+await shell.switchDesktop(2)
 
 // System info
 const stats = await shell.getSystemStats()  // CPU, RAM, disk
-const time = await shell.getClock()
 
-// Theme
+// Theme tokens (read-only)
 const accent = await shell.theme.getToken("color-accent")
 
-// Graph (requires explicit permission in manifest)
+// Graph (requires graph = "read" in manifest permissions)
 const recent = await shell.graph.query("MATCH (f:File) RETURN f LIMIT 5")
+
+// Spotlight provider registration
+shell.spotlight.register({
+  id:          "com.example.ai-spotlight",
+  placeholder: "Ask AI...",
+  onQuery:     async (q) => [ /* result objects */ ]
+})
 ```
 
-What is not in the SDK is not accessible. No raw DOM access to the shell, no arbitrary network calls beyond declared endpoints, no filesystem access unless explicitly permitted.
+### 9.5 Global Input Manager
 
-### 9.5 Developer Experience
+Gestures and keybindings are configured in a single place in Settings - not per-app, not per-module. This is a deliberate application of the system-wide "single source of truth" philosophy: any component that reacts to input reads its bindings from the central Input Manager rather than maintaining its own config.
 
-The barrier to writing a module should be as low as possible. A CLI tool scaffolds a complete module project:
+Modules can register named actions:
+
+```toml
+[actions]
+"spotlight.open"        = { default = "Super" }
+"desktop.switch-next"   = { default = "Ctrl+Alt+Right" }
+"spotlight.toggle-ai"   = { default = "" }   # unbound by default
+```
+
+The user overrides bindings in Settings → Input → Keybindings. The module never sees the binding directly - the Input Manager calls the registered action handler when the binding fires. Same for gestures: a module registers a gesture action, the user configures which gesture triggers it.
+
+This means a user can rebind everything from one place, and modules cannot silently grab input outside their declared actions.
+
+### 9.6 Developer Experience
+
+A CLI scaffolds a complete module project:
 
 ```bash
-npx create-os-module my-widget
+npx create-os-module my-spotlight-provider
 ```
 
-This produces a fully configured project with Vite, TypeScript, Tailwind CSS, the module-sdk, and a manifest template. During development, hot-reload works directly in the running shell - changes appear immediately without restarting anything.
+Output: Vite + TypeScript + Tailwind + module-sdk + manifest template. Hot-reload works directly in the running shell during development - changes appear immediately without restarting.
 
-The build output is a signed package ready for Store submission or local installation.
+The build output is a signed package ready for Store submission or local sideloading.
 
-### 9.6 Store Integration
+### 9.7 Open Questions
 
-From the user's perspective, installing a module is identical to installing an app. The Store shows modules and apps in the same interface, distinguished by a tag. Internally, the package manager recognizes the module manifest and installs it to the correct location where the Module Runtime picks it up.
+- Sandboxing mechanism for non-WebView modules (e.g. native MCP servers written in Rust/Python)
+- Module review process and signing infrastructure
+- Whether `keybinding.profile` modules can ship gesture configs or only key combos
 
 ---
 
@@ -2014,7 +2087,188 @@ A dedicated section in Settings shows:
 - Snapshot history with one-click rollback to any previous snapshot
 - Update schedule configuration (for managed environments)
 
-### 13.5 Open Questions
+### 13.6 Project Planning
+
+The project spans many repos and components with cross-cutting concerns - an Epic about "Spotlight Module API" touches `desktop-shell`, `os-sdk`, `module-sdk`, and potentially `compositor`. Standard per-repo issue tracking is not sufficient for this.
+
+**Requirements:**
+- Epics / hierarchical issues that span multiple repos
+- Dependency tracking between issues ("this must land before that")
+- Roadmap view across all components
+- Cross-repo milestone coordination
+
+**Options under consideration:**
+
+**GitHub Projects v2 + Meta-Repo Convention**
+A dedicated `blueprint` repo hosts all cross-cutting Epics as issues. Component repos link back to the relevant Epic. GitHub Projects v2 aggregates issues from all repos into one board. Dependencies are tracked manually as text/checklists - no enforcement.
+
+Advantage: zero additional tooling, everything stays in GitHub.
+Disadvantage: dependency tracking is honor-system only, no roadmap view, Epic-to-child linking is manual.
+
+**Linear**
+Proprietary, hosted. Strong multi-repo GitHub integration, real Epics with child issues, dependency graph, roadmap view. Used by many ambitious early-stage projects.
+Advantage: best-in-class UX for exactly this use case.
+Disadvantage: proprietary, hosted externally, costs money at team scale.
+
+**Plane (self-hosted)**
+Open source Linear alternative, self-hostable. Feature parity with Linear is growing but not complete.
+Advantage: fits the project's digital sovereignty philosophy, no external dependency.
+Disadvantage: more ops overhead, some features still immature.
+
+**Decision: TBD.** The right tool is not locked in yet. The requirement is clear: cross-repo Epic tracking with dependency enforcement and roadmap view. GitHub Projects alone is likely insufficient for a project of this scope.
+
+### 13.7 Local Development Workflow
+
+Development happens at three levels of integration, each with a different setup:
+
+**Level 1: Single component**
+The common case. Each repo has its own dev setup - `cargo run`, `tauri dev`, hot reload. No external dependencies needed if the component uses mocks from `os-sdk` (see 13.8). Fast feedback loop, runs entirely on the developer's machine.
+
+**Level 2: Compositor + Shell (nested Wayland)**
+Smithay supports nested mode - the compositor runs as a regular Wayland window inside the developer's existing desktop. The full shell appears inside that window. No VM, no extra hardware needed.
+
+```bash
+cargo run --bin compositor -- --nested
+```
+
+This covers the majority of shell and compositor development. eBPF and kernel-level components are not active in nested mode.
+
+**Level 3: Full system (QEMU)**
+Required for: eBPF development, boot sequence, update system, anything that needs real kernel access or a full system environment.
+
+The `distro` repo contains a script set for the full QEMU workflow:
+
+```bash
+# Build a complete bootable image
+./scripts/build-image.sh
+
+# Start interactive VM
+./scripts/run-vm.sh
+
+# Start VM with host directory shared into VM (compile on host, test in VM)
+./scripts/run-vm.sh --share ~/projects/kernel-layer
+
+# Run smoke tests in a fresh VM
+./scripts/test-vm.sh
+
+# Snapshot management
+./scripts/snapshot.sh save "before-ebpf-experiment"
+./scripts/snapshot.sh restore "before-ebpf-experiment"
+```
+
+The `--share` flag mounts a host directory via virtiofs into the VM. The developer compiles on the host (full CPU, full toolchain), copies the binary into the VM, and tests there. No full image rebuild per iteration.
+
+**QEMU configuration:**
+```bash
+qemu-system-x86_64 \
+  -enable-kvm \
+  -m 4G \
+  -cpu host \
+  -smp 4 \
+  -drive file=os-dev.qcow2,format=qcow2 \
+  -virtfs local,path=./share,mount_tag=hostshare,security_model=mapped \
+  -device virtio-gpu \
+  -display gtk,gl=on \
+  -netdev user,id=net0 \
+  -device virtio-net,netdev=net0
+```
+
+`qcow2` format supports native snapshots - freeze VM state, break something, restore in seconds.
+
+**eBPF development rule:** eBPF programs are developed and tested exclusively inside the VM. Never directly on the development machine. A bad eBPF program can destabilize the kernel. The `--ebpf-dev` flag starts the VM with additional kernel debug options (`CONFIG_BPF_KPROBE_OVERRIDE`, verbose kernel log).
+
+### 13.8 Mock Strategy
+
+When working on one component, running all its dependencies is often unnecessary and slow. Every IPC interface in the system has an official mock implementation that lives in `os-sdk`, directly alongside the interface definition.
+
+**Principle:** if you change an interface, you must update its mock in the same PR. The mock and the real implementation share the same type definitions. An outdated mock is a build error, not a runtime surprise.
+
+```
+os-sdk/
+  interfaces/
+    graph-daemon/
+      types.rs          ← shared types (real + mock use these)
+      client.rs         ← real client
+      mock.rs           ← mock implementation, same API
+    event-bus/
+      types.rs
+      client.rs
+      mock.rs
+```
+
+Usage in development or tests:
+
+```rust
+#[cfg(test)]
+use os_sdk::graph_daemon::mock::GraphDaemonMock as GraphDaemon;
+
+#[cfg(not(test))]
+use os_sdk::graph_daemon::client::GraphDaemonClient as GraphDaemon;
+```
+
+No per-repo custom stubs. No fixture files that drift from the real schema. The mock is the contract.
+
+### 13.9 Test Pipeline
+
+Tests run at three levels. Each level catches a different class of problem.
+
+**Level 1: Unit Tests (per repo, every push)**
+
+Every repo tests its own logic in isolation against mocks from `os-sdk`. Rust components use `cargo test`, TypeScript/Tauri components use Vitest.
+
+Hard rule: no PR merges without green unit tests.
+
+`kernel-layer` is a special case. eBPF logic that can be tested without a real kernel runs on the host as normal Rust unit tests. eBPF programs themselves require a real kernel and run in a minimal QEMU instance that CI spins up automatically for that repo.
+
+```
+kernel-layer/tests/
+  unit/     ← Rust logic, runs on host
+  kernel/   ← eBPF programs, CI spins up QEMU
+```
+
+**Level 2: Cross-component integration (daily against main)**
+
+These tests verify that two or more components communicate correctly over their real IPC interfaces. Not logic tests - interface compatibility tests.
+
+Examples:
+- Event Bus emits `FileAccessEvent` → Graph Daemon writes correctly to Kuzu → AI Layer can query it
+- Theme token change in Settings → all running Tauri processes receive the update
+- Shell sends keybinding action → Input Manager calls the correct handler
+
+These run on the host - no QEMU needed. Only the directly involved daemons start as real processes against real IPC sockets. No full system boot.
+
+```bash
+./tests/integration/graph-event-pipeline.sh
+# Starts: Event Bus mock → Graph Daemon (real) → Kuzu (real)
+# Sends:  synthetic events
+# Checks: Kuzu content via Graph Daemon query API
+```
+
+Run on a **daily schedule** (02:00) against the combined `main` of all repos. Not on every push - cross-repo coordination is too expensive for that. A failing integration test with all unit tests green means interface drift between repos - this is the primary failure mode this level catches.
+
+**Level 3: Full VM tests (release candidates only)**
+
+A complete system boots in QEMU. Smoke tests run against the live system:
+
+- System boots without crash
+- Spotlight opens, finds an app, launches it
+- eBPF events arrive and land in the Knowledge Graph
+- Theme switch propagates correctly to all surfaces
+- Module install, uninstall, dependency deactivation
+
+These are slow (minutes per run) and only run on release candidates. The VM image is built by the same `build-image.sh` script used for real releases - no separate test image. The test must run against the real artifact.
+
+**CI trigger summary:**
+
+| Trigger | What runs |
+|---|---|
+| Every push / PR | Unit tests for the affected repo |
+| PR merge to `main` | Unit tests + lint + build check |
+| Daily 02:00 | Cross-component integration against all `main` |
+| Release candidate | Full VM tests + smoke tests |
+| `kernel-layer` push | Unit tests + VM-based eBPF tests |
+
+### 13.10 Open Questions
 
 - Confirm mkosi works for the full build pipeline in practice
 - GPG key management for package signing - where is the signing key stored, who has access?
