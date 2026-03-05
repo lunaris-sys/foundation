@@ -42,17 +42,33 @@ This is a long-term hobby project with ambitions of eventually becoming somethin
 
 Most Linux distributions are either conservative remixes of existing systems or highly opinionated tools for a specific niche. That's fine. This is neither.
 
-The goal here is to build a desktop OS that takes modern technology seriously as a foundation. AI integration, a connected system-wide knowledge layer, a coherent design language, and respect for the user aren't features. They're the point.
+There are a billion people using Windows or macOS not because they love it, but because there was no real alternative. Windows works against its own users - forced updates, ads in the start menu, telemetry nobody enabled. macOS is polished but locks you into an ecosystem designed to keep you paying and dependent. And every Linux distribution, however technically excellent, has failed to make the jump to people who just want to use a computer without becoming a sysadmin.
+
+This project is for those people. The macOS user who is tired of the lock-in but refuses to compromise on quality. The Windows user whose computer feels like it belongs to Microsoft more than to them. They don't want to configure. They want to arrive and work - and feel like the OS is actually theirs.
+
+Advanced users will be fine regardless. They'll compile their own kernel if they have to. This is not for them specifically - though they're welcome.
+
+### Who this is for
+
+The primary audience is people switching from macOS or Windows who want a genuinely good alternative: modern-looking, works out of the box, respects their autonomy, and doesn't get in their way. Consumer-first, not enterprise-first.
+
+Business use is a future consideration - the architecture supports managed environments and admin policies. But company needs will never come at the expense of user rights. An admin can configure defaults. An admin cannot surveil users or override their personal data ownership. That line does not move.
 
 ### Core principles
 
-**Future-oriented, not hype-driven.** New technology gets used when it makes sense, not because it's trending. If we're building from scratch, there's no excuse for dragging along outdated patterns just because everyone else does.
+**For the user, not for the platform.** No ads, no tracking, no dark patterns, no telemetry without explicit consent. When a conflict arises between the user's interest and anything else - the user wins. This applies to business deployments too: admin policies configure the environment, they do not strip users of their data or autonomy.
 
-**European & independent.** No mandatory cloud accounts. No dependency on services that can be switched off by a company in another jurisdiction. The system works offline, self-hosted, and without phoning home. This is a technical stance and must not end up being a marketing label - digital sovereignty starts with the software people actually run.
+**Independence by default.** No mandatory cloud accounts. No dependency on services that can be switched off by a company in another jurisdiction. The system works fully offline, self-hosted, and without phoning home. Cloud features are opt-in extensions, not prerequisites. This is a technical commitment, not a marketing label.
 
-**The knowledge graph belongs to you.** All system intelligence runs locally by default. The knowledge graph, logs, AI context - none of it leaves the machine without explicit user action. Cloud AI providers are opt-in, not default.
+**The knowledge graph belongs to you.** All system intelligence runs locally by default. The knowledge graph, AI context, activity history - none of it leaves the machine without explicit user action. Cloud AI providers are opt-in, configured by the user, and can be removed entirely.
 
-**Good-looking is not optional.** A bad UI is a barrier to entry. If the goal is to bring new users to Linux - whether individuals or companies - the system needs to look better than what they're coming from, on first boot. This is non-negotiable.
+**Quality of life over feature count.** Small things matter. A system that warns you when something is quietly invading your privacy, that remembers what you were working on, that switches themes system-wide with one click - these are not big features. They are the difference between a system that feels alive and one that feels like infrastructure. Thoughtful small features beat impressive large ones that nobody uses.
+
+**Out of the box, not out of patience.** Everything works on first boot. No hunting for drivers, no configuring package managers, no reading wiki pages to get audio working. The standard use case requires zero setup. Advanced configuration is always available, never required.
+
+**Future-oriented, not hype-driven.** New technology gets used when it makes sense, not because it's trending. AI integration and the knowledge graph are here because they genuinely change what a personal computer can do - not because AI is the current buzzword. If we're building from scratch, there's no excuse for dragging along outdated patterns just because everyone else does.
+
+**Good-looking is not optional.** A bad UI is a barrier to entry. The system needs to look better than what users are coming from, on first boot. This is non-negotiable. Visual quality is not vanity - it is respect for the user's time and trust.
 
 **Coherent, not cobbled together.** Shared config standards, shared theming, shared interfaces across all system components. Change the accent color once and it propagates everywhere. No app that looks like it was designed in a different decade by a different team.
 
@@ -60,12 +76,15 @@ The goal here is to build a desktop OS that takes modern technology seriously as
 
 **Pragmatic, not ideological.** No purity tests. The goal is a useful, trustworthy system - not proving a point about software freedom. That said: no ads, no tracking, no dark patterns. Not because of ideology, but because that stuff is just bad product design.
 
+**Transparent by default.** The system can explain what it is doing and why, in plain language. Not buried in logs - surfaced where the user can see and act on it. A system that is legible to its user is a system the user can trust.
+
 ### What this is not
 
 - A minimal/suckless system (there's complexity here and that's fine)
 - A NixOS/Guix-style fully declarative system (though reproducibility is a goal)
-- A distro for advanced Linux users only (new users are explicitly a target)
-- A soly corporate product (at least not yet)
+- A distro for advanced Linux users only (new users are explicitly the target)
+- A corporate product that happens to be open source (business use is secondary, user rights are not negotiable)
+- A Windows or macOS clone (the goal is a better alternative, not a familiar imitation)
 
 ------
 
