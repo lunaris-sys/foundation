@@ -1094,6 +1094,87 @@ All transfers are logged in the Audit Log with source desktop, destination deskt
 
 A dedicated system daemon is the only process with access to both namespace contexts simultaneously. It is the sole chokepoint for all cross-desktop data flow. Apps cannot communicate across namespace boundaries directly - all transfer goes through this daemon. It runs with minimal privileges: read/write access to the configured shared folders and clipboard bridge access only.
 
+### 7.7 Signed Environment Packages
+
+Isolated desktops can be configured manually by the user, or deployed via a **Signed Environment Package** - a `.lenv` file created and signed by an organization (employer, school, institution) that describes a complete desktop environment. The user installs the package themselves and retains full control over their device. The organization gets a tamper-evident, versioned configuration they can trust.
+
+This is the BYOD model done right: the organization controls their context, the user controls their device.
+
+**Package format:**
+
+```toml
+[environment]
+id          = "com.acme.work-environment"
+name        = "Acme Work Desktop"
+version     = "2.1.0"
+publisher   = "Acme GmbH"
+signed_by   = "<Acme public key fingerprint>"
+type        = "persistent"    # or "temporary" for exam/test scenarios
+
+[desktop]
+indicator_color = "#0055aa"
+name            = "Acme Work"
+
+[transfer]
+clipboard   = "in-only"
+drag_drop   = "in-only"
+shared_folder = "off"
+
+[network]
+require_vpn   = "acme-vpn"
+allow_outbound = ["*.acme.com", "*.office365.com"]
+block_outbound = ["*"]
+
+[apps]
+required = ["com.acme.timetracker", "org.mozilla.firefox"]
+allowed  = ["*"]
+blocked  = ["com.valve.steam"]
+
+[graph]
+ai_access = "off"
+export    = "off"
+
+[updates]
+auto_update    = true
+update_source  = "https://env.acme.com/environments"
+min_version    = "2.0.0"
+
+[notifications]
+notify_on_uninstall = true
+notify_endpoint     = "https://mdm.acme.com/events"
+```
+
+**Tamper evidence:**
+
+The package is cryptographically signed by the organization's private key. The system verifies the signature before installation and again on every desktop start. If the `.lenv` file has been manually edited after signing, the signature check fails and the desktop does not start - the user sees a clear message to re-download the package. The organization can be confident their policy configuration has not been bypassed.
+
+**Versioning:**
+
+The package declares a `min_version`. When the organization releases a new version with updated policies, they can set `min_version` to enforce adoption. On next start of the isolated desktop the system checks the installed version against the update source. If the installed version is below `min_version` the desktop starts in a restricted state until updated - the user sees a prompt to update. The organization controls the urgency; the user performs the update themselves.
+
+**Key distribution - two tiers:**
+
+*Default - Trust on First Use (TOFU):* The package contains the publisher's public key. On first install the user sees the publisher name and key fingerprint and is asked to confirm trust. Once confirmed, the key is stored and future packages from the same publisher are verified automatically.
+
+*Enhanced - Enrollment Link:* For organizations that want stronger trust guarantees, IT sends an enrollment link during onboarding. The user opens it in the system, which imports the organization's public key before any package is installed. When the `.lenv` package arrives, trust is already established - no TOFU prompt needed.
+
+**Transparency to the user:**
+
+Before installation, the system displays a full summary of what the package configures - every policy, every restriction, every permission the organization requests. Nothing is hidden. If `notify_on_uninstall` is set, this is explicitly shown: "Acme GmbH will be notified when you uninstall this environment." The user accepts or rejects the full policy before the isolated desktop is created.
+
+**What the organization cannot do:**
+
+This is a hard boundary enforced technically, not by policy:
+
+- Read the user's private desktops or Knowledge Graph
+- Access any data outside the isolated desktop's namespace
+- Monitor apps running on other desktops
+- Remotely wipe or modify the device
+- Activate or modify the isolated desktop without the user's knowledge
+- Prevent the user from uninstalling the environment
+
+The user can always uninstall the `.lenv` package. The isolated desktop and all its data are removed. If `notify_on_uninstall` was declared and accepted, the organization receives a notification - but the uninstall proceeds regardless.
+
 ------
 
 ## 8. Design Language & Theming
