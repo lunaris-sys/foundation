@@ -1605,6 +1605,8 @@ A few non-negotiables that drive everything in this chapter:
 
 **Security must not destroy usability.** A system so locked down that users disable its protections is less secure than a well-calibrated one. Defaults are chosen to protect without requiring constant interaction.
 
+**Data minimization is a security property.** Data that does not exist cannot be stolen. The retention policy defined in chapter 5.4 is not only a privacy decision - it is an active security measure. Shorter retention windows mean smaller attack surface if the graph is ever compromised. The summarization process (granular events compacted to summary nodes) additionally reduces how much an attacker can reconstruct from the graph. Every decision to extend retention must be understood as a deliberate expansion of attack surface.
+
 ------
 
 ### 12.2 Full Disk Encryption
@@ -1702,7 +1704,110 @@ An app that requests more than it declared at install time is rejected outright 
 
 ------
 
-### 12.5 AI Security
+### 12.5 Graph Daemon Security
+
+The Graph Daemon is the sole gatekeeper for all graph data. Its own security properties are therefore critical - a compromised daemon collapses the entire permission model.
+
+**Cypher Injection**
+
+The Graph Daemon never accepts query strings with embedded values. All queries must use named parameters:
+
+```rust
+// Rejected - string interpolation
+let query = format!("MATCH (f:File {{name: '{}'}}) RETURN f", user_input);
+
+// Required - parameterized
+daemon.query(
+    "MATCH (f:File {name: $name}) RETURN f",
+    params!{ "name" => user_input }
+)
+```
+
+The daemon runs a validator on every incoming query that detects embedded values. A query that fails validation is rejected before execution.
+
+Apps that do not have `arbitrary_query` permission in their manifest cannot send free-form query strings at all. They select from a set of pre-approved query templates and supply only the parameters. Only explicitly trusted components - the AI layer, system daemons - receive `arbitrary_query` permission, and even they go through the parametrization validator.
+
+**Kuzu File Protection - Three Layers**
+
+The Kuzu database files are protected at three independent layers. All three are required - bypassing one does not bypass the others.
+
+*Layer 1: Filesystem permissions.* The Graph Daemon runs as a dedicated system user `graph-daemon`. The Kuzu database files are owned exclusively by this user with `600` permissions. An app process running as the logged-in user cannot open these files even with a successful sandbox escape - it has no filesystem permission to do so.
+
+*Layer 2: AppArmor.* An AppArmor profile for the Graph Daemon explicitly allows it access to its own files and nothing else. A separate deny rule in every app's AppArmor profile prohibits access to the graph directory - even if filesystem permissions were somehow bypassed.
+
+*Layer 3: LUKS loopback image.* The graph directory lives inside a LUKS-encrypted loopback image:
+
+```
+~/.local/share/graph.img   ← LUKS-encrypted loopback image
+  └── mounted at ~/.local/share/graph/ (only while Graph Daemon is running)
+        └── kuzu.db
+        └── kuzu.wal
+```
+
+The Graph Daemon mounts the image at startup using a key retrieved from the Kernel Keyring. The key is placed in the Keyring by a PAM module at login. When the daemon stops - cleanly or via crash - the image is unmounted and the key is discarded from memory. During any period when the Graph Daemon is not running, the Kuzu files are LUKS-encrypted ciphertext, unreadable even to root.
+
+This provides encryption-at-rest within an active user session - a layer beyond what systemd-homed alone provides.
+
+**Daemon Hardening**
+
+The Graph Daemon runs with the minimum privileges needed for its function. This is enforced simultaneously by three mechanisms so that bypassing one does not grant full access:
+
+systemd service hardening:
+```ini
+[Service]
+User=graph-daemon
+Group=graph-daemon
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/graph-daemon
+CapabilityBoundingSet=
+AmbientCapabilities=
+PrivateNetwork=true
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged @resources @mount
+NoNewPrivileges=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictNamespaces=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+```
+
+`MemoryDenyWriteExecute` prevents shellcode injection into the daemon process. `PrivateNetwork=true` means a compromised daemon cannot make outbound network connections to exfiltrate data.
+
+If the daemon is compromised despite these controls, the blast radius is bounded: it can only access Kuzu data, not home directories, not network, not other system components. The Audit Log detects anomalous query patterns from the daemon itself. A systemd watchdog restart closes the LUKS image cleanly and starts fresh.
+
+**Daemon Identity Verification**
+
+Clients verify they are speaking to the legitimate Graph Daemon before sending queries. At startup, the daemon signs a challenge token with a private key that only it holds. Clients verify the signature against the public key distributed with the system package (and verified by package signing). A connection that fails verification is dropped. This prevents a trojanized replacement daemon from intercepting graph traffic.
+
+**Rate Limiting and Query Complexity**
+
+Two attack vectors are addressed: DoS via query flooding, and timing side-channels.
+
+*Rate limiting* is enforced per client identity using a token bucket:
+
+| Client type | Sustained rate | Burst limit |
+|---|---|---|
+| Normal app | 100 queries/sec | 200 |
+| AI layer | 500 queries/sec | 1000 |
+| System daemons | unlimited | - |
+
+Exceeding the rate limit returns `RateLimitExceeded` and generates an event for the Anomaly Detector. Repeated violations trigger an alert.
+
+*Query complexity limits* prevent expensive traversals from being used as DoS:
+
+- **Hop limit:** Maximum traversal depth per query is 5 hops by default, never more than 10 regardless of permissions.
+- **Result limit:** Every query must include a `LIMIT` clause. Queries without `LIMIT` are rejected before execution.
+- **Execution timeout:** Queries are aborted after 500ms. The client receives `QueryTimeout`. This prevents a single expensive query from blocking the daemon for all other clients.
+
+*Timing side-channel mitigation:* Response times have a small random noise value added (±10-50ms). This makes statistical timing attacks on the graph impractical without significantly degrading performance for normal queries.
+
+------
+
+### 12.6 AI Security
 
 The AI layer has broader graph access than most apps by necessity - it needs context to give useful answers. This makes it a higher-risk component that requires its own security model.
 
@@ -1754,7 +1859,7 @@ Current language models **cannot** reliably distinguish between content they sho
 
 ------
 
-### 12.6 Audit Log
+### 12.7 Audit Log
 
 Every access to the Knowledge Graph, every AI action, and every permission grant or denial is recorded in the audit log. This serves two purposes: giving the user visibility into what is happening on their system, and providing the data needed for anomaly detection.
 
@@ -1767,33 +1872,47 @@ Entry N:
   timestamp: 2026-03-01T14:23:11Z
   actor: app:com.example.notes
   action: graph_query
-  scope: File.path WHERE session_id = "abc123"
-  result: allowed
+  node_types: [File, Session]
+  relations: [PART_OF_SESSION]
+  result_count: 12
+  duration_ms: 23
+  status: ok
   previous_hash: sha256:a3f9...
   entry_hash: sha256:b7c2...
 ```
 
-If any entry is tampered with after the fact, the hash chain breaks at that point. The break is detectable by any reader that verifies the chain. This does not prevent a sufficiently privileged attacker from rewriting the entire log, but it does make targeted tampering detectable.
+If any entry is tampered with after the fact, the hash chain breaks at that point. The break is detectable by any reader that verifies the chain.
+
+**Two log tiers:**
+
+**Tier 1: Structural Log (always active)**
+
+Logs interaction metadata, never content. What is recorded: timestamp, app identity, which node types were queried, which relations traversed, result count, duration, status. What is never recorded: the query string itself, result contents, concrete node IDs.
+
+This is sufficient to detect suspicious behavior - an app suddenly querying `NetworkConnection` nodes it never accessed before, an app sending thousands of queries per minute, an app systematically probing all node types. It is not sufficient to reconstruct what data was accessed.
+
+**Tier 2: Forensic Log (opt-in, time-limited)**
+
+For targeted debugging or incident response, the user can activate Forensic Mode in Settings. This additionally records the full query string, query parameters (not result contents), and the calling process stack trace.
+
+Forensic Mode is always time-limited - maximum 24 hours, then automatically deactivated. It is shown prominently as active in Settings while enabled. It cannot be activated remotely by an app or admin - only by the user, locally.
 
 **The Audit Daemon:**
 
-A dedicated daemon is the sole writer to the audit log. Other components send audit events to the daemon over a restricted IPC channel - they cannot write directly to the log files. The daemon runs with minimal privileges: it can write to the log directory and nothing else.
-
-The log files themselves are owned by the audit daemon's user and are not readable by normal app processes.
+A dedicated daemon is the sole writer to the audit log. Other components send audit events over a restricted IPC channel - they cannot write directly to the log files. The daemon runs with minimal privileges: write access to the log directory and nothing else.
 
 **Who can read the log:**
 
-Three tiers of read access:
+- **The user:** Full read access to Structural and Forensic logs via Settings → Security → Audit Log
+- **The Anomaly Detector:** Reads the Structural Log continuously for pattern detection. Never forwards raw log contents.
+- **Admins (managed environments):** Aggregated anomaly alerts only - not raw log contents. An admin sees "App X made an unusual number of graph queries at 3am", not which nodes were queried.
+- **Forensic Log:** Exclusively the user. No admin, no daemon, no app.
 
-- **The user:** Full read access to their own audit log via a dedicated UI in the Settings app. Can see every query, every AI action, every permission decision.
-- **The Anomaly Detector:** A system daemon with read access to the raw log for pattern analysis. It produces alerts but never forwards raw log contents anywhere.
-- **Network admins (managed environments only):** Receive aggregated anomaly alerts, not raw log contents. An admin can see "App X made an unusual number of graph queries at 3am" but not "App X queried these specific files."
-
-**Retention:** Default retention is 90 days, configurable. Entries older than the retention window are compressed and archived, not deleted. The user controls whether and when to permanently delete archived logs. In managed environments, the admin can set a minimum retention period that the user cannot reduce below.
+**Retention:** Default 90 days, configurable. Entries past the retention window are compressed and archived, not deleted. The user controls permanent deletion. In managed environments, admins can set a minimum retention period for Structural Log entries only.
 
 ------
 
-### 12.7 Anomaly Detector
+### 12.8 Anomaly Detector
 
 The Anomaly Detector is a system daemon that reads the audit log and identifies unusual patterns. It is not a traditional antivirus - it does not match file signatures or scan for known malware. It is a behavioral analysis tool that understands what normal looks like on this specific machine and flags deviations.
 
@@ -1815,7 +1934,7 @@ The Anomaly Detector is a system daemon that reads the audit log and identifies 
 
 ------
 
-### 12.8 App Sandboxing
+### 12.9 App Sandboxing
 
 Every application runs in a restricted environment that limits what it can do even if it is fully compromised. Sandboxing is the defense-in-depth layer that contains the blast radius of a successful attack.
 
@@ -1839,7 +1958,7 @@ An app cannot open a socket and talk directly to another app without that channe
 
 ------
 
-### 12.9 Network Security
+### 12.10 Network Security
 
 **Default Deny:** On a conventional Linux system, any process can open a network connection to anywhere by default. This is the wrong default. On this system, outbound network access is denied unless explicitly permitted.
 
@@ -1868,7 +1987,7 @@ The system enforces this via a combination of eBPF-based network filtering and t
 
 ------
 
-### 12.10 Physical Access
+### 12.11 Physical Access
 
 Full Disk Encryption handles the most common physical threat: a stolen or lost device. But physical access threats go beyond that.
 
@@ -1899,7 +2018,7 @@ In a managed deployment, this can be used as a network access gate: a device tha
 
 ------
 
-### 12.11 Memory Safety
+### 12.12 Memory Safety
 
 Memory safety bugs - buffer overflows, use-after-free errors, race conditions on shared memory - are the most common source of exploitable vulnerabilities in system software. They are structural problems with C and C++ that persist even with experienced developers and extensive testing.
 
@@ -1919,7 +2038,7 @@ This is supported by the Linux kernel since version 6.6 and is enabled by defaul
 
 ------
 
-### 12.12 Multi-User
+### 12.13 Multi-User
 
 When multiple users share a system, their data must be completely isolated from each other. On this system, that isolation goes deeper than traditional Unix file permissions because there is more sensitive state to protect: the Knowledge Graph, the AI configuration, the audit log, and the sandbox profiles.
 
@@ -1961,7 +2080,7 @@ The admin sees that something unusual happened (via anomaly alerts), but not wha
 
 ------
 
-### 12.13 Managed Environments
+### 12.14 Managed Environments
 
 For enterprise deployments where this system runs on many machines administered centrally, additional infrastructure is needed. This section describes the managed environment architecture.
 
@@ -2286,6 +2405,28 @@ These are slow (minutes per run) and only run on release candidates. The VM imag
 | Daily 02:00 | Cross-component integration against all `main` |
 | Release candidate | Full VM tests + smoke tests |
 | `kernel-layer` push | Unit tests + VM-based eBPF tests |
+
+### 13.11 Documentation
+
+Two separate documentation sites, both self-hosted:
+
+**`wiki.[project].dev` - User-facing wiki**
+
+Manually written, Arch Wiki in spirit. Covers concepts, how-tos, troubleshooting, and architecture explanations for users who want to understand how the system works. Not a man page collection - prose that explains intent and reasoning, not just what a setting does.
+
+At relevant points the wiki links directly to the API reference - users who want to go deeper can follow the link, but they never have to. The wiki is complete on its own.
+
+Structure mirrors the project's architecture: one section per major component. Community contributions via PRs, accepted or rejected by the core team. No anonymous edits.
+
+**`api.[project].dev` - Developer API reference**
+
+Auto-generated from code comments. Rust components via `rustdoc`, TypeScript components via `typedoc`. The output is aggregated and hosted under a single domain so there is one place to search across all components - not a separate rustdoc page per repo.
+
+This is the source of truth for interface definitions, struct documentation, and function signatures. Kept up to date automatically as part of CI - a PR that removes or changes a public API without updating its doc comment does not merge.
+
+**Contribution process for the wiki:**
+
+The wiki source lives in the `blueprint` repo alongside this document. PRs follow the same process as code - reviewed by the core team, merged when correct and complete. The bar for wiki contributions is lower than for code but the review still happens: factual errors, outdated information, and content that conflicts with actual system behavior get rejected or corrected before merge.
 
 ### 13.10 Open Questions
 
