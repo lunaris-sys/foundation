@@ -1040,6 +1040,62 @@ The Settings app provides a monitor configuration screen with: drag-to-arrange m
 
 ------
 
+### 7.6 Isolated Desktops
+
+Virtual desktops come in two types: normal and isolated. Normal desktops work exactly as on macOS or Windows - apps can be freely moved between them, they share clipboard and filesystem access, and they are visually indistinguishable except by their content.
+
+Isolated desktops are a separate concept. They run in their own Linux Namespace context - a separate mount, network, and PID namespace from the rest of the system. Apps on an isolated desktop cannot see resources from other desktops and cannot communicate with apps outside their namespace except through explicitly configured transfer channels.
+
+**Visual distinction:**
+
+Isolated desktops are clearly marked in the virtual desktop overview with a lock icon and a configurable color indicator. While an isolated desktop is active, a subtle colored border appears around the screen edge - always visible, never just a taskbar badge. The user always knows they are in an isolated context.
+
+**Creating an isolated desktop:**
+
+When creating a new desktop, the user chooses: normal or isolated. If isolated, they configure a name, indicator color, and transfer settings. This choice is permanent - a desktop cannot be converted between normal and isolated after creation.
+
+**Transfer system:**
+
+By default an isolated desktop is fully sealed. The user configures data transfer per desktop in Settings:
+
+```toml
+[desktop.work]
+isolated        = true
+indicator_color = "#e05a00"
+
+[desktop.work.transfer]
+clipboard        = "in-only"   # "off" | "in-only" | "out-only" | "both"
+drag_drop        = "in-only"   # "off" | "in-only" | "out-only" | "both"
+shared_folder    = "~/Transfer/Work"
+shared_folder_permission = "read-write"  # "read-only" | "read-write" | "off"
+```
+
+All three transfer channels are independently configurable with directional control:
+
+**Clipboard:** The Transfer Daemon bridges clipboard events between namespaces according to the configured direction. `in-only` means content from normal desktops is pasteable inside the isolated desktop, but not the reverse.
+
+**Drag & Drop:** The compositor detects drag events crossing the desktop boundary and routes them through the Transfer Daemon. Disallowed directions are silently blocked - the drag simply does not complete across the boundary.
+
+**Shared Folder:** A designated directory mounted in both namespace contexts. Read-write or read-only per direction.
+
+**Transfer confirmation:**
+
+Whenever data flows out of an isolated desktop (clipboard copy, drag out, file written to shared folder from inside) a non-dismissable toast notification appears for 3 seconds:
+
+```
+⚠ Work → Personal: "proposal.pdf"    [Undo]
+```
+
+The transfer proceeds but can be cancelled within the 3-second window. This prevents a background process in the isolated desktop from silently exfiltrating data without the user noticing. Transfers into an isolated desktop require no confirmation.
+
+All transfers are logged in the Audit Log with source desktop, destination desktop, transfer type, and data description.
+
+**The Transfer Daemon:**
+
+A dedicated system daemon is the only process with access to both namespace contexts simultaneously. It is the sole chokepoint for all cross-desktop data flow. Apps cannot communicate across namespace boundaries directly - all transfer goes through this daemon. It runs with minimal privileges: read/write access to the configured shared folders and clipboard bridge access only.
+
+------
+
 ## 8. Design Language & Theming
 
 > **Note:** The specific visual design language - exact color palettes, component shapes, motion design - is not finalized and will be decided in a separate design phase. This chapter documents the technical theming architecture: how themes are structured, how they propagate across layers, and how Store themes work.
@@ -1805,6 +1861,29 @@ Exceeding the rate limit returns `RateLimitExceeded` and generates an event for 
 
 *Timing side-channel mitigation:* Response times have a small random noise value added (±10-50ms). This makes statistical timing attacks on the graph impractical without significantly degrading performance for normal queries.
 
+**Capability Tokens for Graph IPC**
+
+Instead of the daemon looking up permissions in an ACL table on every query, apps receive a cryptographically signed capability token at startup. The token encodes the app's allowed scopes directly:
+
+```
+Token {
+  app_id:           "com.example.notes",
+  allowed_nodes:    ["File.path", "File.last_modified", "Session.started_at"],
+  allowed_relations:["PART_OF_SESSION"],
+  instance_scope:   "self",
+  expires:          "session",
+  signature:        <HMAC with Daemon key>
+}
+```
+
+On every query the daemon verifies the HMAC signature and reads permissions directly from the token - no database lookup. Benefits over a pure ACL approach:
+
+- **Performance:** HMAC verification is faster than a database lookup at high query rates
+- **Robustness:** token is self-contained - a corrupted ACL table cannot grant unintended access
+- **Delegability:** the AI layer can derive a restricted sub-token for a specific query scope without involving the daemon
+
+Token revocation (e.g. when an app's permissions are changed mid-session) is handled via a small in-memory revocation list in the daemon. Revoked tokens are rejected immediately. The list is cleared on daemon restart.
+
 ------
 
 ### 12.6 AI Security
@@ -1936,25 +2015,39 @@ The Anomaly Detector is a system daemon that reads the audit log and identifies 
 
 ### 12.9 App Sandboxing
 
-Every application runs in a restricted environment that limits what it can do even if it is fully compromised. Sandboxing is the defense-in-depth layer that contains the blast radius of a successful attack.
+Every application runs in a restricted environment that limits what it can do even if it is fully compromised. Sandboxing is the defense-in-depth layer that contains the blast radius of a successful attack. Three mechanisms operate simultaneously and independently - bypassing one does not bypass the others.
 
-**Filesystem isolation:** Each app has access only to its own data directory and any paths explicitly granted by the user. There is no access to `/home` in general, to other apps' directories, or to system paths outside a defined allowlist.
+**Linux Namespaces - isolation of resource visibility**
 
-Grants are made through the permission system at install time (declared in the package) and confirmed by the user. The file manager, for example, has broad filesystem access by explicit user grant - that is its purpose. A game has access to its own save directory and nothing else.
+Before any permission check happens, each app gets its own restricted view of the system via Linux Namespaces. This is the first line of defense: an app that cannot see a resource does not need to be blocked from accessing it.
 
-**Syscall filtering (seccomp):** Every app runs with a seccomp profile that restricts which system calls it can make. A text editor does not need `ptrace` (process tracing), `mount` (mounting filesystems), `kexec` (replacing the running kernel), or `perf_event_open` (performance monitoring). If a compromised text editor tries to call `ptrace` to attach to another process, the kernel kills it immediately.
+Three namespace types are applied to every app at launch via `unshare()`:
 
-Seccomp profiles are defined in the package and cannot be modified by the app itself. The system ships default profiles for common app categories; package maintainers can define more specific profiles.
+*Mount Namespace:* The app sees only its own data directory, explicitly granted paths, and a minimal set of system paths. `/home` as a whole is not visible - only the app's specific sandbox directory. Other apps' data directories do not exist from this app's perspective.
 
-**IPC isolation:** Apps cannot communicate with arbitrary other processes. IPC is restricted to:
+*Network Namespace:* The app's network access goes through a virtual interface managed by the network policy daemon. Apps that declared no network access in their manifest see no network interface at all. Apps with declared network access see only a filtered interface that enforces their declared destinations.
 
-- The Event Bus (to emit structured events)
-- The Graph Daemon (to query the graph, subject to permission checks)
-- Explicitly declared inter-app communication channels
+*PID Namespace:* The app can only see its own processes. `ps aux` returns only the app's own process tree - not the full system process list.
 
-An app cannot open a socket and talk directly to another app without that channel being declared and approved.
+This is implemented using the same kernel primitives as Linux containers. No kernel patches, no OpenSUSE compatibility issues. Apps are unaware of the namespace setup - they run normally within their constrained view.
 
-**Profiles are defined externally:** An app cannot define or modify its own sandbox profile. Profiles come from the package maintainer and are reviewed as part of the packaging process. An app that ships an overly permissive profile is a red flag during review.
+Namespaces complement AppArmor and seccomp rather than replacing them:
+
+| Mechanism | What it does |
+|---|---|
+| Namespaces | Changes what the app can see |
+| AppArmor | Blocks actions on resources the app can see |
+| seccomp | Blocks specific syscalls regardless of resource visibility |
+
+All three must be bypassed for an app to escape its sandbox.
+
+**Filesystem isolation:** Each app has access only to its own data directory and any paths explicitly granted by the user. Grants are made at install time and confirmed by the user. The file manager has broad filesystem access by explicit grant - that is its purpose. A game has access to its own save directory and nothing else.
+
+**Syscall filtering (seccomp):** Every app runs with a seccomp profile that restricts which system calls it can make. A text editor does not need `ptrace`, `mount`, `kexec`, or `perf_event_open`. If a compromised text editor tries to call `ptrace`, the kernel kills it immediately. Seccomp profiles are defined in the package and cannot be modified by the app itself.
+
+**IPC isolation:** Apps cannot communicate with arbitrary other processes. IPC is restricted to the Event Bus, the Graph Daemon, and explicitly declared inter-app communication channels. An app cannot open a socket to another app without that channel being declared and approved.
+
+**Profiles are defined externally:** An app cannot define or modify its own sandbox profile. Profiles come from the package maintainer and are reviewed during Store submission. An overly permissive profile is a red flag during review.
 
 ------
 
