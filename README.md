@@ -1559,7 +1559,105 @@ The build output is a signed package ready for Store submission or local sideloa
 
 ---
 
-## 10. App Ecosystem
+## 10. App Permissions
+
+Every app on the system - whether a native first-party app, a Flatpak, or an RPM package - operates within a permission profile that defines what it can access. The permission system is unified: one format, one enforcement layer, one place for the user to review and adjust.
+
+### 10.1 Permission File Format
+
+Each app has a TOML permission file stored at `~/.config/permissions/<app-id>.toml`. This file is the single source of truth for what that app is allowed to do.
+
+```toml
+# ~/.config/permissions/org.mozilla.firefox.toml
+
+[filesystem]
+allow = ["~/Downloads", "~/Documents", "~/.mozilla"]
+
+[network]
+allow = ["full"]
+
+[devices]
+allow = ["gpu"]
+
+[graph]
+# no entry = no access, never prompted
+```
+
+The file is human-readable and user-editable. The Settings app provides a UI for managing permissions without manual editing. Permissions are enforced via the sandbox layer (Namespaces + AppArmor + seccomp) described in chapter 13.
+
+**Graph access is never inferred or learned.** If an app has no `[graph]` section it has no graph access - period. Graph permissions must be explicitly declared, either by the user or by a Store-supplied profile. This is a hard rule with no exceptions.
+
+### 10.2 Profile Sources
+
+Permission profiles come from three sources, applied in priority order:
+
+**1. Store-supplied profiles (highest priority)**
+
+The Store ships a curated permission profile alongside known apps. Firefox, LibreOffice, VLC, and other common apps have community-maintained profiles that are installed automatically. The user sees the profile at install time and can accept, adjust, or reject it.
+
+Community members can submit profiles for apps not yet covered. Submitted profiles go through Store review before publication - an overly permissive profile is a red flag. This is similar to how AUR works: community-maintained, but reviewed.
+
+**2. Flatpak adapter (for Flatpak apps)**
+
+Flatpak apps carry their own permission declarations in their manifest. When a Flatpak is installed, the system automatically generates a permission file by mapping Flatpak permissions to the native format:
+
+```
+Flatpak                     →    Permission file
+filesystem=home             →    filesystem.allow = ["~/"]
+filesystem=~/Documents      →    filesystem.allow = ["~/Documents"]
+network                     →    network.allow = ["full"]
+devices=dri                 →    devices.allow = ["gpu"]
+sockets=wayland             →    display = "wayland"
+```
+
+The generated file is shown to the user at install time. They can tighten permissions before confirming. The Flatpak manifest is the floor - the system never grants more than what Flatpak declared.
+
+**3. First-run learning mode (for unknown apps)**
+
+If no Store profile exists and the app is not a Flatpak, the first launch runs in learning mode: all accesses are permitted and logged, nothing is blocked. After the session ends, the system presents a summary:
+
+```
+Firefox ran for the first time. It accessed:
+
+Filesystem:  ~/Downloads, ~/.mozilla
+Network:     outbound HTTPS (multiple destinations)
+Devices:     GPU
+
+Save this as Firefox's permission profile?
+[Review & Confirm]  [Edit First]  [Start Fresh - Block All]
+```
+
+The user reviews and confirms. From the second launch onward, the confirmed profile is enforced. Accesses that were not seen during the first run and are not in the profile trigger a deny-and-notify at runtime.
+
+Learning mode only applies to filesystem, network, and device access. Graph access is never learned - it is always deny until explicitly granted.
+
+### 10.3 Runtime Behavior
+
+Once a profile exists, the sandbox enforces it on every launch. If an app attempts an access outside its profile:
+
+1. The access is denied (`EACCES` returned to the app)
+2. A notification appears: "Firefox was blocked from accessing ~/Work. Allow?"
+3. If the user allows: the profile is updated, the app retries the action
+4. If the user denies: the block stands, the app handles the error itself
+
+This means apps may show their own error dialogs when blocked - that is acceptable. The app does not crash, it receives a normal filesystem error. The user's notification gives them the option to extend the profile.
+
+Repeated denials for the same access path are collapsed - the user is not spammed with the same notification. After three denials for the same access, the system asks once: "Always block Firefox from accessing ~/Work?"
+
+### 10.4 User Control
+
+The Settings app provides a full permissions overview:
+
+- List of all installed apps with their current permission profiles
+- Per-app view: every allowed and denied permission, when it was granted, source (Store / Flatpak / learned / manual)
+- Ability to revoke any permission, tighten scope, or reset to Store default
+- Activity log: recent permission-relevant accesses per app (sourced from the Audit Log)
+
+The user always has final say. A Store-supplied profile is a suggestion - the user can make it stricter. They cannot make it more permissive than what the Store profile declares without explicitly overriding it.
+
+------
+
+## 11. App Ecosystem
 
 ### First-Party Apps
 
@@ -1671,7 +1769,7 @@ Toasts appear top-right. They stack vertically if multiple arrive simultaneously
 
 ---
 
-## 11. Gaming & Windows Compatibility
+## 12. Gaming & Windows Compatibility
 
 Gaming and Windows application compatibility are first-class features, not afterthoughts. The required components are pre-installed and pre-configured - no manual setup required.
 
@@ -1724,7 +1822,7 @@ This enables queries like "how many hours did I play last week" or "which Proton
 
 ------
 
-## 12. Security & Privacy
+## 13. Security & Privacy
 
 Security is not a feature added on top of this system. It is a foundational design constraint that shapes every architectural decision. This chapter documents what threats we address, how we address them, and why.
 
@@ -2296,7 +2394,7 @@ Organizations deploying this system should seek legal counsel to define appropri
 
 ------
 
-## 13. Developer Experience & Infrastructure
+## 14. Developer Experience & Infrastructure
 
 ### 13.1 Repository Structure
 
@@ -2611,7 +2709,7 @@ The wiki source lives in the `blueprint` repo alongside this document. PRs follo
 
 ------
 
-## 14. Roadmap
+## 15. Roadmap
 
 > TODO: Define phases with rough scope
 
@@ -2638,7 +2736,7 @@ The wiki source lives in the `blueprint` repo alongside this document. PRs follo
 
 ------
 
-## 15. Appendix: Technology Decisions
+## 16. Appendix: Technology Decisions
 
 ### Knowledge Graph: Why Kuzu
 
