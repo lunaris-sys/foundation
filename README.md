@@ -76,6 +76,8 @@ Business use is a future consideration - the architecture supports managed envir
 
 **Pragmatic, not ideological.** No purity tests. The goal is a useful, trustworthy system - not proving a point about software freedom. That said: no ads, no tracking, no dark patterns. Not because of ideology, but because that stuff is just bad product design.
 
+**Build on what works, adapt what almost works.** If a good open source project already solves a problem well and fits the project's philosophy, forking it is the right call - not building from scratch out of pride. A Tauri-based mail client that already exists can be forked, adapted to the theming system, integrated with the permission layer, and shipped. The goal is a great system, not original authorship of every component.
+
 **Transparent by default.** The system can explain what it is doing and why, in plain language. Not buried in logs - surfaced where the user can see and act on it. A system that is legible to its user is a system the user can trust.
 
 ### What this is not
