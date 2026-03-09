@@ -78,6 +78,8 @@ Business use is a future consideration - the architecture supports managed envir
 
 **Build on what works, adapt what almost works.** If a good open source project already solves a problem well and fits the project's philosophy, forking it is the right call - not building from scratch out of pride. A Tauri-based mail client that already exists can be forked, adapted to the theming system, integrated with the permission layer, and shipped. The goal is a great system, not original authorship of every component.
 
+**Bridges, not walls.** Where established standards and existing implementations exist - GNOME Online Accounts, Flatpak Portals, Freedesktop standards, X11/XWayland - we build compatibility bridges rather than ignoring or replacing them. The system is the center, not an island. Existing apps and workflows should work. A bridge implements a known interface externally while using our system internally - the user and their apps never hit a wall.
+
 **Transparent by default.** The system can explain what it is doing and why, in plain language. Not buried in logs - surfaced where the user can see and act on it. A system that is legible to its user is a system the user can trust.
 
 ### What this is not
@@ -1659,7 +1661,95 @@ The user always has final say. A Store-supplied profile is a suggestion - the us
 
 ------
 
-## 11. App Ecosystem
+## 11. Account System
+
+The Account System is the single place where the user manages all their online accounts. Set up once, available everywhere - consistently, securely, with full visibility into which app accesses what.
+
+### 11.1 Architecture
+
+All account logic lives in a dedicated **Account Daemon**. No app ever directly handles OAuth flows, stores tokens, or manages credentials. Apps declare what they need, the daemon handles the rest.
+
+```
+App → "I need Google Calendar read access"
+       ↓
+Account Daemon → checks permission profile
+               → provides derived token or cached data
+               → logs access in Audit Log
+       ↓
+App uses token against Google API directly
+```
+
+The daemon is the sole keeper of all credentials. Tokens never live in app memory longer than necessary.
+
+### 11.2 Service-Level Permissions
+
+Apps request access at the service level - not at the account level. The user sees human-readable service names, never raw OAuth scopes.
+
+```
+Google Account (tim@gmail.com)
+  ├── Mail        → allowed for: Thunderbird
+  ├── Calendar    → allowed for: Calendar App, AI Layer (read-only)
+  ├── Drive       → allowed for: File Manager
+  └── Contacts    → not granted to anyone
+```
+
+When an app requests account access for the first time, the user sees exactly which service is being requested and grants or denies it. The permission is stored in the app's permission profile (chapter 10) - account permissions are part of the same unified permission system.
+
+OAuth scopes are an implementation detail managed internally by the daemon. The user never sees `calendar.events.readonly` - they see "Google Calendar (read-only)".
+
+### 11.3 Multiple Accounts and Defaults
+
+When multiple accounts of the same type exist (e.g. two Google accounts), the system resolves which to use via a two-tier model:
+
+**System default:** Each service type has a designated default account. For most users with one account per service this is automatic and invisible.
+
+**Isolated Desktop context:** An Isolated Desktop can declare its own default accounts. The Work desktop uses `tim@acme.com` for all Google services; the personal desktop uses `tim@gmail.com`. Switching desktops switches the active account context automatically.
+
+**Per-app override:** Any app can be manually pointed at a specific account, overriding the desktop default. This is configured in Settings → Accounts → App Assignments.
+
+```toml
+# resolved in this order: per-app override → desktop default → system default
+[defaults]
+google = "tim@gmail.com"
+
+[desktop.work.defaults]
+google = "tim@acme.com"
+
+[app."org.mozilla.thunderbird"]
+google = "tim@gmail.com"   # always uses personal account regardless of desktop
+```
+
+### 11.4 Token Security
+
+Credentials never leave the Account Daemon as-is. The daemon uses a two-path model depending on provider support:
+
+**Path 1 - Derived tokens (preferred):** For providers that support OAuth scope restriction, the daemon issues a short-lived derived token scoped only to what the app declared. Default lifetime: 5 minutes. The full OAuth token and refresh token never leave the daemon.
+
+**Path 2 - Full token with safeguards (fallback):** For providers that do not support downscoping, the full token is handed to the app but with two compensating controls: every token handoff is logged in the Audit Log, and tokens are actively revoked when the app process exits.
+
+All credentials at rest are stored in the Kernel Keyring. The daemon loads them into memory only when actively needed and discards them immediately after.
+
+### 11.5 Offline Behavior
+
+Two failure modes are handled differently:
+
+**Auth failure (online, token rejected):** The provider rejected the token - the user revoked access, the account password changed, or the provider has an issue. The daemon emits a single system notification: "Google Account tim@acme.com needs to be re-authenticated." with a direct link to Settings → Accounts. Apps receive a clear `AccountAuthRequired` error code and surface a gentle in-app hint. No repeated notifications, no per-app error spam.
+
+**Network unavailable:** The daemon serves cached data from the last successful sync, clearly marked with the timestamp of the last update. A calendar app shows last-known events labeled "last updated 3 hours ago" rather than an empty state. Native apps can declare their offline behavior in their manifest - whether cached data is useful to them or not.
+
+When connectivity is restored, the daemon refreshes silently in the background and notifies apps of updated data via the Event Bus.
+
+### 11.6 GOA Bridge
+
+Apps built for GNOME that use GNOME Online Accounts (GOA) expect a D-Bus interface at `org.gnome.OnlineAccounts`. The system provides a GOA-compatible bridge that implements this interface exactly - but sources all data from the Account Daemon internally.
+
+Evolution, GNOME Calendar, and other GOA-dependent apps work without modification. From their perspective they are talking to GOA. Internally every request goes through the Account Daemon, through the permission system, and through the Audit Log.
+
+The bridge is read-only in the architectural sense: it translates, it does not add logic. The Account Daemon remains the single source of truth.
+
+------
+
+## 12. App Ecosystem
 
 ### First-Party Apps
 
@@ -1771,7 +1861,7 @@ Toasts appear top-right. They stack vertically if multiple arrive simultaneously
 
 ---
 
-## 12. Gaming & Windows Compatibility
+## 13. Gaming & Windows Compatibility
 
 Gaming and Windows application compatibility are first-class features, not afterthoughts. The required components are pre-installed and pre-configured - no manual setup required.
 
@@ -1824,7 +1914,7 @@ This enables queries like "how many hours did I play last week" or "which Proton
 
 ------
 
-## 13. Security & Privacy
+## 14. Security & Privacy
 
 Security is not a feature added on top of this system. It is a foundational design constraint that shapes every architectural decision. This chapter documents what threats we address, how we address them, and why.
 
@@ -2396,7 +2486,7 @@ Organizations deploying this system should seek legal counsel to define appropri
 
 ------
 
-## 14. Developer Experience & Infrastructure
+## 15. Developer Experience & Infrastructure
 
 ### 13.1 Repository Structure
 
@@ -2711,7 +2801,7 @@ The wiki source lives in the `blueprint` repo alongside this document. PRs follo
 
 ------
 
-## 15. Roadmap
+## 16. Roadmap
 
 > TODO: Define phases with rough scope
 
@@ -2738,7 +2828,7 @@ The wiki source lives in the `blueprint` repo alongside this document. PRs follo
 
 ------
 
-## 16. Appendix: Technology Decisions
+## 17. Appendix: Technology Decisions
 
 ### Knowledge Graph: Why Kuzu
 
