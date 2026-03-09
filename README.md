@@ -1044,141 +1044,6 @@ The Settings app provides a monitor configuration screen with: drag-to-arrange m
 
 ------
 
-### 7.6 Isolated Desktops
-
-Virtual desktops come in two types: normal and isolated. Normal desktops work exactly as on macOS or Windows - apps can be freely moved between them, they share clipboard and filesystem access, and they are visually indistinguishable except by their content.
-
-Isolated desktops are a separate concept. They run in their own Linux Namespace context - a separate mount, network, and PID namespace from the rest of the system. Apps on an isolated desktop cannot see resources from other desktops and cannot communicate with apps outside their namespace except through explicitly configured transfer channels.
-
-**Visual distinction:**
-
-Isolated desktops are clearly marked in the virtual desktop overview with a lock icon and a configurable color indicator. While an isolated desktop is active, a subtle colored border appears around the screen edge - always visible, never just a taskbar badge. The user always knows they are in an isolated context.
-
-**Creating an isolated desktop:**
-
-When creating a new desktop, the user chooses: normal or isolated. If isolated, they configure a name, indicator color, and transfer settings. This choice is permanent - a desktop cannot be converted between normal and isolated after creation.
-
-**Transfer system:**
-
-By default an isolated desktop is fully sealed. The user configures data transfer per desktop in Settings:
-
-```toml
-[desktop.work]
-isolated        = true
-indicator_color = "#e05a00"
-
-[desktop.work.transfer]
-clipboard        = "in-only"   # "off" | "in-only" | "out-only" | "both"
-drag_drop        = "in-only"   # "off" | "in-only" | "out-only" | "both"
-shared_folder    = "~/Transfer/Work"
-shared_folder_permission = "read-write"  # "read-only" | "read-write" | "off"
-```
-
-All three transfer channels are independently configurable with directional control:
-
-**Clipboard:** The Transfer Daemon bridges clipboard events between namespaces according to the configured direction. `in-only` means content from normal desktops is pasteable inside the isolated desktop, but not the reverse.
-
-**Drag & Drop:** The compositor detects drag events crossing the desktop boundary and routes them through the Transfer Daemon. Disallowed directions are silently blocked - the drag simply does not complete across the boundary.
-
-**Shared Folder:** A designated directory mounted in both namespace contexts. Read-write or read-only per direction.
-
-**Transfer confirmation:**
-
-Whenever data flows out of an isolated desktop (clipboard copy, drag out, file written to shared folder from inside) a non-dismissable toast notification appears for 3 seconds:
-
-```
-⚠ Work → Personal: "proposal.pdf"    [Undo]
-```
-
-The transfer proceeds but can be cancelled within the 3-second window. This prevents a background process in the isolated desktop from silently exfiltrating data without the user noticing. Transfers into an isolated desktop require no confirmation.
-
-All transfers are logged in the Audit Log with source desktop, destination desktop, transfer type, and data description.
-
-**The Transfer Daemon:**
-
-A dedicated system daemon is the only process with access to both namespace contexts simultaneously. It is the sole chokepoint for all cross-desktop data flow. Apps cannot communicate across namespace boundaries directly - all transfer goes through this daemon. It runs with minimal privileges: read/write access to the configured shared folders and clipboard bridge access only.
-
-### 7.7 Signed Environment Packages
-
-Isolated desktops can be configured manually by the user, or deployed via a **Signed Environment Package** - a `.lenv` file created and signed by an organization (employer, school, institution) that describes a complete desktop environment. The user installs the package themselves and retains full control over their device. The organization gets a tamper-evident, versioned configuration they can trust.
-
-This is the BYOD model done right: the organization controls their context, the user controls their device.
-
-**Package format:**
-
-```toml
-[environment]
-id          = "com.acme.work-environment"
-name        = "Acme Work Desktop"
-version     = "2.1.0"
-publisher   = "Acme GmbH"
-signed_by   = "<Acme public key fingerprint>"
-type        = "persistent"    # or "temporary" for exam/test scenarios
-
-[desktop]
-indicator_color = "#0055aa"
-name            = "Acme Work"
-
-[transfer]
-clipboard   = "in-only"
-drag_drop   = "in-only"
-shared_folder = "off"
-
-[network]
-require_vpn   = "acme-vpn"
-allow_outbound = ["*.acme.com", "*.office365.com"]
-block_outbound = ["*"]
-
-[apps]
-required = ["com.acme.timetracker", "org.mozilla.firefox"]
-allowed  = ["*"]
-blocked  = ["com.valve.steam"]
-
-[graph]
-ai_access = "off"
-export    = "off"
-
-[updates]
-auto_update    = true
-update_source  = "https://env.acme.com/environments"
-min_version    = "2.0.0"
-
-[notifications]
-notify_on_uninstall = true
-notify_endpoint     = "https://mdm.acme.com/events"
-```
-
-**Tamper evidence:**
-
-The package is cryptographically signed by the organization's private key. The system verifies the signature before installation and again on every desktop start. If the `.lenv` file has been manually edited after signing, the signature check fails and the desktop does not start - the user sees a clear message to re-download the package. The organization can be confident their policy configuration has not been bypassed.
-
-**Versioning:**
-
-The package declares a `min_version`. When the organization releases a new version with updated policies, they can set `min_version` to enforce adoption. On next start of the isolated desktop the system checks the installed version against the update source. If the installed version is below `min_version` the desktop starts in a restricted state until updated - the user sees a prompt to update. The organization controls the urgency; the user performs the update themselves.
-
-**Key distribution - two tiers:**
-
-*Default - Trust on First Use (TOFU):* The package contains the publisher's public key. On first install the user sees the publisher name and key fingerprint and is asked to confirm trust. Once confirmed, the key is stored and future packages from the same publisher are verified automatically.
-
-*Enhanced - Enrollment Link:* For organizations that want stronger trust guarantees, IT sends an enrollment link during onboarding. The user opens it in the system, which imports the organization's public key before any package is installed. When the `.lenv` package arrives, trust is already established - no TOFU prompt needed.
-
-**Transparency to the user:**
-
-Before installation, the system displays a full summary of what the package configures - every policy, every restriction, every permission the organization requests. Nothing is hidden. If `notify_on_uninstall` is set, this is explicitly shown: "Acme GmbH will be notified when you uninstall this environment." The user accepts or rejects the full policy before the isolated desktop is created.
-
-**What the organization cannot do:**
-
-This is a hard boundary enforced technically, not by policy:
-
-- Read the user's private desktops or Knowledge Graph
-- Access any data outside the isolated desktop's namespace
-- Monitor apps running on other desktops
-- Remotely wipe or modify the device
-- Activate or modify the isolated desktop without the user's knowledge
-- Prevent the user from uninstalling the environment
-
-The user can always uninstall the `.lenv` package. The isolated desktop and all its data are removed. If `notify_on_uninstall` was declared and accepted, the organization receives a notification - but the uninstall proceeds regardless.
-
 ------
 
 ## 8. Design Language & Theming
@@ -1749,7 +1614,156 @@ The bridge is read-only in the architectural sense: it translates, it does not a
 
 ------
 
-## 12. App Ecosystem
+## 12. Profiles
+
+A profile is a complete, isolated user environment backed by a separate Linux system user. Each profile has its own home directory, its own Knowledge Graph, its own account configuration, and its own set of running processes. Isolation is enforced at the kernel level - not by the shell, not by convention.
+
+The profile system replaces the concept of isolated desktops. Rather than trying to isolate individual desktops within a session, the entire session is the isolation boundary.
+
+### 12.1 Profile Types
+
+**Personal**
+
+The primary profile, created at system setup. Cannot be deleted. Has no restrictions - full access to all installed apps, all accounts, all system features. This is the default context the user logs into.
+
+**Work / Custom**
+
+A user-created or organization-deployed profile for a specific context - work, a project, a secondary identity. Backed by a separate Linux user. The user switches to it via the profile switcher and returns to Personal when done. Virtual desktops, accounts, Knowledge Graph, and app configurations are all independent from Personal.
+
+Multiple custom profiles can exist simultaneously. Each is a full Linux user with its own encrypted home image via systemd-homed.
+
+**Locked**
+
+A profile deployed by an institution (employer, school) for controlled sessions - exams, regulated work environments. Backed by a temporary Linux user created at session start and deleted when the session ends. The user cannot switch to another profile while a Locked session is active - this is enforced at the compositor level, not just by UI. After the session ends, the Linux user and all associated data are removed.
+
+**Guest**
+
+A lightweight temporary context for short-term use by another person. Unlike other profile types, Guest does not create a second Linux user or a second compositor session. It runs as a sandboxed environment on top of the current session - separate namespace, empty home, no access to the host user's data. When the Guest session ends, all Guest data is discarded. The host user's session resumes immediately with no reload.
+
+### 12.2 Technical Foundation
+
+Each non-Guest profile is a Linux system user. The profile system is a UX layer on top of standard Linux multi-user support:
+
+- Profile creation = `useradd` + systemd-homed home image setup
+- Profile switching = standard Linux user session switch
+- Profile deletion = `userdel` + home image removal
+- Isolation = kernel-enforced, not convention-based
+
+systemd-homed provides encrypted home images per profile. When a profile is not active, its home image is unmounted and its encryption key is discarded from memory. The profile's data - including its Knowledge Graph - is LUKS-encrypted at rest.
+
+Each profile runs its own instance of all system daemons: Graph Daemon, Account Daemon, Event Bus. There is no shared daemon state between profiles.
+
+### 12.3 Profile Switching
+
+**Work/Custom profiles:** Standard session switch. The current session is saved (open apps, window positions, virtual desktop state) and the new session starts. On return, the saved state is restored. Switch time is a few seconds - a full login/logout cycle, but with session restore making it feel lightweight.
+
+**Guest:** Instant. A sandboxed context opens on top of the current session. No second compositor, no second daemon stack. The host session is suspended in the background and resumed instantly when Guest ends.
+
+**Locked:** The current session is fully suspended. The Locked session starts. No profile switcher is visible, no keyboard shortcut can escape to another profile. The only exit is session completion (or, in emergencies, a hard reboot).
+
+Profile switching is accessible from the topbar menu and from the lock screen.
+
+### 12.4 Data Transfer Between Profiles
+
+By default profiles are fully sealed from each other. Controlled data transfer is configured per profile pair in Settings:
+
+```toml
+[profile.work.transfer]
+clipboard              = "in-only"   # "off" | "in-only" | "out-only" | "both"
+drag_drop              = "in-only"
+shared_folder          = "~/Transfer/Work"
+shared_folder_permission = "read-write"  # "read-only" | "read-write" | "off"
+```
+
+All three transfer channels are independently configurable with directional control. A dedicated **Transfer Daemon** is the only process with simultaneous access to both profile namespaces - all cross-profile data flow goes through it, nothing bypasses it.
+
+Whenever data flows out of a profile (clipboard copy, drag out, file written to shared folder), a non-dismissable toast appears for 3 seconds:
+
+```
+⚠ Work → Personal: "proposal.pdf"    [Undo]
+```
+
+The transfer proceeds but can be cancelled within the window. All transfers are logged in the Audit Log with source profile, destination profile, transfer type, and data description.
+
+Locked profiles have transfer hardcoded to `off` in all directions. This cannot be overridden by the user or the institution's package - it is a system-level invariant.
+
+### 12.5 Signed Profile Packages
+
+Profiles can be configured manually by the user or deployed via a **Signed Profile Package** - a `.lenv` file created and signed by an organization. The user installs it themselves and retains full control over their device. The organization gets a tamper-evident, versioned configuration.
+
+This is the BYOD model done right: the organization controls their context, the user controls their device.
+
+**Package format:**
+
+```toml
+[environment]
+id          = "com.acme.work-profile"
+name        = "Acme Work"
+version     = "2.1.0"
+publisher   = "Acme GmbH"
+signed_by   = "<Acme public key fingerprint>"
+type        = "persistent"    # or "locked" for exam/controlled sessions
+
+[profile]
+indicator_color = "#0055aa"
+
+[transfer]
+clipboard     = "in-only"
+drag_drop     = "in-only"
+shared_folder = "off"
+
+[network]
+require_vpn    = "acme-vpn"
+allow_outbound = ["*.acme.com", "*.office365.com"]
+block_outbound = ["*"]
+
+[apps]
+required = ["com.acme.timetracker", "org.mozilla.firefox"]
+allowed  = ["*"]
+blocked  = ["com.valve.steam"]
+
+[graph]
+ai_access = "off"
+export    = "off"
+
+[updates]
+auto_update   = true
+update_source = "https://env.acme.com/profiles"
+min_version   = "2.0.0"
+
+[notifications]
+notify_on_uninstall = true
+notify_endpoint     = "https://mdm.acme.com/events"
+```
+
+**Tamper evidence:** The package is signed by the organization's private key. The signature is verified at install time and on every profile start. A modified `.lenv` file fails verification and the profile does not start.
+
+**Versioning:** `min_version` enforces policy adoption. If the installed version is below the minimum, the profile starts in a restricted state until updated. The user updates themselves - the organization sets the urgency.
+
+**Key distribution - two tiers:**
+
+*Default - Trust on First Use (TOFU):* The package contains the publisher's public key. On first install the user sees the publisher name and key fingerprint and confirms trust. Future packages from the same publisher are verified automatically.
+
+*Enhanced - Enrollment Link:* IT sends an enrollment link during onboarding. The user imports the organization's key before any package arrives. No TOFU prompt needed when the `.lenv` is installed.
+
+**Transparency to the user:** Before installation, a full summary of every policy and restriction is shown. If `notify_on_uninstall` is declared, this is explicitly stated before the user confirms. Nothing is hidden.
+
+**Store distribution:** Profile packages can be distributed via the Store in addition to direct download. Organizations publish their package to the Store; users find and install it like any other Store item. The same signing and verification process applies regardless of distribution channel.
+
+**What the organization cannot do** - enforced technically, not by policy:
+
+- Read the user's Personal profile or its Knowledge Graph
+- Access any data outside the profile's Linux user boundary
+- Monitor activity in other profiles
+- Remotely wipe or modify the device
+- Activate or modify the profile without the user's knowledge
+- Prevent the user from uninstalling the package (Locked sessions end, but the package itself can always be removed)
+
+The user can always uninstall a `.lenv` package. If `notify_on_uninstall` was declared and accepted at install time, the organization receives a notification - but the uninstall proceeds regardless.
+
+------
+
+## 13. App Ecosystem
 
 ### First-Party Apps
 
@@ -1861,7 +1875,7 @@ Toasts appear top-right. They stack vertically if multiple arrive simultaneously
 
 ---
 
-## 13. Gaming & Windows Compatibility
+## 14. Gaming & Windows Compatibility
 
 Gaming and Windows application compatibility are first-class features, not afterthoughts. The required components are pre-installed and pre-configured - no manual setup required.
 
@@ -1914,7 +1928,7 @@ This enables queries like "how many hours did I play last week" or "which Proton
 
 ------
 
-## 14. Security & Privacy
+## 15. Security & Privacy
 
 Security is not a feature added on top of this system. It is a foundational design constraint that shapes every architectural decision. This chapter documents what threats we address, how we address them, and why.
 
@@ -2486,7 +2500,7 @@ Organizations deploying this system should seek legal counsel to define appropri
 
 ------
 
-## 15. Developer Experience & Infrastructure
+## 16. Developer Experience & Infrastructure
 
 ### 13.1 Repository Structure
 
@@ -2801,7 +2815,7 @@ The wiki source lives in the `blueprint` repo alongside this document. PRs follo
 
 ------
 
-## 16. Roadmap
+## 17. Roadmap
 
 > TODO: Define phases with rough scope
 
@@ -2828,7 +2842,7 @@ The wiki source lives in the `blueprint` repo alongside this document. PRs follo
 
 ------
 
-## 17. Appendix: Technology Decisions
+## 18. Appendix: Technology Decisions
 
 ### Knowledge Graph: Why Kuzu
 
