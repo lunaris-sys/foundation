@@ -850,7 +850,7 @@ These are irreversible or high-consequence actions. The cost of a false confirma
 
 **Third-party MCP servers:**
 
-Apps from the Store can ship MCP servers. These are always in the write/action category by default - they require per-session authorization regardless of what the server claims to expose. A community MCP server that claims to be read-only is still treated as action-requiring until a review process exists to certify otherwise.
+Apps from the Store can ship MCP servers. These are always in the write/action category by default - they require per-session authorization regardless of what the server claims to expose. A community MCP server that claims to be read-only is still treated as action-requiring unless it carries a Security Audit Badge (see chapter 14.5) from an independent audit that covers its MCP server implementation.
 
 ### Open Questions
 
@@ -1009,7 +1009,34 @@ app-files/
 - Exact Unix socket message schema (to be defined as shell features solidify)
 - Community app certification: can third-party apps use ui-kit and appear as "native-looking"?
 
-### 7.5 Multi-Monitor & HiDPI
+### 7.5 Spotlight
+
+Spotlight is the system-wide launcher and command palette. It is the primary keyboard-driven entry point for the entire desktop.
+
+**Trigger:** `Super` key (configurable). Opens as a centered overlay, always on top, accessible from any context.
+
+**Core capabilities:**
+
+- App launch (fuzzy search over installed apps and recent)
+- File search (recent files, Knowledge Graph-backed)
+- Settings search (find any setting by keyword, jump directly to it)
+- Calculator (inline, `2 + 2 =` evaluated without opening anything)
+- Unit conversion, timezone lookup, and other built-in utilities
+- Contextual actions based on selection or current app ("Share...", "Open with...")
+
+**AI integration:**
+
+When the AI layer is active, Spotlight has an AI mode toggled with `Tab` (or configurable shortcut). Natural language queries are interpreted by the AI layer and resolved against the Knowledge Graph and available MCP actions. "Show me the documents I worked on this week" is a Spotlight query, not a search.
+
+**Extension:**
+
+Third-party modules can register as `spotlight.provider` or `spotlight.action` (see Chapter 9). Providers add result types; actions add commands. Extension point details are in Chapter 9.
+
+**What it is not:**
+
+Spotlight is not a file manager or a browser. Deep file browsing, folder navigation, and bulk operations happen in the File Manager. Spotlight surfaces the result you want immediately or hands off to the right app.
+
+### 7.6 Multi-Monitor & HiDPI
 
 **What Wayland solves for free:**
 
@@ -1551,7 +1578,7 @@ The daemon is the sole keeper of all credentials. Tokens never live in app memor
 Apps request access at the service level - not at the account level. The user sees human-readable service names, never raw OAuth scopes.
 
 ```
-Google Account (tim@gmail.com)
+Google Account (personal@example.com)
   ├── Mail        → allowed for: Thunderbird
   ├── Calendar    → allowed for: Calendar App, AI Layer (read-only)
   ├── Drive       → allowed for: File Manager
@@ -1568,20 +1595,20 @@ When multiple accounts of the same type exist (e.g. two Google accounts), the sy
 
 **System default:** Each service type has a designated default account. For most users with one account per service this is automatic and invisible.
 
-**Isolated Desktop context:** An Isolated Desktop can declare its own default accounts. The Work desktop uses `tim@acme.com` for all Google services; the personal desktop uses `tim@gmail.com`. Switching desktops switches the active account context automatically.
+**Isolated Desktop context:** An Isolated Desktop can declare its own default accounts. The Work desktop uses `work@example.com` for all Google services; the personal desktop uses `personal@example.com`. Switching desktops switches the active account context automatically.
 
 **Per-app override:** Any app can be manually pointed at a specific account, overriding the desktop default. This is configured in Settings → Accounts → App Assignments.
 
 ```toml
 # resolved in this order: per-app override → desktop default → system default
 [defaults]
-google = "tim@gmail.com"
+google = "personal@example.com"
 
 [desktop.work.defaults]
-google = "tim@acme.com"
+google = "work@example.com"
 
 [app."org.mozilla.thunderbird"]
-google = "tim@gmail.com"   # always uses personal account regardless of desktop
+google = "personal@example.com"   # always uses personal account regardless of desktop
 ```
 
 ### 11.4 Token Security
@@ -1598,7 +1625,7 @@ All credentials at rest are stored in the Kernel Keyring. The daemon loads them 
 
 Two failure modes are handled differently:
 
-**Auth failure (online, token rejected):** The provider rejected the token - the user revoked access, the account password changed, or the provider has an issue. The daemon emits a single system notification: "Google Account tim@acme.com needs to be re-authenticated." with a direct link to Settings → Accounts. Apps receive a clear `AccountAuthRequired` error code and surface a gentle in-app hint. No repeated notifications, no per-app error spam.
+**Auth failure (online, token rejected):** The provider rejected the token - the user revoked access, the account password changed, or the provider has an issue. The daemon emits a single system notification: "Google Account work@example.com needs to be re-authenticated." with a direct link to Settings → Accounts. Apps receive a clear `AccountAuthRequired` error code and surface a gentle in-app hint. No repeated notifications, no per-app error spam.
 
 **Network unavailable:** The daemon serves cached data from the last successful sync, clearly marked with the timestamp of the last update. A calendar app shows last-known events labeled "last updated 3 hours ago" rather than an empty state. Native apps can declare their offline behavior in their manifest - whether cached data is useful to them or not.
 
@@ -2002,7 +2029,7 @@ Profile packages are free to publish and carry no commission - they are not paid
 
 Gaming and Windows application compatibility are first-class features, not afterthoughts. The required components are pre-installed and pre-configured - no manual setup required.
 
-### 11.1 Wine & Proton
+### 15.1 Wine & Proton
 
 **Wine** provides compatibility for Windows applications on Linux. **Proton** is Valve's fork of Wine, optimized for gaming and maintained with extensive patches from Valve's Linux gaming team. For gaming specifically, Proton is substantially better than vanilla Wine.
 
@@ -2014,12 +2041,16 @@ Both are pre-installed:
 - **vkd3d-proton** - translates Direct3D 12 calls to Vulkan. Valve's fork, maintained separately from upstream vkd3d
 - **Winetricks** - a helper script for installing Windows components (Visual C++ runtimes, DirectX, etc.) into Wine prefixes
 
-Steam is available in the Store and works out of the box with Proton enabled. Non-Steam Windows games and applications use Wine directly, with a simple UI for creating and managing Wine prefixes.
+Steam is available in the Store and works out of the box with Proton enabled. Steam manages its own Proton version per game - the system does not interfere with Steam's internal Proton management. Steam is the authority for Steam games.
+
+Non-Steam Windows games and applications use Wine directly, managed through a dedicated first-party **Wine Manager** app. The same underlying components (DXVK, vkd3d-proton, Winetricks) are shared - there is no duplicate stack. When Steam is installed, non-Steam apps can optionally reuse Steam's existing Proton installations rather than maintaining a separate copy.
+
+**Wine Manager** is a standalone first-party app (not part of the Store UI). It provides prefix creation/deletion, per-prefix Winetricks access, launch shortcuts, and per-prefix Proton/Wine version selection. It is a thin UI over the existing tooling, not a reimplementation.
 
 **Vulkan requirement:**
 DXVK and vkd3d-proton require Vulkan. Mesa (the open-source GPU driver stack) ships with Vulkan support for AMD and Intel GPUs by default on OpenSUSE. Nvidia requires the proprietary driver for Vulkan support - the Store provides clear guidance for Nvidia users.
 
-### 11.2 Wine Theming
+### 15.2 Wine Theming
 
 By default, Wine applications render with a Windows Classic or Windows 7-era appearance - completely out of place on a modern desktop. Wine supports custom visual themes via Windows `.msstyles` files.
 
@@ -2027,13 +2058,13 @@ A first-party Wine theme is maintained as part of the project. It is generated f
 
 The Wine theme is applied automatically to all Wine prefixes managed by the system. Users who prefer the default Windows appearance can opt out per-prefix.
 
-### 11.3 Performance Tooling
+### 15.3 Performance Tooling
 
 **Gamemode** (by Feral Interactive) is pre-installed and enabled. It applies system-level performance optimizations when a game is running: CPU governor switches to performance mode, I/O scheduler optimized, kernel scheduler hints applied. Games request Gamemode via a simple library call that Proton handles automatically.
 
 **MangoHud** is pre-installed - an in-game overlay showing FPS, GPU/CPU usage, temperatures, and frame timing. Optional, disabled by default, toggled via a keyboard shortcut.
 
-### 11.4 Knowledge Graph Integration
+### 15.4 Knowledge Graph Integration
 
 Gaming activity is tracked in the Knowledge Graph like any other activity:
 
@@ -2045,9 +2076,8 @@ This enables queries like "how many hours did I play last week" or "which Proton
 
 ### Open Questions
 
-- UI for Wine prefix management (built into the Store or a separate app?)
-- Automatic Proton version selection per game (ProtonDB integration?)
-- Controller support configuration UI
+- Automatic Proton version selection for non-Steam games (ProtonDB integration?)
+- Controller configuration UI (standalone settings pane or inside Wine Manager?)
 
 ------
 
@@ -2055,7 +2085,7 @@ This enables queries like "how many hours did I play last week" or "which Proton
 
 Security is not a feature added on top of this system. It is a foundational design constraint that shapes every architectural decision. This chapter documents what threats we address, how we address them, and why.
 
-### 12.1 Principles
+### 16.1 Principles
 
 A few non-negotiables that drive everything in this chapter:
 
@@ -2073,7 +2103,7 @@ A few non-negotiables that drive everything in this chapter:
 
 ------
 
-### 12.2 Full Disk Encryption
+### 16.2 Full Disk Encryption
 
 **What it is:** Full Disk Encryption (FDE) means that everything stored on the disk is encrypted at rest. Without the correct unlock credentials, the raw data on the disk is unreadable - even if someone physically removes the drive and connects it to another machine.
 
@@ -2091,7 +2121,7 @@ TPM-based unlock is opt-in. Passphrase is always the fallback.
 
 ------
 
-### 12.3 Secure Boot & Boot Integrity
+### 16.3 Secure Boot & Boot Integrity
 
 **What Secure Boot is:** Secure Boot is a UEFI firmware feature that verifies the cryptographic signature of every piece of code executed during the boot process - the bootloader, the kernel, and kernel modules. If any component is not signed by a trusted key, the firmware refuses to execute it.
 
@@ -2116,7 +2146,7 @@ Secure Boot + Measured Boot together make this attack significantly harder. The 
 
 ------
 
-### 12.4 Knowledge Graph Permissions
+### 16.4 Knowledge Graph Permissions
 
 The Knowledge Graph is the most sensitive component in the system. It accumulates a detailed record of everything the user does - files accessed, apps used, network connections, work patterns. Getting its access control right is critical.
 
@@ -2168,7 +2198,7 @@ An app that requests more than it declared at install time is rejected outright 
 
 ------
 
-### 12.5 Graph Daemon Security
+### 16.5 Graph Daemon Security
 
 The Graph Daemon is the sole gatekeeper for all graph data. Its own security properties are therefore critical - a compromised daemon collapses the entire permission model.
 
@@ -2294,7 +2324,7 @@ Token revocation (e.g. when an app's permissions are changed mid-session) is han
 
 ------
 
-### 12.6 AI Security
+### 16.6 AI Security
 
 The AI layer has broader graph access than most apps by necessity - it needs context to give useful answers. This makes it a higher-risk component that requires its own security model.
 
@@ -2346,7 +2376,7 @@ Current language models **cannot** reliably distinguish between content they sho
 
 ------
 
-### 12.7 Audit Log
+### 16.7 Audit Log
 
 Every access to the Knowledge Graph, every AI action, and every permission grant or denial is recorded in the audit log. This serves two purposes: giving the user visibility into what is happening on their system, and providing the data needed for anomaly detection.
 
@@ -2399,7 +2429,7 @@ A dedicated daemon is the sole writer to the audit log. Other components send au
 
 ------
 
-### 12.8 Anomaly Detector
+### 16.8 Anomaly Detector
 
 The Anomaly Detector is a system daemon that reads the audit log and identifies unusual patterns. It is not a traditional antivirus - it does not match file signatures or scan for known malware. It is a behavioral analysis tool that understands what normal looks like on this specific machine and flags deviations.
 
@@ -2421,7 +2451,7 @@ The Anomaly Detector is a system daemon that reads the audit log and identifies 
 
 ------
 
-### 12.9 App Sandboxing
+### 16.9 App Sandboxing
 
 Every application runs in a restricted environment that limits what it can do even if it is fully compromised. Sandboxing is the defense-in-depth layer that contains the blast radius of a successful attack. Three mechanisms operate simultaneously and independently - bypassing one does not bypass the others.
 
@@ -2459,7 +2489,7 @@ All three must be bypassed for an app to escape its sandbox.
 
 ------
 
-### 12.10 Network Security
+### 16.10 Network Security
 
 **Default Deny:** On a conventional Linux system, any process can open a network connection to anywhere by default. This is the wrong default. On this system, outbound network access is denied unless explicitly permitted.
 
@@ -2488,7 +2518,7 @@ The system enforces this via a combination of eBPF-based network filtering and t
 
 ------
 
-### 12.11 Physical Access
+### 16.11 Physical Access
 
 Full Disk Encryption handles the most common physical threat: a stolen or lost device. But physical access threats go beyond that.
 
@@ -2519,7 +2549,7 @@ In a managed deployment, this can be used as a network access gate: a device tha
 
 ------
 
-### 12.12 Memory Safety
+### 16.12 Memory Safety
 
 Memory safety bugs - buffer overflows, use-after-free errors, race conditions on shared memory - are the most common source of exploitable vulnerabilities in system software. They are structural problems with C and C++ that persist even with experienced developers and extensive testing.
 
@@ -2539,7 +2569,7 @@ This is supported by the Linux kernel since version 6.6 and is enabled by defaul
 
 ------
 
-### 12.13 Multi-User
+### 16.13 Multi-User
 
 When multiple users share a system, their data must be completely isolated from each other. On this system, that isolation goes deeper than traditional Unix file permissions because there is more sensitive state to protect: the Knowledge Graph, the AI configuration, the audit log, and the sandbox profiles.
 
@@ -2581,7 +2611,7 @@ The admin sees that something unusual happened (via anomaly alerts), but not wha
 
 ------
 
-### 12.14 Managed Environments
+### 16.14 Managed Environments
 
 For enterprise deployments where this system runs on many machines administered centrally, additional infrastructure is needed. This section describes the managed environment architecture.
 
