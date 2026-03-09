@@ -1,0 +1,13 @@
+---
+titlepage: true
+titlepage-color: "1D3557"
+titlepage-text-color: "FFFFFF"
+titlepage-rule-color: "FFFFFF"
+titlepage-rule-height: 4
+toc-own-page: true
+mainfont: "Linux Libertine O"
+sansfont: "Linux Biolinum O"
+monofont: "JetBrains Mono"
+monofontoptions: "Scale=0.85"
+code-block-font-size: \small
+...

@@ -1,0 +1,3 @@
+.build_tmp/
+dist/
+_minted-*
