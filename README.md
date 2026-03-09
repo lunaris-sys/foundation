@@ -1875,7 +1875,130 @@ Toasts appear top-right. They stack vertically if multiple arrive simultaneously
 
 ---
 
-## 14. Gaming & Windows Compatibility
+## 14. Store
+
+The Store is the primary distribution channel for apps, themes, modules, and profile packages. It is designed to be fair to developers, transparent to users, and financially sustainable for the project - without becoming a gatekeeper.
+
+### 14.1 Publishing
+
+Publishing an app to the Store is free and remains free indefinitely. There is no annual developer fee, no "pay to keep your app listed" mechanic. An app that passes technical validation stays in the Store as long as it meets the minimum compatibility requirements.
+
+Automatic technical checks run on every upload:
+
+- Valid permission declarations in the manifest
+- Correct package signing
+- Sandbox policy compatibility
+- Declared dependencies exist and are resolvable
+
+These checks are automated. No manual review is required for apps that pass them. A failed check returns a clear error with a description of what needs fixing.
+
+A manual **Security Review** is available optionally - see 14.5.
+
+### 14.2 Pricing and Revenue Model
+
+**Supported pricing models:**
+
+- Free
+- One-time purchase
+- Subscription (monthly / annual)
+- In-app purchases
+- Pay what you want / donation
+- Free with optional paid upgrade (freemium)
+
+Developers can also offer external payment links. There is no prohibition on directing users to a developer's own website for purchases. The Store payment infrastructure is a convenience, not a monopoly.
+
+**Tiered commission - account-based:**
+
+Commission is calculated on total annual revenue across all apps in a developer account. Splitting apps across multiple accounts to game the tiers is prevented by account verification at registration.
+
+| Annual revenue (account total) | Commission |
+|---|---|
+| up to €10,000 | 0% |
+| €10,000 - €50,000 | 5% |
+| €50,000 - €500,000 | 15% |
+| €500,000 - €5,000,000 | 20% |
+| over €5,000,000 | 25% |
+
+Revenue is counted per calendar year. When a threshold is crossed mid-year, the new rate applies to all subsequent transactions in that year - not retroactively.
+
+### 14.3 User-Facing Features
+
+**One-time purchase, every device**
+
+Purchases are tied to the user account, not the device. A new device means logging in and downloading - not repurchasing.
+
+**Trial system**
+
+Developers declare trial periods in the app manifest:
+
+```toml
+[store]
+trial_days = 30
+```
+
+The Store enforces and tracks this. No credit card is required to start a trial. When the trial ends, the user receives a single notification with an option to purchase. No automatic charges, no dark patterns.
+
+**Family Sharing**
+
+Developers can opt in to Family Sharing per app. When enabled:
+
+- Default: up to 6 family members can use the app under one purchase
+- Developer can configure the limit up to a maximum of 8
+- One-time purchases are always shared if Family Sharing is enabled
+- Subscriptions: developer can offer a separate Family Plan pricing tier; otherwise each member needs their own subscription
+
+> **Note:** The exact Family Sharing model - particularly around subscriptions and the default/maximum member counts - is not finalized and may be adjusted.
+
+**Transparent pricing history**
+
+Every app's Store page shows a full price history - every price change with its date. Users can see if a price was recently raised. This is automatic and cannot be disabled by the developer.
+
+**Unified subscription management**
+
+All active subscriptions across all apps are visible and cancellable in one place: Settings → Account → Subscriptions. No hunting through individual apps to cancel.
+
+### 14.4 Developer Dashboard
+
+Developers have access to a dashboard with:
+
+- Install counts and active user numbers (counts only, never identities)
+- Revenue and payout history
+- Ratings and written reviews
+- Crash reports (only for users who opted in to crash reporting at the system level)
+- Version adoption - how many users are on which version
+
+No third-party analytics required. All data is aggregated and anonymized - the developer sees numbers, never who.
+
+### 14.5 Security Audit Badge
+
+Apps can display a Security Audit badge on their Store page. The badge indicates that the app has undergone an independent security audit by a third party - it is not a claim made by the Store itself.
+
+To display the badge, the developer uploads the audit report. The Store verifies that the report originates from the stated auditing organization (basic document verification) and displays it linked from the app page. Users can read the full report and judge the auditing organization's credibility themselves.
+
+The Store makes no quality claims about the audit. The badge means "an audit exists and here it is" - not "we reviewed this and it is safe."
+
+### 14.6 LTS Apps
+
+Developers can declare a Long Term Support commitment in the manifest:
+
+```toml
+[store]
+lts_until = "2028-12-31"
+```
+
+The Store displays this date on the app page. It is a public commitment - if the developer does not honor it, users can flag this and leave reviews accordingly. There is no automated enforcement, but the public visibility creates accountability.
+
+LTS apps are filterable in Store search - users who prioritize stability over new features can find them easily.
+
+### 14.7 Profile Package Distribution
+
+Signed Profile Packages (`.lenv` files) are distributed through the Store using the same infrastructure as apps. Organizations publish their package, users find and install it like any other Store item. The same signing and verification process applies regardless of whether the package arrives via the Store or a direct download link.
+
+Profile packages are free to publish and carry no commission - they are not paid products.
+
+------
+
+## 15. Gaming & Windows Compatibility
 
 Gaming and Windows application compatibility are first-class features, not afterthoughts. The required components are pre-installed and pre-configured - no manual setup required.
 
@@ -1928,7 +2051,7 @@ This enables queries like "how many hours did I play last week" or "which Proton
 
 ------
 
-## 15. Security & Privacy
+## 16. Security & Privacy
 
 Security is not a feature added on top of this system. It is a foundational design constraint that shapes every architectural decision. This chapter documents what threats we address, how we address them, and why.
 
@@ -2500,7 +2623,7 @@ Organizations deploying this system should seek legal counsel to define appropri
 
 ------
 
-## 16. Developer Experience & Infrastructure
+## 17. Developer Experience & Infrastructure
 
 ### 13.1 Repository Structure
 
@@ -2815,7 +2938,7 @@ The wiki source lives in the `blueprint` repo alongside this document. PRs follo
 
 ------
 
-## 17. Roadmap
+## 18. Roadmap
 
 > TODO: Define phases with rough scope
 
@@ -2842,7 +2965,7 @@ The wiki source lives in the `blueprint` repo alongside this document. PRs follo
 
 ------
 
-## 18. Appendix: Technology Decisions
+## 19. Appendix: Technology Decisions
 
 ### Knowledge Graph: Why Kuzu
 
