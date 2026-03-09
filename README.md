@@ -121,9 +121,55 @@ block-beta
 ### Key design decisions
 
 - Event Bus and Knowledge Graph are the critical path - everything else builds on top of them
-- AI layer is query-based first; autonomous/proactive features are explicit opt-in
+- AI layer is optional and opt-out - the system is fully functional without it
 - Desktop layer is architecturally independent and can be developed in parallel
 - All AI providers (local or cloud) are interchangeable behind a common interface
+- D-Bus remains as system infrastructure; the custom Event Bus is for internal components only
+
+### Component Boundaries: Rust Daemons vs. Tauri
+
+The system splits cleanly into two categories. Understanding this boundary matters for contributors.
+
+**Rust daemons** - long-running background processes with no UI, communicating over Unix sockets:
+
+| Daemon | Responsibility |
+|---|---|
+| Event Bus Daemon | Receives, validates, and routes internal events |
+| Graph Daemon | Sole reader/writer of the Kuzu database |
+| Account Daemon | Credential management, token issuance |
+| AI Layer Daemon | Model inference, MCP orchestration, graph querying |
+| Module Runtime | Lifecycle management for shell modules |
+| Transfer Daemon | Cross-profile data transfer chokepoint |
+| Compositor (Smithay) | Wayland compositor, window management |
+
+**Tauri processes** - Rust backend + WebView frontend, for anything with a UI:
+
+| App | Notes |
+|---|---|
+| Shell | Taskbar, Spotlight, notifications, lock screen |
+| Settings | System configuration UI |
+| File Manager | First-party file browser |
+| Store | App store UI |
+| Terminal | First-party terminal emulator |
+| Wine Manager | Wine prefix management UI |
+| Modules | Run in isolated WebViews under Module Runtime |
+
+**Communication paths:**
+
+```
+Daemon ↔ Daemon:         Unix socket (protobuf)
+Tauri backend ↔ Daemon:  Unix socket (protobuf)
+Tauri backend ↔ Frontend: Tauri command bridge (invoke / events, typed)
+Compositor ↔ Shell:      Wayland protocols + Unix socket (JSON)
+```
+
+A call from a Tauri UI to the Graph Daemon follows this path:
+```
+TypeScript → invoke() → Rust backend → Unix socket → Graph Daemon → Kuzu
+```
+Four hops, but all local - Unix socket latency is in the microseconds. For UI-driven queries this is not a bottleneck. For high-frequency live updates, the TypeScript layer debounces before calling through.
+
+**D-Bus runs in parallel to all of this** - NetworkManager, Bluetooth, Flatpak portals, and all Freedesktop-standard services use D-Bus as they normally would. The custom Event Bus does not touch these services.
 
 ------
 
@@ -131,66 +177,97 @@ block-beta
 
 This system is built on top of an existing Linux distribution rather than from scratch. The kernel, init system, package manager, and base toolchain come from the chosen distro. Everything above that - the desktop environment, event system, knowledge graph, AI layer - is custom.
 
-### Base Distribution: OpenSUSE Slowroll
+### 3.1 Base Distribution
 
-**What Slowroll is:**
-OpenSUSE Slowroll is a rolling-release distribution that sits between Tumbleweed (fully bleeding-edge rolling) and Leap (traditional fixed releases). It pulls packages from Tumbleweed but applies them with a delay - typically a few weeks - after they have been validated by the broader Tumbleweed community. This gives a good balance: packages are modern enough for current toolchains, but the delay provides a buffer against regressions.
+> **Note:** The base distribution is not yet finalized. Two candidates are under consideration. The decision will be made before Phase 1 begins, once initial prototyping has validated the core architecture. Both are RPM-based, which means the package ecosystem, tooling, and OBS infrastructure are compatible regardless of which is chosen.
 
-**Why Slowroll specifically:**
+**Requirements for the base:**
+- Stable, but not conservative - packages must be current enough for modern Rust toolchains, recent Wayland protocols, and current kernel features
+- Not bleeding edge - unvalidated updates arriving daily are a liability on a daily-driver machine
+- Independent governance - not fully controlled by a single commercial entity
+- Btrfs as default or first-class filesystem
+- Large enough community for hardware driver coverage and package availability
+- RPM-based (both candidates meet this)
 
-Tumbleweed would work for development but updates arrive continuously and can occasionally break things. For a system you use daily as your own developer machine, unexpected regressions are a real cost. Slowroll's validation window means the community has already hit and reported obvious problems before they reach you.
+**Candidate A: Fedora**
 
-Leap is too conservative - packages are old enough that current Rust toolchains, Wayland protocol extensions, and Kuzu bindings may not be available or may require significant workarounds.
+Fedora is a community distribution backed by Red Hat/IBM infrastructure, but governed independently via the Fedora Council. Packages are current - Fedora ships new releases every 6 months and tracks upstream closely. Btrfs has been the default filesystem since Fedora 33. Kernel and driver coverage is excellent.
 
-Slowroll hits the sweet spot: recent enough to build against, stable enough to rely on.
+| Advantage | Disadvantage |
+|---|---|
+| Independent governance (Fedora Council) | 6-month release cycle means periodic major upgrades |
+| Very current packages, excellent hardware support | Red Hat/IBM in the background - not fully independent |
+| Btrfs default, large community | Major upgrades require more testing than rolling updates |
+| Strong Flatpak/Wayland ecosystem | |
 
-**European alignment:**
-SUSE has German roots and significant European presence, which aligns with the project's stance on European software independence. This is not the primary reason for the choice, but it is a relevant factor.
+**Candidate B: OpenSUSE Slowroll**
 
-**Note on SUSE ownership:**
-SUSE (the company behind OpenSUSE) is currently owned by EQT, a Swedish private equity firm, following several ownership changes (Novell → Attachmate → Micro Focus → EQT). It is not purely independent - this should be kept in mind when making claims about European sovereignty in a marketing context.
+Slowroll sits between Tumbleweed (fully rolling) and Leap (fixed releases). It pulls packages from Tumbleweed with a delay of several weeks after community validation - recent enough for current toolchains, with a buffer against regressions. Btrfs + Snapper is more deeply integrated here than anywhere else in the Linux ecosystem.
 
-### Filesystem: btrfs
+| Advantage | Disadvantage |
+|---|---|
+| Best Btrfs + Snapper integration in the ecosystem | SUSE owned by EQT (private equity) - governance risk |
+| Rolling with validation delay - ideal update cadence | EQT ownership complicates European sovereignty narrative |
+| OBS (Open Build Service) is best-in-class for RPM packaging | Smaller community than Fedora |
+| German roots, European presence | |
 
-btrfs is the default filesystem. Key reasons:
+**Current preference: Fedora**, primarily because of its cleaner governance story. The SUSE/EQT ownership is not disqualifying for technical purposes, but it is a liability when applying for European sovereignty funding (Sovereign Tech Fund, NGI) - funders will ask about it.
 
-**Snapshots via snapper:** Before every system update, snapper automatically takes a btrfs snapshot. If an update breaks something, rolling back is one command. This is particularly valuable during heavy development when system packages change frequently.
+Both candidates use RPM packaging, which means OBS can target either distribution without changes to the build pipeline.
 
-**Subvolumes:** Clean separation of `/`, `/home`, and other directories as btrfs subvolumes. Snapshots can be taken per-subvolume, so a system rollback does not affect user data.
+### 3.2 Update Strategy
 
-**Copy-on-write:** Files are not overwritten in place - writes go to new blocks. This makes the filesystem more resilient to corruption from unexpected shutdowns.
+The system uses a **mutable filesystem with atomic, rollback-protected updates**. This is not an immutable OS - standard Linux workflows (`pip install`, `cargo build`, `git clone`, manual package installs) work without restriction. The update safety comes from the tooling layer, not from filesystem restrictions.
 
-### Init System: systemd
+**Why not immutable:** An immutable system prevents standard developer workflows and breaks the "install a GitHub project" use case. The target audience includes technical users who expect full control. The safety benefits of immutable systems are largely achievable through good snapshot tooling without the workflow cost.
+
+**The update stack:**
+
+**Btrfs + Snapper** form the foundation. Btrfs Copy-on-Write snapshots are nearly free in terms of disk space as long as content does not change. Snapper automatically creates a snapshot before every system update. Subvolumes separate `/` from `/home` - a system rollback never touches user data.
+
+**Automatic pre-update snapshots** happen without user involvement. The package manager triggers Snapper before applying any changes. This is standard behavior on both candidate distributions and requires no custom tooling.
+
+**Bootloader integration** is the critical piece that makes this user-friendly. If an update produces a system that fails to boot, the bootloader presents the previous snapshot automatically. The user sees: "Current system failed to start. Boot previous working version?" - one keypress, no terminal, no recovery mode.
+
+**Post-update health check** runs after the first boot following an update. A small daemon verifies that critical components are functional: compositor starts, network is available, no kernel panic indicators. If the health check fails, the system automatically rolls back and notifies the user. This catches cases where the system boots but is broken in a non-obvious way.
+
+**Snapper cleanup policy** prevents snapshot accumulation from filling the disk. Snapshots older than 7 days are pruned automatically, keeping the last 5 regardless of age. The user can adjust this in Settings.
+
+**For the user this means:** Updates happen in the background. If something breaks, the system either self-heals or presents a clear one-click recovery option. No broken system, no manual recovery, no data loss.
+
+**For the developer this means:** Nothing changes. The full Linux toolchain is available as usual. Manual snapshots can be created in Settings before risky operations ("I'm about to upgrade my Rust toolchain") and restored if needed.
+
+### 3.3 Init System: systemd
 
 systemd is the default and assumed throughout. No alternative is planned. systemd-homed is used for user home directory management (see Security chapter).
 
-### Package Manager: zypper + OBS
+### 3.4 Package Manager
 
-zypper is the native OpenSUSE package manager. It handles base system packages.
+Both candidate distributions use RPM as the package format. The native package manager (dnf for Fedora, zypper for OpenSUSE) handles base system packages.
 
-**Open Build Service (OBS):** OBS is OpenSUSE's build infrastructure and is one of the strongest arguments for the OpenSUSE ecosystem. It allows building packages for multiple distributions and architectures from a single spec file, with a web interface and CI integration. All custom packages for this project will be built and distributed via OBS.
+**Open Build Service (OBS)** is used for building and distributing all custom project packages. OBS can target both candidate distributions from a single spec file, which is one reason both are viable candidates. OBS handles multi-architecture builds, package signing, and repository hosting.
 
-**Packman repository:** Packman is a third-party OpenSUSE repository that provides packages not included in the base distribution for licensing reasons - notably multimedia codecs, Wine, and some gaming-related packages. Packman is enabled by default on this system.
+Store apps are distributed as Flatpaks (sandboxed, distribution-independent) or as native RPMs for system-level components. The Store infrastructure handles both formats transparently.
 
-### Constraints
+### 3.5 Hardware Requirements
 
-- Kernel 6.6+ required (for eBPF, Intel CET/Shadow Stack support, and recent Wayland protocol support)
-- Vulkan support required at the driver level (for DXVK/gaming compatibility)
-- systemd 255+ for full systemd-homed support
+These are hard requirements - the system will not run correctly without them:
+
+- **Kernel 6.6+** - required for eBPF features, Intel CET/Shadow Stack support, and recent Wayland protocol extensions
+- **Vulkan support** - required for DXVK and gaming compatibility. AMD and Intel GPUs are covered by Mesa out of the box. Nvidia requires the proprietary driver; the installer provides clear guidance.
+- **systemd 255+** - required for full systemd-homed support
+
+These requirements exclude hardware older than approximately 2018-2019 in practice. This is a documented constraint, not an oversight. Supporting very old hardware would require significant compromises in the graphics and security stack.
 
 ### 3.6 Config Format
 
-All system components and first-party apps use **TOML** as the configuration format. This is not just a convention - it is a system-wide standard.
+All system components and first-party apps use **TOML** as the configuration format. This is a system-wide standard, not a convention.
 
-**Why TOML:**
-
-TOML is human-readable and human-writable, like YAML, but without YAML's well-known parsing edge cases (implicit type coercion, indentation-sensitive syntax, the Norway problem). It maps cleanly to Rust's `serde` ecosystem via the `toml` crate, which is the de-facto standard for Rust configuration. It is less verbose than JSON and does not require a schema to be readable.
+TOML is human-readable and human-writable, without YAML's parsing edge cases (implicit type coercion, indentation-sensitive syntax, the Norway problem). It maps cleanly to Rust's `serde` ecosystem via the `toml` crate. It is less verbose than JSON and does not require a schema to be readable.
 
 Config files live at `~/.config/<app-id>/config.toml`. System-wide daemon configs live at `/etc/<daemon-name>/config.toml`.
 
-**Non-Tauri apps and legacy software:**
-
-Some third-party apps cannot read TOML natively - they expect environment variables, INI files, or JSON. A small **config-helper** binary bridges this gap:
+Some third-party apps expect environment variables, INI files, or JSON. A small **config-helper** binary bridges this:
 
 ```bash
 # Export a TOML config as environment variables
@@ -200,12 +277,13 @@ eval $(os-config-helper export --toml ~/.config/myapp/config.toml --format env)
 os-config-helper export --toml ~/.config/myapp/config.toml --format json
 ```
 
-This means the source of truth is always TOML, even for apps that consume other formats. The config-helper is a thin wrapper with no business logic.
+The source of truth is always TOML. The config-helper is a thin wrapper with no business logic.
 
 ### Open Questions
 
-- Custom kernel configuration vs. stock OpenSUSE kernel?
-- Own OBS project for all packages, or integrate into existing OpenSUSE infrastructure?- Release cadence: follow Slowroll's schedule or define independent snapshots?
+- Final base distribution selection (Fedora vs. OpenSUSE Slowroll) - decision before Phase 1
+- Custom kernel configuration vs. stock kernel - depends on base distro choice
+- OBS project structure: own top-level project or sub-project under existing infrastructure?
 
 ------
 
@@ -242,21 +320,31 @@ The tradeoff: eBPF events are low-level. We know *that* PID 4821 called `open()`
 
 **Framework:** [`aya`](https://aya-rs.dev/) - a Rust-native eBPF library. No C required, integrates cleanly with the rest of the Rust codebase.
 
-### Why not D-Bus?
+### D-Bus and the Event Bus
 
-**D-Bus** is the standard inter-process communication system on Linux desktops. It's been around since 2002 and is used by virtually every desktop application to communicate with the system and with each other - notifications, media controls, network status, all go through D-Bus.
+**D-Bus** is the standard inter-process communication system on Linux desktops. It is used by virtually every desktop application and system service - notifications, network management, Bluetooth, session management, Flatpak portals, and more all go through D-Bus.
 
-So why not use it here?
+**D-Bus is not replaced by this project.** It remains as system infrastructure. The following services communicate over D-Bus and that will not change:
 
-**No structured schema enforcement.** D-Bus messages are loosely typed. There's nothing stopping an app from sending a malformed message, and there's no central schema registry. For a system where we want to validate every event before it hits the Knowledge Graph, this is a problem.
+- `org.freedesktop.Notifications` - every app that sends notifications
+- NetworkManager - network status, WiFi, VPN
+- bluez - Bluetooth
+- systemd-logind - session management, suspend/resume, lid events
+- xdg-desktop-portal - Flatpak permissions, file picker, screen sharing
+- upower - battery and power events
+- Any GNOME/KDE app that uses Freedesktop standards
 
-**Performance.** D-Bus was designed for occasional IPC between desktop apps, not for high-frequency system event streams. At the volume we're expecting from eBPF alone (potentially thousands of events per second), D-Bus becomes a bottleneck.
+The **custom Event Bus is an internal system** for communication between project-specific components: the Graph Daemon, AI Layer, Shell, Module Runtime, and first-party apps. It does not replace D-Bus - it runs alongside it with a different purpose.
 
-**Complexity.** D-Bus has a significant amount of historical baggage - activation, session vs. system bus, introspection protocol. For a custom event bus with a specific purpose, starting fresh is simpler.
+**Why a separate internal bus at all:**
 
-The replacement: a **Unix domain socket**-based bus with **Protocol Buffers** (protobuf) for schema definition. Unix sockets are fast (no network stack overhead), protobuf enforces a schema and is efficient on the wire, and the whole thing is straightforward to implement in Rust.
+D-Bus is not suited for the high-frequency, schema-validated event stream this system needs internally. Specifically:
 
-If D-Bus compatibility turns out to matter for specific integrations, `zbus` (a Rust D-Bus implementation) can be used as a bridge - but it's not the core.
+**No structured schema enforcement.** D-Bus messages are loosely typed - there is no central schema registry, nothing prevents malformed messages. For events feeding the Knowledge Graph, schema validation at the bus level is a hard requirement.
+
+**Performance.** D-Bus was designed for occasional IPC between desktop apps, not for potentially thousands of events per second from eBPF. For the internal event stream, a leaner transport is needed.
+
+The internal bus uses **Unix domain sockets** with **Protocol Buffers** for schema enforcement. Fast, typed, straightforward to implement in Rust. This is the transport for internal components only - everything that speaks Freedesktop standards continues to use D-Bus.
 
 ### The Event Bus
 
@@ -385,7 +473,9 @@ eBPF can produce thousands of events per second. Two filters in the eBPF Normali
 
 ### 4.3 Backpressure
 
-Kuzu is optimized for analytical workloads, not high-frequency single-row writes. Batch inserts are fast; individual inserts are slow. The write strategy reflects this.
+Kuzu is an embedded graph database optimized for analytical workloads (complex traversals, aggregations over large graphs) - not for high-frequency single-row writes. This is a known architectural constraint: the batching layer below exists specifically to work within Kuzu's write characteristics rather than against them.
+
+> **Phase 0 validation required:** The batching architecture below is designed to make Kuzu viable under real eBPF load. This must be validated with a benchmark before committing to the full architecture. The benchmark: Event Bus + Graph Writer under simulated eBPF load (target: 5,000 events/sec sustained) with Kuzu as the write target. If Kuzu cannot sustain this even with batching, the fallback is a two-layer architecture: SQLite for writes (fast OLTP), Kuzu for queries (promoted from SQLite periodically). The decision is Go/No-Go at Phase 0.
 
 **Architecture: Ring Buffer + Batch Writer**
 
@@ -661,11 +751,29 @@ The Knowledge Graph lives inside the user's systemd-homed encrypted home directo
 
 The AI layer sits on top of the Knowledge Graph and gives both the user and the system a way to interact with an AI model that has full context about what's happening on the machine. It's not a chatbot bolted on top - it's an interface that can query the graph, invoke app interfaces, and (optionally) act autonomously.
 
-Two design principles drive this layer:
+**The AI layer is not the primary selling point of this OS.** The desktop, the permission system, the profile isolation, the store - these stand on their own. The AI layer is an optional enhancement that becomes more useful over time as the Knowledge Graph accumulates context. Users who do not want it can disable it completely; the rest of the system is unaffected.
+
+Three design principles drive this layer:
 
 **Query-first.** The AI responds when asked. No background activity, no surprises. Autonomous features exist but are explicit opt-in, never default.
 
 **Provider-agnostic.** The system doesn't care whether the model runs locally or in the cloud. Everything goes through a common abstraction. The user decides what runs where.
+
+**Opt-out at any point.** The entire AI layer can be disabled in Settings → AI. When disabled: no local model runs, no graph queries from the AI layer, Spotlight falls back to standard search, no MCP servers are active. The setting is prominent and non-buried - not hidden five menus deep.
+
+### 6.1 Cold-Start Behavior
+
+The Knowledge Graph is empty on a fresh install. An AI that promises "knows your context" but has nothing in the graph yet is worse than no AI feature - it creates an expectation and immediately breaks it.
+
+The system handles this honestly:
+
+**At first boot:** The AI features are present but the onboarding explicitly sets expectations. A short explanation: "The AI assistant learns your context over time as you use the system. It starts with nothing and gradually becomes more useful over the coming days and weeks." No fake demos, no pretending context exists.
+
+**Optional import at onboarding:** The user can seed the graph with existing data: browser history, calendar events, documents. This is fully optional, clearly explained as a privacy trade-off, and can be done partially (e.g. only calendar, not browser history). Importing gives the AI immediately useful context without waiting weeks.
+
+**Non-AI features are strong from day one.** Spotlight works as a fast launcher and file search without AI. The Knowledge Graph supports basic queries without AI inference. The system is useful immediately - the AI is an upgrade, not a prerequisite.
+
+**No AI prompt at first boot if the graph is empty.** The AI assistant does not surface proactively until the graph contains enough data to be genuinely useful (configurable threshold, default: 7 days of usage or a manual import). Before that threshold, the feature exists but does not advertise itself.
 
 ### What is MCP?
 
@@ -2114,7 +2222,7 @@ Non-Steam Windows games and applications use Wine directly, managed through a de
 **Wine Manager** is a standalone first-party app (not part of the Store UI). It provides prefix creation/deletion, per-prefix Winetricks access, launch shortcuts, and per-prefix Proton/Wine version selection. It is a thin UI over the existing tooling, not a reimplementation.
 
 **Vulkan requirement:**
-DXVK and vkd3d-proton require Vulkan. Mesa (the open-source GPU driver stack) ships with Vulkan support for AMD and Intel GPUs by default on OpenSUSE. Nvidia requires the proprietary driver for Vulkan support - the Store provides clear guidance for Nvidia users.
+DXVK and vkd3d-proton require Vulkan. Mesa (the open-source GPU driver stack) ships with Vulkan support for AMD and Intel GPUs by default. Nvidia requires the proprietary driver for Vulkan support - the Store provides clear guidance for Nvidia users.
 
 ### 15.2 Wine Theming
 
@@ -2193,7 +2301,7 @@ TPM-based unlock is opt-in. Passphrase is always the fallback.
 
 The practical effect: an attacker who modifies the bootloader or kernel (e.g. to install a rootkit) cannot boot the modified system without also having access to the signing key. Since the signing key is not on the machine, this is not possible.
 
-OpenSUSE Slowroll supports Secure Boot out of the box via a Microsoft-signed shim bootloader. Custom kernel modules built for this project must be signed with a Machine Owner Key (MOK) enrolled in the firmware.
+Both candidate base distributions support Secure Boot out of the box via a Microsoft-signed shim bootloader. Custom kernel modules built for this project must be signed with a Machine Owner Key (MOK) enrolled in the firmware.
 
 **Unified Kernel Images (UKI):** A traditional Linux boot chain consists of multiple separate files: the bootloader, the kernel image, and the initramfs (the minimal filesystem used during early boot). Each must be separately signed and verified.
 
@@ -2533,7 +2641,7 @@ Three namespace types are applied to every app at launch via `unshare()`:
 
 *PID Namespace:* The app can only see its own processes. `ps aux` returns only the app's own process tree - not the full system process list.
 
-This is implemented using the same kernel primitives as Linux containers. No kernel patches, no OpenSUSE compatibility issues. Apps are unaware of the namespace setup - they run normally within their constrained view.
+This is implemented using the same kernel primitives as Linux containers. No kernel patches required. Apps are unaware of the namespace setup - they run normally within their constrained view.
 
 Namespaces complement AppArmor and seccomp rather than replacing them:
 
@@ -2752,7 +2860,7 @@ Multi-repo means each component can be developed, tested, and released independe
 
 > TODO: Evaluate mkosi in practice once base system components exist. Confirm it handles the full build pipeline before committing.
 
-**OBS (Open Build Service)** is used for packaging all custom components. OBS handles building RPM packages for OpenSUSE Slowroll across architectures, signing packages with the project GPG key, and hosting the package repository that end-user systems pull from.
+**OBS (Open Build Service)** is used for packaging all custom components. OBS handles building RPM packages across architectures for both candidate distributions, signing packages with the project GPG key, and hosting the package repository that end-user systems pull from. OBS supports both Fedora and OpenSUSE targets from the same spec files - one reason both are viable base candidates.
 
 ### 13.3 CI/CD
 
@@ -2766,7 +2874,7 @@ Multi-repo means each component can be developed, tested, and released independe
 
 The system receives updates from two sources that are managed separately:
 
-**Base system** (kernel, OpenSUSE packages): handled by zypper pulling from Slowroll repos. Standard OpenSUSE update process. snapper takes a btrfs snapshot before every zypper update automatically.
+**Base system** (kernel, base distro packages): handled by the native package manager (dnf or zypper depending on the chosen base). Snapper automatically takes a btrfs snapshot before every base system update.
 
 **Project components** (compositor, shell, event bus, graph daemon, AI layer, apps): distributed via the project's own OBS repository as RPM packages. Managed as a coordinated meta-package (see below).
 
@@ -2780,7 +2888,7 @@ The goal is updates that happen without interrupting the user and without forcin
 
 **Rollback:**
 
-btrfs + snapper takes a snapshot before every update. If something breaks after an update, the user can boot into the previous snapshot from the boot menu and roll back the entire system. This requires no special tooling - it is standard OpenSUSE behavior.
+Btrfs + Snapper takes a snapshot before every update. If something breaks after an update, the user can boot into the previous snapshot from the boot menu and roll back the entire system. No special tooling needed - this is standard behavior on both candidate base distributions.
 
 **Versioning between project components:**
 
@@ -3156,9 +3264,11 @@ The company's role is to employ core contributors, manage the store infrastructu
 
 Kuzu: MIT, embedded, Rust bindings, performant. Fits.
 
-### Event Bus: Why not D-Bus
+### Event Bus: Why a custom internal bus alongside D-Bus
 
-D-Bus has no structured schema enforcement and performance is not great for high-frequency system events. Custom Unix socket protocol with protobuf keeps it simple and fast.
+D-Bus remains as system infrastructure for all Freedesktop-standard services (NetworkManager, Bluetooth, portals, notifications from third-party apps, etc.) - it is not replaced.
+
+The custom Unix socket + protobuf bus exists for internal project components only (Graph Daemon, AI Layer, Shell, Module Runtime). D-Bus is not suited for this internal use: no schema enforcement, not designed for high-frequency event streams (thousands of events/sec from eBPF). For the internal bus, custom protobuf over Unix sockets is simpler and faster for this specific purpose.
 
 ### eBPF Framework: Why aya
 
