@@ -1356,13 +1356,19 @@ modules = ["com.example.ai-core"]
 modules = []
 
 [permissions]
-network = ["api.openai.com"]
-graph   = ["read"]
-
-[sandbox]
-allow_network    = true
-allow_filesystem = false
+# Same format as app permissions (Chapter 10)
+network.allow    = ["api.openai.com"]
+graph.allow      = ["read"]
+filesystem.allow = []
 ```
+
+The `[permissions]` block in the manifest uses the same schema as `~/.config/permissions/<id>.toml` (Chapter 10). At install time, the Module Runtime generates the permission file from the manifest and places it at `~/.config/permissions/<module-id>.toml`. The user can inspect and adjust it in Settings → Permissions like any other app.
+
+Two differences from app permissions:
+
+**No first-run learning.** Modules cannot learn permissions at runtime. Their profile is set at install time from the manifest. If a module needs a permission not declared in the manifest, it gets `EACCES` - the user can grant it manually in Settings, but there is no automatic prompt.
+
+**Store-signed baseline.** The permission profile generated from the manifest is signed by the Store as the "reviewed baseline". If the user modifies permissions beyond the baseline, Settings flags the deviation. This is informational only - the user's choices always win.
 
 The module cannot declare or expand its own permissions beyond what the manifest specifies. Permissions are reviewed during Store submission.
 
@@ -1384,7 +1390,45 @@ flowchart TD
   SAPI --> GD["Graph Daemon"]
 ```
 
-Each module runs in its own isolated WebView context, separate from the shell's WebView. A module crash does not affect the shell or other modules. The runtime detects crashes, logs them, and either restarts the module or marks it as failed with a visible indicator in Settings.
+Each module runs in its own isolated WebView context, separate from the shell's WebView. A module crash does not affect the shell or other modules.
+
+**Crash recovery policy:**
+
+The runtime uses exponential backoff per module instance:
+
+| Crash count (within 60s window) | Behavior |
+|---|---|
+| 1st | Immediate restart |
+| 2nd | Restart after 5s |
+| 3rd | Restart after 30s |
+| 4th+ | Mark as failed, stop retrying |
+
+When a module is marked failed, Settings → Modules shows a subtle error indicator with the last crash log. The user can trigger a manual retry at any time. No popup, no notification spam.
+
+The 60-second window resets on a clean run. A module that runs for 5 minutes and then crashes once gets a fresh restart immediately.
+
+**Update behavior by module type:**
+
+Module updates from the Store are downloaded in the background. When to apply them depends on the category:
+
+| Category | Update applied |
+|---|---|
+| `theme` | Immediately - token/CSS swap, no restart |
+| `spotlight.provider`, `spotlight.action` | On next Spotlight open |
+| `shell.topbar`, `shell.widget` | On next session start (default); user can trigger "Restart now" in Settings |
+| `mcp.server` | On next session start - running AI sessions are not interrupted mid-flow |
+
+Settings → Modules shows a "pending update" indicator for modules waiting for next session. The "Restart now" option for shell modules is available but not surfaced prominently - the default behavior is safe.
+
+**Slot conflict resolution:**
+
+Extension point slots fall into two categories defined in the Shell API schema:
+
+**Additive slots** - multiple modules can occupy the same slot simultaneously. The user controls order and visibility. Most slots are additive: `spotlight.provider`, `spotlight.action`, `shell.topbar`, `shell.widget`.
+
+**Exclusive slots** - only one module can hold the slot. Installing a second module that claims the same exclusive slot fails at install time with a clear error: "This module requires the topbar-replacement slot, which is already held by [module name]. Remove it first or configure which one to use." Currently exclusive: full shell replacement modules.
+
+Conflicts declared in `[conflicts]` in the manifest cover explicit known incompatibilities between specific packages, independent of slot exclusivity. Both mechanisms coexist.
 
 ### 9.4 Shell API
 
@@ -1443,15 +1487,37 @@ A CLI scaffolds a complete module project:
 npx create-os-module my-spotlight-provider
 ```
 
-Output: Vite + TypeScript + Tailwind + module-sdk + manifest template. Hot-reload works directly in the running shell during development - changes appear immediately without restarting.
+Output: Vite + TypeScript + Tailwind + module-sdk + manifest template.
 
-The build output is a signed package ready for Store submission or local sideloading.
+**Dev mode:**
+
+`create-os-module` starts the module in dev mode automatically. Dev mode is distinct from a production install:
+
+- The module runs **unsigned** in a dedicated dev sandbox.
+- All permissions declared in the manifest are granted without Store review.
+- The WebView DevTools are accessible directly (no production sandbox blocking them).
+- Hot-reload via Vite - changes appear in the running shell immediately.
+- Settings → Modules shows the module under a separate "Dev" section so the user knows something unreviewed is running.
+
+Dev mode is only available on developer builds of the system (a build flag). Production builds reject unsigned modules outright.
+
+**Sideloading (signed, not in Store):**
+
+For distributing a finished module outside the Store - private tooling, beta testing, enterprise internal tools:
+
+- The developer generates a self-signed key pair with the CLI (`os-module keygen`).
+- The module is signed with that key and distributed as an `.osmod` file.
+- The user installs it manually. The system uses TOFU: first install prompts "Trust key [fingerprint] for [module-id]?" - subsequent updates from the same key are silent.
+- Sideloaded modules get no special trust or expanded permissions. Same sandbox, same permission system, same crash recovery as Store modules.
+- Settings shows a "Not from Store" badge. No other distinction.
+
+The build output is a signed `.osmod` package ready for Store submission or sideload distribution.
 
 ### 9.7 Open Questions
 
-- Sandboxing mechanism for non-WebView modules (e.g. native MCP servers written in Rust/Python)
-- Module review process and signing infrastructure
-- Whether `keybinding.profile` modules can ship gesture configs or only key combos
+- Sandboxing mechanism for **native** module components (e.g. MCP servers written in Rust or Python that ship alongside a WebView module) - Linux namespaces apply but the exact integration with the Module Runtime is not specified yet.
+- Whether `keybinding.profile` modules can ship gesture configs or only key combos.
+- Module review process details: what exactly gets checked, by whom, and how is the "Store-signed baseline" for permissions implemented technically (separate signature on the permission file, or bundled in the package signature)?
 
 ---
 
