@@ -3034,7 +3034,89 @@ The wiki source lives in the `blueprint` repo alongside this document. PRs follo
 
 ------
 
-## 18. Roadmap
+## 18. Sustainability & Business Model
+
+This is an open source project. The code is and remains open - that is not a marketing position, it is a foundational commitment. At the same time, building and maintaining a full operating system is a serious engineering effort. This chapter documents how the project can sustain itself financially, and how a company could eventually be formed around it without compromising the open source core.
+
+The goal is not to find a way to extract value from users. The goal is to find revenue streams that are structurally aligned with the project's values: user sovereignty, transparency, and European digital autonomy.
+
+### 18.1 Principles
+
+A few constraints that rule out entire categories of business models upfront:
+
+- No feature-gating of core OS functionality behind a paywall. The desktop, the permission system, the knowledge graph, the AI layer - these are open and available to everyone.
+- No advertising, no telemetry sold to third parties, no data brokering.
+- No venture capital with growth-at-all-costs expectations. That creates misaligned incentives for a project built on user trust.
+- Enterprise features are fine to charge for. Making the core worse for non-paying users is not.
+
+### 18.2 Store Revenue
+
+The built-in app store (Chapter 14) is the most natural revenue stream. The tiered commission model (0% up to €10k, scaling to 25% above €5M) generates revenue proportional to ecosystem health - the project only earns well if developers earn well first.
+
+At early stage this is negligible. At meaningful adoption it becomes significant. The store also handles `.lenv` profile package distribution, theme sales, and module distribution - all under the same infrastructure.
+
+### 18.3 Enterprise: Managed Environments
+
+The Signed Profile Package system (Chapter 12.5) is already designed with organizations in mind. A company that wants to deploy a managed, policy-controlled environment for its employees needs:
+
+- Custom `.lenv` packages authored and maintained
+- Deployment tooling and documentation
+- Update management and versioning support
+- Support SLAs
+
+This is a natural B2B offering that does not touch the open source core. The `.lenv` format is open and documented - anyone can author packages - but organizations may want professional help doing it right. This mirrors how Red Hat sells support for software that anyone can download for free.
+
+### 18.4 OEM & Hardware Partnerships
+
+If the project reaches sufficient maturity and hardware compatibility, small European laptop manufacturers (e.g. Tuxedo Computers, PINE64 ecosystem, potential Framework partnerships) may want to ship the system pre-installed. OEM deals typically involve:
+
+- Certification and validation work (hardware compatibility testing)
+- A pre-install fee or revenue share
+- Ongoing support for the shipped configuration
+
+This is a longer-term play - it requires stable releases and a polished out-of-box experience first. But it is structurally aligned: the manufacturer gets a differentiated product, users get a well-tested hardware/software combination, the project gets sustainable revenue.
+
+### 18.5 Support Tiers
+
+A support tier aimed at power users, small businesses, and developers who want guaranteed response times and direct access:
+
+- Prioritized bug reports (not ignored, but moved to the front of the queue)
+- LTS release guarantees with defined support windows
+- Direct communication channel with the core team
+
+No features are locked behind this. It is purely a service layer on top of the open product. Pricing would be subscription-based, modest enough to be accessible.
+
+### 18.6 Public Funding & Grants
+
+The European open source and digital sovereignty funding landscape is underutilized by most projects. Relevant programs:
+
+**Sovereign Tech Fund** (Germany) - funds open source infrastructure projects. Explicitly values projects that reduce dependency on US tech monopolies.
+
+**NLnet Foundation** - funds internet and open source projects with a privacy and user rights focus. Has funded numerous small-to-medium projects.
+
+**NGI (Next Generation Internet)** - EU program with multiple funding calls per year for open source, privacy, and decentralization projects.
+
+The European digital autonomy angle is not just a philosophical position - it is a genuine funding argument. A European open source OS built on sovereignty principles is exactly what these programs exist to support.
+
+Grants are not recurring revenue, but they can fund specific development phases without creating investor obligations.
+
+### 18.7 Path to a Company
+
+A company makes sense when there is external money to manage - not before. Premature incorporation adds administrative overhead with no benefit.
+
+A realistic sequence:
+
+1. Project gains traction, community forms, first grant applications filed.
+2. Store revenue starts (even if small) - first external money flow.
+3. First enterprise inquiry for `.lenv` deployment support - first B2B signal.
+4. At this point: incorporate, probably as a GmbH (Austria/Germany) or a European cooperative structure if community governance is a priority.
+5. OEM conversations happen after a stable v1 exists.
+
+The company's role is to employ core contributors, manage the store infrastructure, and sell enterprise/support services. The open source project remains governed independently of the company - contribution policy, release decisions, and core architecture are not dictated by commercial interests. This separation needs to be written down explicitly before the company exists, not after.
+
+---
+
+## 19. Roadmap
 
 > TODO: Define phases with rough scope
 
@@ -3061,7 +3143,7 @@ The wiki source lives in the `blueprint` repo alongside this document. PRs follo
 
 ------
 
-## 19. Appendix: Technology Decisions
+## 20. Appendix: Technology Decisions
 
 ### Knowledge Graph: Why Kuzu
 
