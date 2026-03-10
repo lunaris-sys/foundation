@@ -27,12 +27,19 @@ This is a long-term hobby project with ambitions of eventually becoming somethin
 7. [Desktop Environment](#7-desktop-environment)
 8. [Design Language & Theming](#8-design-language--theming)
 9. [Plugin & Module System](#9-plugin--module-system)
-10. [App Ecosystem](#10-app-ecosystem)
-11. [Gaming & Windows Compatibility](#11-gaming--windows-compatibility)
-12. [Security & Privacy](#12-security--privacy)
-13. [Developer Experience & Infrastructure](#13-developer-experience--infrastructure)
-14. [Roadmap](#14-roadmap)
-15. [Appendix: Technology Decisions](#15-appendix-technology-decisions)
+10. [App Permissions](#10-app-permissions)
+11. [Account System](#11-account-system)
+12. [Profiles](#12-profiles)
+13. [App Ecosystem](#13-app-ecosystem)
+14. [Store](#14-store)
+15. [Gaming & Windows Compatibility](#15-gaming--windows-compatibility)
+16. [Security & Privacy](#16-security--privacy)
+17. [Developer Experience & Infrastructure](#17-developer-experience--infrastructure)
+18. [Sustainability & Business Model](#18-sustainability--business-model)
+19. [Companion App](#19-companion-app)
+20. [Health & Wellbeing](#20-health--wellbeing)
+21. [Roadmap](#21-roadmap)
+22. [Appendix: Technology Decisions](#22-appendix-technology-decisions)
 
 ------
 
@@ -3224,7 +3231,146 @@ The company's role is to employ core contributors, manage the store infrastructu
 
 ---
 
-## 19. Roadmap
+## 19. Companion App
+
+The OS ships with a first-party companion app for Android and iOS. It bridges the phone and desktop into a single coherent experience: file transfer, clipboard sync, notification mirroring, and - with user consent - deeper integration via the knowledge graph and health data.
+
+Built with Tauri 2.0. Same Rust backend, same design token system, same UI component language as the desktop. The phone app looks and feels like the OS.
+
+### 19.1 Feature Tiers
+
+Features are split into two trust levels, established at pairing time.
+
+**Tier 1 - `paired` (available to any client after pairing):**
+- File Drop
+- Clipboard sync (manual trigger only, not automatic)
+- Notification mirroring
+- Media playback control
+
+**Tier 2 - `trusted` (official app only, explicit user upgrade):**
+- Handoff: continue reading/browsing/editing seamlessly between phone and desktop
+- Unified Timeline: cross-device activity in the system timeline (local only)
+- Graph presence: phone sends active app + content context for graph integration
+- Health data forwarding (Chapter 20)
+
+**Tier 3 - Planned, not initial release:**
+- Wearable data pipeline (Wearable → Companion App → OS)
+- Extended context sharing
+
+### 19.2 Protocol
+
+Custom protocol. Not KDE Connect - KDE Connect's protocol design would actively obstruct Tier 2 and 3 features.
+
+**Discovery:**
+
+| Context | Method |
+|---|---|
+| Shared WLAN | mDNS service advertisement |
+| No shared network | BLE presence broadcast with device ID |
+
+**Transport (selected by availability):**
+
+| Transport | Use case |
+|---|---|
+| HTTPS over LAN | Primary - full feature set |
+| WiFi Direct | Large transfers without shared router |
+| Bluetooth | Small data only (clipboard, notifications, commands) |
+
+**Pairing - TOFU model:**
+
+Both devices generate an Ed25519 keypair on first launch. First connection uses TLS with self-signed certificates plus a 6-digit confirmation code shown on the desktop and confirmed on the phone. After pairing: automatic reconnect, no re-confirmation needed. Unpair = key deletion on both sides, no trace.
+
+### 19.3 Auto-Connect
+
+Paired devices broadcast BLE presence in the background. When a known device is detected, the system connects automatically using the best available transport. No user action required after initial pairing.
+
+Android: full background BLE advertising, reliable. iOS: CoreBluetooth Background Mode applies - works but less reliable, with marginally higher battery cost on the iPhone side.
+
+### 19.4 Theme Sync
+
+Because the companion app uses the same design token system as the desktop, the active theme propagates automatically: accent color, dark/light mode, typography. This is a structural side effect of shared infrastructure, not a separately implemented feature.
+
+### 19.5 iOS Limitations
+
+iOS imposes hard limits that cannot be worked around:
+
+- No persistent background BLE scanning → auto-connect is less reliable, more manual reconnects
+- No WiFi Direct
+- USB-C not accessible to third-party apps without MFi certification
+
+Tier 1 works well on iOS. Tier 2 is functional but degraded. Health data forwarding via HealthKit is feasible with explicit permission. iOS is explicitly a secondary platform with honest capability communication to users.
+
+------
+
+## 20. Health & Wellbeing
+
+The OS includes a first-party health data system: a local daemon that aggregates, stores, and optionally analyzes health and wellbeing data from connected sources. Mental and physical wellbeing are treated as first-class concerns.
+
+This is not a fitness app. It is health data infrastructure - an open, local equivalent of Apple Health or Google Fit, built as a system component.
+
+### 20.1 Data Architecture
+
+Health data lives in a dedicated local store managed by a Health Daemon, separate from the Graph Daemon. Data never leaves the device without an explicit user action.
+
+**Formats:**
+- Clinical data: FHIR R4 (HL7 Fast Healthcare Interoperability Resources) where applicable. This enables import from hospital and clinic systems (increasingly supported across the EU) and export to FHIR-compatible tools without conversion.
+- Non-clinical data (steps, sleep stages, HRV, nutrition): open JSON schema with documented field definitions.
+
+No proprietary format. Full export always available.
+
+### 20.2 Data Sources
+
+**Initial release:**
+- Manual input
+- Phone sensors via Companion App (steps, GPS, screen time)
+
+**Planned (plugin-based architecture from day one):**
+- Wearables via Companion App (see 20.5)
+- Hospital/clinic FHIR import
+- Third-party apps via documented Health API (permission-gated, Chapter 10)
+
+### 20.3 Graph Integration
+
+Health data integration with the Knowledge Graph is strictly opt-in, split into three explicit levels. All three default to off.
+
+| Level | What it enables |
+|---|---|
+| 1 - Health Nodes | Health events appear as standalone nodes in the graph |
+| 2 - Correlations | Graph links health data to activity data by time (e.g. sleep vs. focus sessions) |
+| 3 - Pattern Recognition | Full cross-domain analysis across health, productivity, and communication data |
+
+Level 2 requires Level 1. Level 3 requires Level 2. The UI enforces this - incompatible states are not possible.
+
+The AI layer's health-adjacent features are gated entirely on these toggles. With all three off, the health module is a pure local viewer and aggregator with no AI involvement.
+
+### 20.4 Settings & Permissions
+
+Health has its own section in Settings, not buried under general privacy settings. Key controls:
+
+- Per-source enable/disable (phone sensors, manual input, wearable, third-party apps)
+- Per-data-type enable/disable (steps, sleep, HRV, nutrition, etc.)
+- Graph integration toggles (20.3) as a grouped sub-section
+- Data retention period per data type
+- Full FHIR + JSON export
+- Full delete with confirmation
+
+Third-party apps request health data access per-type through the standard permission system (Chapter 10), with health-specific confirmation dialogs that are clearer about sensitivity than generic permission prompts.
+
+### 20.5 Wearable Pipeline
+
+Wearables connect to the OS through the Companion App, not directly. The data path is:
+
+```
+Wearable → Companion App (phone) → OS Health Daemon
+```
+
+The Companion App uses the wearable manufacturer's existing phone SDK. No direct wearable protocol implementation in the OS is needed. The Health Daemon's plugin interface is designed to accept forwarded wearable data from the start, even if only manual input and phone sensors ship initially.
+
+This is planned architecture, not initial release scope.
+
+------
+
+## 21. Roadmap
 
 > TODO: Define phases with rough scope
 
@@ -3251,7 +3397,7 @@ The company's role is to employ core contributors, manage the store infrastructu
 
 ------
 
-## 20. Appendix: Technology Decisions
+## 22. Appendix: Technology Decisions
 
 ### Knowledge Graph: Why Kuzu
 
