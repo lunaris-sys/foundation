@@ -47,7 +47,7 @@ This is a long-term hobby project with ambitions of eventually becoming somethin
 
 ### Why does this exist?
 
-Most Linux distributions are either conservative remixes of existing systems or highly opinionated tools for a specific niche. That's fine. This is neither.
+Most Linux distributions - the open-source operating systems that run on standard PC hardware - are either conservative remixes of existing systems or highly opinionated tools for a specific niche. That's fine. This is neither.
 
 There are a billion people using Windows or macOS not because they love it, but because there was no real alternative. Windows works against its own users - forced updates, ads in the start menu, telemetry nobody enabled. macOS is polished but locks you into an ecosystem designed to keep you paying and dependent. And every Linux distribution, however technically excellent, has failed to make the jump to people who just want to use a computer without becoming a sysadmin.
 
@@ -63,11 +63,11 @@ Business use is a future consideration - the architecture supports managed envir
 
 ### Core principles
 
-**For the user, not for the platform.** No ads, no tracking, no dark patterns, no telemetry without explicit consent. When a conflict arises between the user's interest and anything else - the user wins. This applies to business deployments too: admin policies configure the environment, they do not strip users of their data or autonomy.
+**For the user, not for the platform.** No ads, no tracking, no dark patterns, no telemetry (automatic background reporting of usage data) without explicit consent. When a conflict arises between the user's interest and anything else - the user wins. This applies to business deployments too: admin policies configure the environment, they do not strip users of their data or autonomy.
 
 **Independence by default.** No mandatory cloud accounts. No dependency on services that can be switched off by a company in another jurisdiction. The system works fully offline, self-hosted, and without phoning home. Cloud features are opt-in extensions, not prerequisites. This is a technical commitment, not a marketing label.
 
-**The knowledge graph belongs to you.** All system intelligence runs locally by default. The knowledge graph, AI context, activity history - none of it leaves the machine without explicit user action. Cloud AI providers are opt-in, configured by the user, and can be removed entirely.
+**The knowledge graph belongs to you.** All system intelligence runs locally by default. The knowledge graph (a database that stores not just data but the relationships between pieces of data - letting the system understand that a document, a calendar event, and a browser tab are all connected to the same project), AI context, and activity history - none of it leaves the machine without explicit user action. Cloud AI providers are opt-in, configured by the user, and can be removed entirely.
 
 **Quality of life over feature count.** Small things matter. A system that warns you when something is quietly invading your privacy, that remembers what you were working on, that switches themes system-wide with one click - these are not big features. They are the difference between a system that feels alive and one that feels like infrastructure. Thoughtful small features beat impressive large ones that nobody uses.
 
@@ -83,16 +83,16 @@ Business use is a future consideration - the architecture supports managed envir
 
 **Pragmatic, not ideological.** No purity tests. The goal is a useful, trustworthy system - not proving a point about software freedom. That said: no ads, no tracking, no dark patterns. Not because of ideology, but because that stuff is just bad product design.
 
-**Build on what works, adapt what almost works.** If a good open source project already solves a problem well and fits the project's philosophy, forking it is the right call - not building from scratch out of pride. A Tauri-based mail client that already exists can be forked, adapted to the theming system, integrated with the permission layer, and shipped. The goal is a great system, not original authorship of every component.
+**Build on what works, adapt what almost works.** If a good open source project already solves a problem well and fits the project's philosophy, adapting it is the right call - not building from scratch out of pride. An existing mail client that can be adapted to the theming system and integrated with the permission layer can be shipped faster and better than building one from zero. The goal is a great system, not original authorship of every component.
 
-**Bridges, not walls.** Where established standards and existing implementations exist - GNOME Online Accounts, Flatpak Portals, Freedesktop standards, X11/XWayland - we build compatibility bridges rather than ignoring or replacing them. The system is the center, not an island. Existing apps and workflows should work. A bridge implements a known interface externally while using our system internally - the user and their apps never hit a wall.
+**Bridges, not walls.** Where established standards and existing implementations exist, we build compatibility bridges rather than ignoring or replacing them. The system is the center, not an island. Existing apps and workflows should work. This means: apps built for other Linux desktops run here, standard Linux tools and hardware interfaces are supported, and nothing is deliberately broken for the sake of purity.
 
 **Transparent by default.** The system can explain what it is doing and why, in plain language. Not buried in logs - surfaced where the user can see and act on it. A system that is legible to its user is a system the user can trust.
 
 ### What this is not
 
-- A minimal/suckless system (there's complexity here and that's fine)
-- A NixOS/Guix-style fully declarative system (though reproducibility is a goal)
+- A minimal system stripped down to its essentials (there is complexity here, and that is intentional)
+- A fully declarative system where every piece of software is managed through configuration files (though reproducibility is a goal)
 - A distro for advanced Linux users only (new users are explicitly the target)
 - A corporate product that happens to be open source (business use is secondary, user rights are not negotiable)
 - A Windows or macOS clone (the goal is a better alternative, not a familiar imitation)
@@ -103,7 +103,11 @@ Business use is a future consideration - the architecture supports managed envir
 
 > TODO: Add architecture diagram
 
+This chapter describes how the system is built internally - which pieces exist, what each one does, and how they talk to each other. If you are not a developer, the main takeaway is this: the system is built in layers, each with a clear job, so that a problem in one layer does not bring down the others. The AI features, for example, sit in their own layer and can be turned off entirely without breaking anything else.
+
 ### Layers
+
+The system is organized as a stack. Lower layers provide services to higher layers. The desktop you interact with sits on top of everything else.
 
 ```mermaid
 block-beta
@@ -133,23 +137,25 @@ block-beta
 - All AI providers (local or cloud) are interchangeable behind a common interface
 - D-Bus remains as system infrastructure; the custom Event Bus is for internal components only
 
-### Component Boundaries: Rust Daemons vs. Tauri
+### Component Boundaries: Background Services vs. Apps with UI
 
-The system splits cleanly into two categories. Understanding this boundary matters for contributors.
+The system splits cleanly into two categories.
 
-**Rust daemons** - long-running background processes with no UI, communicating over Unix sockets:
+**Background services** (called "daemons" in Linux - programs that run silently in the background with no visible window, always available, waiting to be asked for something):
 
-| Daemon | Responsibility |
+| Service | Responsibility |
 |---|---|
-| Event Bus Daemon | Receives, validates, and routes internal events |
-| Graph Daemon | Sole reader/writer of the Kuzu database |
-| Account Daemon | Credential management, token issuance |
-| AI Layer Daemon | Model inference, MCP orchestration, graph querying |
-| Module Runtime | Lifecycle management for shell modules |
-| Transfer Daemon | Cross-profile data transfer chokepoint |
-| Compositor (Smithay) | Wayland compositor, window management |
+| Event Bus | Receives, validates, and routes internal events between components |
+| Graph Daemon | Sole reader/writer of the knowledge graph database |
+| Account Daemon | Credential management, login token handling |
+| AI Layer Daemon | Runs AI models, coordinates tools, queries the graph |
+| Module Runtime | Manages the lifecycle of shell extensions |
+| Transfer Daemon | Controls data movement between user profiles |
+| Compositor | Draws windows on screen, manages the display (Wayland compositor) |
 
-**Tauri processes** - Rust backend + WebView frontend, for anything with a UI:
+All background services are written in Rust - a systems programming language chosen for memory safety and performance without a garbage collector.
+
+**Apps with a user interface** (built with Tauri - a framework that combines a Rust backend with a web-based frontend, similar to how Electron works but much lighter):
 
 | App | Notes |
 |---|---|
@@ -158,41 +164,49 @@ The system splits cleanly into two categories. Understanding this boundary matte
 | File Manager | First-party file browser |
 | Store | App store UI |
 | Terminal | First-party terminal emulator |
-| Wine Manager | Wine prefix management UI |
-| Modules | Run in isolated WebViews under Module Runtime |
+| Wine Manager | Windows compatibility management UI |
+| Modules | Extensions that run in isolated containers under Module Runtime |
 
-**Communication paths:**
+**How components communicate:**
+
+Components talk to each other over Unix sockets - a fast, local-only communication channel built into the operating system kernel. Think of it like a pipe between two processes on the same machine. No network involved, no encryption overhead, latency in the microseconds.
+
+Data is serialized using Protocol Buffers (protobuf) - a compact binary format that enforces a strict schema. Every message has a defined structure; malformed messages are rejected before they reach the handler.
 
 ```
-Daemon ↔ Daemon:         Unix socket (protobuf)
-Tauri backend ↔ Daemon:  Unix socket (protobuf)
-Tauri backend ↔ Frontend: Tauri command bridge (invoke / events, typed)
-Compositor ↔ Shell:      Wayland protocols + Unix socket (JSON)
+Background service ↔ Background service:  Unix socket (protobuf)
+App backend ↔ Background service:          Unix socket (protobuf)
+App backend ↔ App frontend:                Tauri command bridge (typed)
+Compositor ↔ Shell:                        Wayland protocols + Unix socket
 ```
 
-A call from a Tauri UI to the Graph Daemon follows this path:
-```
-TypeScript → invoke() → Rust backend → Unix socket → Graph Daemon → Kuzu
-```
-Four hops, but all local - Unix socket latency is in the microseconds. For UI-driven queries this is not a bottleneck. For high-frequency live updates, the TypeScript layer debounces before calling through.
+A user action in the UI that queries the knowledge graph follows this path internally:
 
-**D-Bus runs in parallel to all of this** - NetworkManager, Bluetooth, Flatpak portals, and all Freedesktop-standard services use D-Bus as they normally would. The custom Event Bus does not touch these services.
+```
+UI button click → App backend → Unix socket → Graph service → Database
+```
+
+Four steps, but all local to the machine. The total round-trip time is measured in microseconds - imperceptible to the user.
+
+**D-Bus - the existing Linux communication system** runs in parallel to all of this. D-Bus is the standard way Linux system services talk to each other - network management, Bluetooth, hardware events. We do not replace it. The custom Event Bus handles communication between our own components only; all standard Linux services continue using D-Bus as normal.
 
 ------
 
 ## 3. OS Base
 
-This system is built on top of an existing Linux distribution rather than from scratch. The kernel, init system, package manager, and base toolchain come from the chosen distro. Everything above that - the desktop environment, event system, knowledge graph, AI layer - is custom.
+Every operating system needs a foundation: a kernel (the core software that talks directly to hardware), a startup system, a package manager (the tool that installs and updates software), and a base set of system tools. Building all of this from scratch would take decades. Instead, this project is built on top of an existing Linux distribution that provides all of that - and everything above it is custom: the desktop environment, event system, knowledge graph, and AI layer.
+
+Think of it like building a house: the distribution provides the concrete foundation and load-bearing walls. What happens above that - the layout, the rooms, how everything is connected - is entirely this project's own design.
 
 ### 3.1 Base Distribution
 
-> **Note:** The base distribution is not yet finalized. Two candidates are under consideration. The decision will be made before Phase 1 begins, once initial prototyping has validated the core architecture. Both are RPM-based, which means the package ecosystem, tooling, and OBS infrastructure are compatible regardless of which is chosen.
+> **Note:** The base distribution is not yet finalized. Two candidates are under consideration. The decision will be made before Phase 1 begins, once initial prototyping has validated the core architecture. Both are RPM-based (RPM is a package format for distributing software on Linux - think of it like a container that holds an app and its installation instructions), which means the tooling and package infrastructure are compatible regardless of which is chosen.
 
 **Requirements for the base:**
-- Stable, but not conservative - packages must be current enough for modern Rust toolchains, recent Wayland protocols, and current kernel features
+- Stable, but not conservative - software packages must be current enough for modern development toolchains and recent hardware support
 - Not bleeding edge - unvalidated updates arriving daily are a liability on a daily-driver machine
 - Independent governance - not fully controlled by a single commercial entity
-- Btrfs as default or first-class filesystem
+- Btrfs as default or first-class filesystem (Btrfs is a modern Linux filesystem with built-in snapshot support - explained in 3.2)
 - Large enough community for hardware driver coverage and package availability
 - RPM-based (both candidates meet this)
 
@@ -209,7 +223,7 @@ Fedora is a community distribution backed by Red Hat/IBM infrastructure, but gov
 
 **Candidate B: OpenSUSE Slowroll**
 
-Slowroll sits between Tumbleweed (fully rolling) and Leap (fixed releases). It pulls packages from Tumbleweed with a delay of several weeks after community validation - recent enough for current toolchains, with a buffer against regressions. Btrfs + Snapper is more deeply integrated here than anywhere else in the Linux ecosystem.
+Slowroll sits between Tumbleweed (fully rolling - new updates every day) and Leap (fixed releases every year or so). It pulls packages from Tumbleweed with a delay of several weeks after community validation - recent enough for current toolchains, with a buffer against regressions. Btrfs + Snapper (the snapshot management tool) is more deeply integrated here than anywhere else in the Linux ecosystem.
 
 | Advantage | Disadvantage |
 |---|---|
@@ -220,61 +234,65 @@ Slowroll sits between Tumbleweed (fully rolling) and Leap (fixed releases). It p
 
 **Current preference: Fedora**, primarily because of its cleaner governance story. The SUSE/EQT ownership is not disqualifying for technical purposes, but it is a liability when applying for European sovereignty funding (Sovereign Tech Fund, NGI) - funders will ask about it.
 
-Both candidates use RPM packaging, which means OBS can target either distribution without changes to the build pipeline.
+Both candidates use RPM packaging, which means OBS (Open Build Service - a platform for building and distributing Linux packages across multiple distributions) can target either distribution without changes to the build pipeline.
 
 ### 3.2 Update Strategy
 
-The system uses a **mutable filesystem with atomic, rollback-protected updates**. This is not an immutable OS - standard Linux workflows (`pip install`, `cargo build`, `git clone`, manual package installs) work without restriction. The update safety comes from the tooling layer, not from filesystem restrictions.
+Updates on most operating systems are a gamble: something breaks after an update, and getting back to a working state is painful. This system solves that differently.
 
-**Why not immutable:** An immutable system prevents standard developer workflows and breaks the "install a GitHub project" use case. The target audience includes technical users who expect full control. The safety benefits of immutable systems are largely achievable through good snapshot tooling without the workflow cost.
+The system uses a **mutable filesystem with atomic, rollback-protected updates**. "Mutable" means you can install software freely, modify system files, and use standard developer tools without restrictions - unlike some modern "immutable" Linux systems that prevent this. The safety comes from the tooling, not from filesystem restrictions.
+
+**Why not immutable:** Immutable systems prevent standard developer workflows - installing a Python package, building a Rust project from source, cloning a GitHub repository and running it. The target audience includes technical users who expect full control. The safety benefits of immutable systems are largely achievable through good snapshot tooling without the workflow cost.
 
 **The update stack:**
 
-**Btrfs + Snapper** form the foundation. Btrfs Copy-on-Write snapshots are nearly free in terms of disk space as long as content does not change. Snapper automatically creates a snapshot before every system update. Subvolumes separate `/` from `/home` - a system rollback never touches user data.
+**Btrfs + Snapper** form the foundation. Btrfs is a modern Linux filesystem with a built-in "copy-on-write" capability: when a file changes, the old version is preserved automatically rather than overwritten. This makes snapshots (complete system state captures) nearly free in disk space. Snapper is the tool that manages these snapshots automatically - creating one before every system update.
 
-**Automatic pre-update snapshots** happen without user involvement. The package manager triggers Snapper before applying any changes. This is standard behavior on both candidate distributions and requires no custom tooling.
+Subvolumes (separate filesystem sections within Btrfs) keep `/` (the system) and `/home` (your personal files) independent. A system rollback never touches your personal data.
 
-**Bootloader integration** is the critical piece that makes this user-friendly. If an update produces a system that fails to boot, the bootloader presents the previous snapshot automatically. The user sees: "Current system failed to start. Boot previous working version?" - one keypress, no terminal, no recovery mode.
+**Automatic pre-update snapshots** happen without user involvement. Before any update is applied, a snapshot of the current system is created. If anything goes wrong, you can always go back.
 
-**Post-update health check** runs after the first boot following an update. A small daemon verifies that critical components are functional: compositor starts, network is available, no kernel panic indicators. If the health check fails, the system automatically rolls back and notifies the user. This catches cases where the system boots but is broken in a non-obvious way.
+**Bootloader integration** is what makes this user-friendly. If an update produces a system that fails to boot, the bootloader (the small program that runs before the OS starts) presents the previous snapshot automatically. The user sees: "Current system failed to start. Boot previous working version?" - one keypress, no terminal, no recovery mode.
 
-**Snapper cleanup policy** prevents snapshot accumulation from filling the disk. Snapshots older than 7 days are pruned automatically, keeping the last 5 regardless of age. The user can adjust this in Settings.
+**Post-update health check** runs after the first boot following an update. A small background service verifies that critical components are working: the display system starts, network is available, no serious errors. If the health check fails, the system automatically rolls back and notifies the user. This catches cases where the system boots but is broken in a non-obvious way.
+
+**Snapper cleanup policy** prevents old snapshots from filling the disk. Snapshots older than 7 days are removed automatically, keeping the last 5 regardless of age. Adjustable in Settings.
 
 **For the user this means:** Updates happen in the background. If something breaks, the system either self-heals or presents a clear one-click recovery option. No broken system, no manual recovery, no data loss.
 
-**For the developer this means:** Nothing changes. The full Linux toolchain is available as usual. Manual snapshots can be created in Settings before risky operations ("I'm about to upgrade my Rust toolchain") and restored if needed.
+**For the developer this means:** Nothing changes. The full Linux toolchain is available as usual. Manual snapshots can be created in Settings before risky operations and restored if needed.
 
 ### 3.3 Init System: systemd
 
-systemd is the default and assumed throughout. No alternative is planned. systemd-homed is used for user home directory management (see Security chapter).
+systemd is the startup and service management system used by almost every major Linux distribution. It controls which background services start at boot, in what order, and restarts them if they crash. This system uses systemd as-is - no alternatives are planned. systemd-homed (a systemd feature for managing user home directories with built-in encryption) is used for user account management (see Security chapter).
 
 ### 3.4 Package Manager
 
 Both candidate distributions use RPM as the package format. The native package manager (dnf for Fedora, zypper for OpenSUSE) handles base system packages.
 
-**Open Build Service (OBS)** is used for building and distributing all custom project packages. OBS can target both candidate distributions from a single spec file, which is one reason both are viable candidates. OBS handles multi-architecture builds, package signing, and repository hosting.
+**Open Build Service (OBS)** is a platform for building software packages for multiple Linux distributions from a single set of build instructions. All custom project packages are built and distributed through OBS. It handles building for multiple CPU architectures, package signing (cryptographic verification that a package comes from who it claims to), and repository hosting.
 
-Store apps are distributed as Flatpaks (sandboxed, distribution-independent) or as native RPMs for system-level components. The Store infrastructure handles both formats transparently.
+Store apps are distributed as Flatpaks (sandboxed, distribution-independent app packages - they include their own dependencies and run isolated from the rest of the system) or as native RPMs for system-level components. The Store infrastructure handles both formats transparently.
 
 ### 3.5 Hardware Requirements
 
 These are hard requirements - the system will not run correctly without them:
 
-- **Kernel 6.6+** - required for eBPF features, Intel CET/Shadow Stack support, and recent Wayland protocol extensions
-- **Vulkan support** - required for DXVK and gaming compatibility. AMD and Intel GPUs are covered by Mesa out of the box. Nvidia requires the proprietary driver; the installer provides clear guidance.
-- **systemd 255+** - required for full systemd-homed support
+- **Kernel 6.6+** - the Linux kernel is the core of the OS that talks to hardware. Version 6.6 is required for the security and monitoring features used by this system. Released in late 2023, it is standard on both candidate distributions.
+- **Vulkan support** - Vulkan is a modern graphics API used for hardware-accelerated rendering, including Windows game compatibility. AMD and Intel GPUs are covered automatically. Nvidia requires the proprietary driver; the installer provides clear guidance.
+- **systemd 255+** - required for full user account management features
 
 These requirements exclude hardware older than approximately 2018-2019 in practice. This is a documented constraint, not an oversight. Supporting very old hardware would require significant compromises in the graphics and security stack.
 
 ### 3.6 Config Format
 
-All system components and first-party apps use **TOML** as the configuration format. This is a system-wide standard, not a convention.
+All system components and first-party apps use **TOML** as the configuration format. TOML is a simple, human-readable configuration file format - easier to read and write than JSON or YAML, without their common pitfalls. If you have ever edited a `.toml` file in a game or application, you have already used it.
 
-TOML is human-readable and human-writable, without YAML's parsing edge cases (implicit type coercion, indentation-sensitive syntax, the Norway problem). It maps cleanly to Rust's `serde` ecosystem via the `toml` crate. It is less verbose than JSON and does not require a schema to be readable.
+TOML is a system-wide standard here, not just a convention. Every component reads and writes the same format.
 
-Config files live at `~/.config/<app-id>/config.toml`. System-wide daemon configs live at `/etc/<daemon-name>/config.toml`.
+Config files live at `~/.config/<app-id>/config.toml` (personal settings) and `/etc/<service-name>/config.toml` (system-wide settings).
 
-Some third-party apps expect environment variables, INI files, or JSON. A small **config-helper** binary bridges this:
+Some third-party apps expect other formats (environment variables, INI files, JSON). A small helper tool bridges this:
 
 ```bash
 # Export a TOML config as environment variables
@@ -284,7 +302,7 @@ eval $(os-config-helper export --toml ~/.config/myapp/config.toml --format env)
 os-config-helper export --toml ~/.config/myapp/config.toml --format json
 ```
 
-The source of truth is always TOML. The config-helper is a thin wrapper with no business logic.
+The source of truth is always TOML. The helper tool is a thin wrapper with no business logic.
 
 ### Open Questions
 
