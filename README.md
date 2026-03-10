@@ -316,68 +316,71 @@ The source of truth is always TOML. The helper tool is a thin wrapper with no bu
 
 ### Overview
 
-The event system is the nervous system of the OS. Every meaningful thing that happens on the machine - a file being opened, a window gaining focus, an app emitting a log line - gets captured, normalized, and forwarded to the Knowledge Graph.
+For the Knowledge Graph to know what is happening on your machine, something has to watch and report. That is the job of the Event System: it observes activity across the entire OS and feeds a continuous stream of structured events into the graph.
 
-Three sources feed into it, each covering a different slice of what's happening:
+Think of it as a nervous system. Every meaningful thing that happens - a file being opened, a window coming into focus, an app doing something notable - gets captured, translated into a common format, and forwarded. Nothing is acted on in real time; this is purely observation and recording.
 
-| Source                           | App cooperation needed   | Semantic quality                                |
-| -------------------------------- | ------------------------ | ----------------------------------------------- |
-| eBPF (kernel level)              | None                     | Low - raw syscalls, file paths, PIDs            |
-| Wayland Compositor               | Built-in (we control it) | Medium - window focus, clipboard, app lifecycle |
-| App Events (own apps + wrappers) | Yes                      | High - typed, schema-validated, meaningful      |
+**For the user this is invisible.** There are no popups, no slowdowns, no consent dialogs for every file access. It runs quietly in the background, and the data it collects stays local. The Knowledge Graph's privacy settings (Chapter 5) and the retention policy control how long any of this is kept.
 
-The goal is full coverage without requiring every app to be rewritten. eBPF handles the baseline, structured events add depth where available.
+Three sources feed into it, each covering a different slice of what is happening:
 
-### eBPF
+| Source | App cooperation needed | What it sees |
+|---|---|---|
+| Kernel monitoring (eBPF) | None | File opens, network connections, process starts/stops |
+| Display system (Wayland) | Built-in (we control it) | Window focus, app open/close, clipboard events |
+| App events (own apps) | Yes | Rich, meaningful actions like "document saved" or "search performed" |
 
-**eBPF** (extended Berkeley Packet Filter) is a Linux kernel feature that lets you run sandboxed programs inside the kernel without modifying kernel source code or loading kernel modules. It was originally designed for network packet filtering, but has evolved into a general-purpose system observability tool.
+The goal is full coverage without requiring every app to be rewritten. Kernel monitoring handles the baseline for any app automatically. Richer events are available where apps support them.
 
-In practice: an eBPF program attaches to a kernel hook (e.g. "a file was opened", "a process was forked", "a TCP connection was established") and gets called every time that event fires. The program runs in a restricted environment - it cannot crash the kernel, cannot access arbitrary memory, and is verified by the kernel before loading. The output gets passed to userspace where we can process it.
+### Kernel-Level Monitoring: eBPF
 
-For this project, eBPF gives us system-wide observability without any app cooperation. We can track:
+**eBPF** (extended Berkeley Packet Filter) is a feature built into the Linux kernel that allows small monitoring programs to run safely inside the kernel itself. "Inside the kernel" means it sees everything happening on the system - but the programs run in a strictly restricted environment: they cannot crash the system, cannot access arbitrary memory, and are verified for safety before being loaded. Think of it as a read-only window into what the operating system is doing at the lowest level.
+
+In practice: an eBPF program attaches to a specific kernel event (e.g. "a file was opened", "a process started", "a network connection was made") and gets called every time that event fires. The output is passed to a regular user-space process where it is processed and normalized.
+
+For this project, eBPF gives system-wide observability without any app cooperation. Every app - whether it was built for this OS or not - is covered automatically:
 
 - Which process opened which file, and when
-- Process lifecycle (fork, exec, exit)
-- Network connections (destination IP, port, protocol)
-- System calls of interest
+- Process lifecycle (started, forked, exited)
+- Network connections (destination, port, protocol)
 
-The tradeoff: eBPF events are low-level. We know *that* PID 4821 called `open()` on `/home/tim/report.pdf`, but not *why* or what it means in context. That's fine - it's the baseline layer, and higher-level sources fill in the semantics.
+The tradeoff: eBPF events are low-level. The system knows *that* a process opened a file, but not *why* or what it means. That is fine - it is the baseline layer, and higher-level sources fill in the meaning where available.
 
-**Framework:** [`aya`](https://aya-rs.dev/) - a Rust-native eBPF library. No C required, integrates cleanly with the rest of the Rust codebase.
+**Framework:** [`aya`](https://aya-rs.dev/) - a Rust-native eBPF library that requires no C code and integrates cleanly with the rest of the codebase.
 
 ### D-Bus and the Event Bus
 
-**D-Bus** is the standard inter-process communication system on Linux desktops. It is used by virtually every desktop application and system service - notifications, network management, Bluetooth, session management, Flatpak portals, and more all go through D-Bus.
+**D-Bus** is the standard communication channel between processes on a Linux desktop. It is used by virtually every application and system service - notifications, network management, Bluetooth, session management, sandboxed app permissions, and more all go through D-Bus. It is part of the Linux desktop plumbing that has been in place for years.
 
 **D-Bus is not replaced by this project.** It remains as system infrastructure. The following services communicate over D-Bus and that will not change:
 
-- `org.freedesktop.Notifications` - every app that sends notifications
+- Desktop notifications (any app that sends a notification)
 - NetworkManager - network status, WiFi, VPN
 - bluez - Bluetooth
 - systemd-logind - session management, suspend/resume, lid events
-- xdg-desktop-portal - Flatpak permissions, file picker, screen sharing
+- xdg-desktop-portal - sandboxed app permissions, file picker, screen sharing
 - upower - battery and power events
-- Any GNOME/KDE app that uses Freedesktop standards
+- Any standard Linux desktop app
 
 The **custom Event Bus is an internal system** for communication between project-specific components: the Graph Daemon, AI Layer, Shell, Module Runtime, and first-party apps. It does not replace D-Bus - it runs alongside it with a different purpose.
 
 **Why a separate internal bus at all:**
 
-D-Bus is not suited for the high-frequency, schema-validated event stream this system needs internally. Specifically:
+D-Bus is not suited for the high-frequency, schema-validated event stream this system needs internally. Two specific problems:
 
-**No structured schema enforcement.** D-Bus messages are loosely typed - there is no central schema registry, nothing prevents malformed messages. For events feeding the Knowledge Graph, schema validation at the bus level is a hard requirement.
+**No structured schema enforcement.** D-Bus messages are loosely typed - there is no central schema registry, nothing prevents malformed messages from being sent. For events feeding the Knowledge Graph, having a strict schema at the transport level (so that a malformed event is rejected before it even reaches the graph) is a hard requirement.
 
-**Performance.** D-Bus was designed for occasional IPC between desktop apps, not for potentially thousands of events per second from eBPF. For the internal event stream, a leaner transport is needed.
+**Performance.** D-Bus was designed for occasional communication between desktop apps - a notification here, a settings change there. Not for potentially thousands of low-level system events per second arriving from kernel monitoring. For this volume, a leaner transport is needed.
 
-The internal bus uses **Unix domain sockets** with **Protocol Buffers** for schema enforcement. Fast, typed, straightforward to implement in Rust. This is the transport for internal components only - everything that speaks Freedesktop standards continues to use D-Bus.
+The internal bus uses Unix domain sockets (a fast, local-only communication channel built into the Linux kernel - no network, no overhead) with Protocol Buffers (a compact binary message format with strict schemas - every message type is defined in advance and malformed messages are rejected). This handles internal components only - everything that uses standard Linux interfaces continues to use D-Bus as normal.
 
 ### The Event Bus
 
-The Event Bus is a central daemon that:
+The Event Bus is a central background service that:
 
-1. Receives events from all sources (eBPF normalizer, Wayland compositor, apps, log wrappers)
-2. Validates them against the event schema
-3. Forwards them to registered consumers (primarily the Graph Writer Daemon)
+1. Receives events from all sources (kernel monitoring normalizer, display system, apps, log wrappers)
+2. Validates them against the event schema (rejects anything malformed)
+3. Forwards them to registered consumers (primarily the Graph Writer service)
 
 ```mermaid
 flowchart LR
@@ -392,21 +395,23 @@ flowchart LR
   GW --> KG[("Knowledge\nGraph")]
 ```
 
-**eBPF Normalizer:** A userspace process that reads raw eBPF output and translates it into the common event schema. This is where "PID 4821 called open() on /home/tim/report.pdf" becomes a typed `FileAccessEvent`.
+**Normalizer:** A background process that reads raw kernel monitoring output and translates it into the common event schema. This is where a low-level system call becomes a structured, typed `FileAccessEvent` that the rest of the system can work with.
 
-**Event schema:** Every event has a common envelope:
+**Event schema:** Every event shares a common envelope: a unique ID, a type label, a timestamp, and a source identifier. The type-specific content travels as a separate payload inside that envelope.
+
+The technical definition (for developers):
 
 ```protobuf
 message Event {
   string id = 1;
   string type = 2;         // e.g. "file.opened", "window.focused"
   int64 timestamp_us = 3;  // microseconds since epoch
-  string source = 4;       // "ebpf", "wayland", "app:<name>"
+  string source = 4;       // "ebpf", "wayland", "app:<n>"
   bytes payload = 5;       // type-specific protobuf payload
 }
 ```
 
-The payload is a type-specific message. For example, a `file.opened` event carries the file path, PID, and process name. A `window.focused` event carries the app name and window title.
+The payload is a type-specific message. For example, a `file.opened` event carries the file path and process name. A `window.focused` event carries the app name and window title.
 
 **Other consumers:** The bus is not exclusively for the Knowledge Graph. In the future, other components could subscribe - for example, a proactive AI agent (opt-in) or a system monitoring dashboard.
 
@@ -497,6 +502,8 @@ eBPF can produce thousands of events per second. Two filters in the eBPF Normali
 - **Relevance filter:** `/proc`, `/sys`, `/dev`, `/tmp`, and shared libraries under `/usr/lib` are ignored entirely. These have no semantic value in the Knowledge Graph.
 
 ### 4.3 Backpressure
+
+> **This section is technical.** Non-developers can skip it - the summary is: events are collected in a buffer and written to the graph in batches rather than one at a time, which is necessary for performance. If the buffer fills up, lower-value events are dropped first and important ones are kept.
 
 Kuzu is an embedded graph database optimized for analytical workloads (complex traversals, aggregations over large graphs) - not for high-frequency single-row writes. This is a known architectural constraint: the batching layer below exists specifically to work within Kuzu's write characteristics rather than against them.
 
@@ -594,7 +601,7 @@ This is the foundation that makes AI integration actually useful. Instead of an 
 
 "Embedded" means it runs inside the same process as the application using it - no separate database server to manage, no network socket, no extra service to keep alive. It's closer to SQLite than to PostgreSQL in that sense.
 
-It uses **Cypher** as its query language (the same language Neo4j uses), which is readable and well-documented. Example query:
+It uses **Cypher** as its query language - a readable, English-like syntax for querying graph databases. A Cypher query reads almost like a sentence: "find files that were opened by an app, where the file was modified after this date, and return the file path and app name." Example:
 
 ```cypher
 MATCH (f:File)-[:OPENED_BY]->(a:App)
@@ -825,7 +832,7 @@ flowchart LR
 
 Different AI providers have different APIs, different capabilities, and different privacy implications. Sending the contents of a private file to a cloud API might be fine in some contexts and completely unacceptable in others. The system needs to handle both without the rest of the codebase caring about the difference.
 
-The solution is a **provider trait** in Rust - a common interface that every AI backend implements. The AI layer talks to the trait, never directly to a specific provider.
+The solution is a common interface (called a "provider trait" in Rust) that every AI backend implements. The AI layer talks to this interface, never directly to a specific provider. From the rest of the system's perspective, all AI providers look identical - whether the model runs locally on your machine or in a data center on another continent.
 
 ```mermaid
 flowchart TD
@@ -885,11 +892,13 @@ The AI layer translates natural language questions into graph queries (Cypher), 
 
 ### 6.4 Natural Language to Cypher
 
-The AI layer translates user questions into valid Kuzu Cypher queries. This section describes how that translation works reliably and safely.
+> **This section is technical.** The plain summary: when you ask the AI a question, it converts your question into a database query and runs it against the Knowledge Graph. There is a validation layer in the middle to make sure the query is safe and well-formed before it executes.
+
+The AI layer translates user questions into Cypher queries (the graph query language - see Chapter 5) that run against the Knowledge Graph. This section describes how that translation works reliably and safely.
 
 **The problem with unconstrained generation:**
 
-LLMs can generate Cypher, but without constraints they produce three failure modes: hallucinated node types or relations that don't exist in the schema (query fails or returns garbage), poorly formed queries that trigger full graph scans (slow on large graphs), and queries that attempt to traverse unauthorized relations (caught by the Graph Daemon but better prevented earlier).
+AI models can generate Cypher, but without guardrails they produce three failure modes: they invent node types or relations that do not exist in the schema (query fails or returns garbage), produce poorly formed queries that scan the entire graph (slow), or try to access data they should not (caught by the Graph service, but better prevented earlier).
 
 **Strategy: schema-constrained generation**
 
