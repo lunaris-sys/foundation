@@ -911,6 +911,58 @@ static key pair, and peers are added by exchanging public keys.
 \emph{OpenVPN}~\cite{openvpn} support is provided for compatibility with
 existing enterprise infrastructure.
 
+\paragraph{Tor and i2P.}
+Two anonymity networks are supported as opt-in features configurable in the
+Advanced section of Network Settings. Both are pre-installed and require no
+manual setup beyond enabling them; the complexity that typically prevents
+adoption is handled by the system.
+
+\emph{Tor}~\cite{tor} (The Onion Router) is an anonymity network that routes
+traffic through a series of volunteer-operated relays, encrypting it in layers
+so that no single relay knows both the origin and the destination of a
+connection. Each relay knows only its predecessor and successor in the chain;
+the full path is visible to no single party. Tor is widely used by journalists,
+activists, and privacy-conscious users to circumvent surveillance and
+censorship, and is operated by the non-profit Tor Project.
+
+When Tor routing is enabled in Advanced Settings, the system configures a
+transparent proxy using \texttt{nftables}: all outbound TCP traffic is
+redirected through the local \texttt{tor} daemon, and DNS resolution is also
+routed through Tor to prevent DNS leaks. UDP traffic cannot traverse the Tor
+network and is blocked entirely while Tor routing is active rather than allowed
+to bypass it, which would leak information about the user's network activity.
+This is the correct behavior and is disclosed clearly in the Settings UI.
+Tor routing does not provide anonymity against an adversary who controls the
+entry and exit relays simultaneously, against JavaScript fingerprinting in
+the browser, or against application-level identifiers such as cookies and
+logged-in accounts. The Settings UI states these limitations plainly; Tor
+routing is presented as a tool, not a guarantee.
+
+\emph{i2P}~\cite{i2p} (Invisible Internet Project) is a separate anonymity
+network optimized for internal services rather than general internet access.
+Unlike Tor, which is primarily an anonymizing proxy for the regular internet,
+i2P is a self-contained network where participants host and consume services
+within the network itself. Websites within i2P (called \emph{eepsites}) are
+reachable only from within i2P; external internet access through i2P is
+possible but secondary to its design intent. i2P uses a distributed hash table
+for routing and encrypts traffic in layers analogously to Tor, but with a
+different threat model and different traffic analysis resistance properties.
+
+The system uses \emph{i2pd}~\cite{i2pd}, a C++ implementation of the i2P
+router. The original i2P router is written in Java and carries a significant
+runtime overhead; i2pd provides the same network participation and tunnel
+routing in a fraction of the memory footprint, with no Java dependency. i2pd
+runs as a system service managed by systemd and is controlled through a
+first-party Tauri management UI that exposes tunnel configuration, bandwidth
+limits, and network participation status without requiring the user to edit
+configuration files manually.
+
+Both Tor and i2P are entirely disabled by default and leave no listening
+services or background processes active until explicitly enabled. Enabling
+either requires navigating to Advanced Network Settings, not a quick-access
+toggle, reflecting that these tools require the user to understand their
+purpose and limitations.
+
 \subsubsection{Physical Security}
 \label{sec:physical}
 
