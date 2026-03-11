@@ -312,7 +312,7 @@ individual syscalls.
 	
 	\node[node] (file)    at (0, 4) {File};
 	\node[node] (app)     at (5, 4) {App};
-	\node[node] (session) at (9, 4) {Session};
+	\node[node] (session) at (11, 4) {Session};
 	\node[node] (project) at (0, 1) {Project};
 	\node[node] (event)   at (5, 1) {Event};
 	\node[node] (action)  at (9, 1) {UserAction};
@@ -324,10 +324,10 @@ individual syscalls.
 	\draw[edge] (action) -- node[lbl, above] {derived from} (event);
 	
 	% Session -> Project: routed below all nodes
-	\coordinate (sw) at (9,  0.0);
-	\coordinate (se) at (0,  0.0);
+	\coordinate (sw) at (11, -0.6);
+	\coordinate (se) at (0, -0.6);
 	\draw[edge] (session.south) -- (sw) -- (se) -- (project.south);
-	\node[lbl] at (4.5, 0.0) {worked on};
+	\node[lbl] at (4.5, -0.6) {worked on};
 	
 \end{tikzpicture}
 \caption{Knowledge Graph core schema. Nodes represent entities; edges
