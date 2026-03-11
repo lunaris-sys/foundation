@@ -486,6 +486,34 @@ IPC is restricted to the Event Bus, the Graph Daemon, and explicitly declared
 inter-application communication channels. An application cannot open a socket
 to another application without that channel being declared and approved.
 
+\paragraph{Clipboard hygiene.}
+The clipboard is an underappreciated data-leak vector. On a conventional
+Wayland desktop, any application with a \texttt{wl\_data\_device} interface
+can read the current clipboard contents without restriction; a password manager
+and a text editor have equal access to whatever the user last copied. This
+system changes that.
+
+Every clipboard entry carries a sensitivity label. Labels are assigned in two
+ways. Manual labeling is available from the clipboard history UI: the user can
+mark an entry as sensitive, causing it to be hidden from clipboard history and
+restricted from low-trust applications. Automatic labeling applies heuristics
+at copy time: content that matches the pattern of an API key, an IBAN, a
+private key, a password-manager field, or a credit card number is labeled
+sensitive automatically without user interaction.
+
+Applications declare a clipboard permission level in their manifest, analogous
+to filesystem or network permissions. An application without the
+\texttt{clipboard.read.sensitive} permission receives an empty string when it
+requests clipboard contents that carry a sensitive label. The application is
+not informed that content exists but was withheld; from its perspective the
+clipboard is empty. This prevents a compromised application from silently
+harvesting credentials that were copied from a password manager.
+
+Clipboard entries labeled sensitive are excluded from clipboard history storage
+entirely and are not written to the Knowledge Graph. They exist only in the
+compositor's in-memory clipboard buffer and are cleared when the entry is
+superseded or when the screen locks.
+
 \subsubsection{Knowledge Graph Security}
 \label{sec:graph-security}
 

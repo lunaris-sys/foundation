@@ -348,3 +348,39 @@ Third-party MCP servers shipped by Store applications are always treated as
 action-requiring by default. A community server that claims to be read-only
 receives the same treatment until it carries a verified security audit covering
 its MCP implementation.
+
+\subsection{System Explanation Mode}
+\label{sec:ai-explain}
+
+A running operating system is largely opaque to its user. Background processes
+run, network connections open and close, disk activity spikes, and the user
+has no practical way to understand what is happening without opening a terminal
+and running several diagnostic commands. This is a gap this system is
+positioned to close, because it already has the data.
+
+The AI daemon can answer the question \emph{"What is my computer doing right
+now?"} by querying the live event stream and the Knowledge Graph simultaneously.
+The event stream provides the current moment: which processes are active, what
+they are reading or writing, which network connections are open, what the CPU
+and memory usage is and which process owns it. The Knowledge Graph provides
+context: whether this activity is normal for this time of day on this machine,
+which project the files being accessed belong to, whether this process has
+behaved unusually in the past.
+
+The result is a dynamically generated plain-language summary, not a set of
+predefined status strings. A typical response might note that the package
+manager is fetching updates in the background, that a first-party application
+is indexing a recently imported folder, and that network activity is within the
+normal range for this time of day. If something is unusual, the summary says
+so: a process accessing node types it has never previously accessed, or a
+network connection to a destination outside the application's declared
+permissions, is flagged in the same natural language response rather than
+silently logged.
+
+The explanation mode is available on demand via the AI query interface and as
+a persistent ambient view in System Monitor. It does not run continuously in
+the background; it is a query like any other, executed when the user asks.
+Everything it uses is local: the event stream and the Knowledge Graph never
+leave the machine, and the model generating the summary runs locally unless
+the user has configured a cloud provider. The output can be shared by the user
+if they choose, but nothing is reported automatically.

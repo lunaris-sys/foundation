@@ -225,6 +225,28 @@ action; if the user denies, the block stands. Repeated denials for the same
 path are collapsed: after three denials for the same access, the system asks
 once whether to always block it rather than continuing to prompt.
 
+\paragraph{Ephemeral app mode.}
+Any application can be launched in ephemeral mode, either from the right-click
+context menu in the launcher or via a command-line flag. Ephemeral mode
+combines several existing sandbox mechanisms into a single preset with no
+configuration required.
+
+In ephemeral mode, a private Mount Namespace is created with no write access
+to the home directory; the application sees a temporary overlay that is
+discarded on exit. Graph access is entirely disabled regardless of the
+application's normal permission profile. Network activity is permitted if
+declared in the application manifest, but is not logged to the Audit Log.
+On exit, the temporary overlay is deleted, no entries are written to the
+Knowledge Graph, and no permission changes persist.
+
+The intended use case is opening untrusted or one-off content: a PDF from an
+unknown sender, a binary downloaded for a single use, or any application the
+user wants to run without leaving a trace. Ephemeral mode is not a replacement
+for the full profile isolation that separate Linux users provide; it does not
+protect against a compromised application exploiting a kernel vulnerability.
+What it provides is a low-friction way to reduce the footprint of routine
+untrusted content without requiring a separate session or a virtual machine.
+
 \subsection{Module System}
 \label{sec:modules}
 

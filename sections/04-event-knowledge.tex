@@ -389,3 +389,62 @@ by tier and time range. In managed deployments, administrators can set a
 minimum retention for compliance-relevant audit events in a separate audit log,
 but they cannot shorten the user's configured retention window for personal
 graph data.
+
+\subsection{Temporal Filesystem View}
+\label{sec:temporal-fs}
+
+The Knowledge Graph contains a complete record of which files were accessed,
+created, and modified, when, and by which application. This makes it possible
+to answer queries like "show me everything I worked on last Tuesday" without
+relying on file modification timestamps, which applications regularly reset, or
+on search indices, which do not capture access history.
+
+The temporal filesystem view exposes this as a navigable virtual directory tree
+via a \emph{FUSE} (Filesystem in Userspace) mount. FUSE is a Linux kernel
+mechanism that allows a userspace process to implement a filesystem: the kernel
+forwards directory listing and file open calls to the FUSE daemon, which
+answers them from its own data source rather than from disk. The temporal view
+mounts at \texttt{\textasciitilde/.timeline/} and is populated on demand by a
+small daemon that translates directory traversal into Graph Daemon queries.
+
+A path like \texttt{\textasciitilde/.timeline/2026-03-04/} lists all files the
+user touched on that date, grouped by project where the graph has enough
+context to determine project membership. Opening a file through this path opens
+the actual file at its real location; the timeline view is an index, not a
+copy. No additional storage is used.
+
+\begin{lstlisting}[language=bash, caption={Temporal filesystem view examples}]
+# List files worked on a specific date
+ls ~/.timeline/2026-03-04/
+
+# Find all files touched in the last week, by project
+ls ~/.timeline/last-7-days/
+
+# Open a file as it appears in the timeline (opens real file)
+xdg-open ~/.timeline/2026-03-04/ProjectAlpha/report-draft.md
+\end{lstlisting}
+
+The FUSE daemon holds no persistent state of its own; every listing is a live
+graph query. The mount is available only while the user session is active and
+the Graph Daemon is running. It is read-only: files cannot be created, renamed,
+or deleted through the timeline path.
+
+A natural extension of the temporal view is causal chain visualization:
+because the graph records not only which files were accessed but the sequence
+and application context of those accesses, it is possible to reconstruct the
+workflow that produced a given output. A query asking "what did I do to produce
+this file?" can trace the chain of files opened, commands run, and applications
+active in the session where the file was last modified. This is planned as a
+Phase~1 feature built on the same FUSE and graph infrastructure described here.
+
+\paragraph{Automatic project inference.}
+Project nodes in the graph are created explicitly when the user names a
+project, but the graph also accumulates enough signal to infer project
+membership automatically. Files that consistently appear together in the same
+sessions, terminal working directories that recur alongside a fixed set of
+applications, and browser tabs that co-occur with specific local files are all
+indicators that a coherent project exists even without a name. A background
+inference pass groups these co-occurrence clusters into candidate project nodes
+and presents them to the user as suggestions rather than applying them
+automatically. The user can confirm, rename, or dismiss each suggestion.
+Automatic inference is opt-in and runs locally.
