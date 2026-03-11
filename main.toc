@@ -187,47 +187,48 @@
 \contentsline {paragraph}{\nonumberline Hash chain integrity and TPM anchoring.}{69}{paragraph*.145}%
 \contentsline {subsubsection}{\numberline {8.4.8}Anomaly Detection}{69}{subsubsection.8.4.8}%
 \contentsline {subsubsection}{\numberline {8.4.9}Network Security}{70}{subsubsection.8.4.9}%
-\contentsline {subsubsection}{\numberline {8.4.10}Physical Security}{70}{subsubsection.8.4.10}%
-\contentsline {subsubsection}{\numberline {8.4.11}Memory Safety}{71}{subsubsection.8.4.11}%
-\contentsline {subsubsection}{\numberline {8.4.12}Multi-User Isolation}{71}{subsubsection.8.4.12}%
-\contentsline {subsection}{\numberline {8.5}Managed Environments}{72}{subsection.8.5}%
-\contentsline {paragraph}{\nonumberline Policy Engine.}{72}{paragraph*.146}%
-\contentsline {paragraph}{\nonumberline LDAP and Active Directory.}{72}{paragraph*.147}%
-\contentsline {paragraph}{\nonumberline MDM-style management.}{73}{paragraph*.148}%
-\contentsline {paragraph}{\nonumberline Remote attestation as network gate.}{73}{paragraph*.149}%
-\contentsline {paragraph}{\nonumberline GDPR and compliance tension.}{73}{paragraph*.150}%
+\contentsline {paragraph}{\nonumberline Tor and i2P.}{70}{paragraph*.146}%
+\contentsline {subsubsection}{\numberline {8.4.10}Physical Security}{71}{subsubsection.8.4.10}%
+\contentsline {subsubsection}{\numberline {8.4.11}Memory Safety}{72}{subsubsection.8.4.11}%
+\contentsline {subsubsection}{\numberline {8.4.12}Multi-User Isolation}{72}{subsubsection.8.4.12}%
+\contentsline {subsection}{\numberline {8.5}Managed Environments}{73}{subsection.8.5}%
+\contentsline {paragraph}{\nonumberline Policy Engine.}{73}{paragraph*.147}%
+\contentsline {paragraph}{\nonumberline LDAP and Active Directory.}{73}{paragraph*.148}%
+\contentsline {paragraph}{\nonumberline MDM-style management.}{74}{paragraph*.149}%
+\contentsline {paragraph}{\nonumberline Remote attestation as network gate.}{74}{paragraph*.150}%
+\contentsline {paragraph}{\nonumberline GDPR and compliance tension.}{74}{paragraph*.151}%
 \contentsline {section}{\numberline {9}Companion App and Health}{74}{section.9}%
 \contentsline {subsection}{\numberline {9.1}Companion App}{74}{subsection.9.1}%
-\contentsline {paragraph}{\nonumberline Feature tiers.}{74}{paragraph*.151}%
-\contentsline {paragraph}{\nonumberline Protocol and transport.}{74}{paragraph*.153}%
-\contentsline {paragraph}{\nonumberline Auto-connect.}{75}{paragraph*.155}%
-\contentsline {paragraph}{\nonumberline Theme synchronization.}{75}{paragraph*.156}%
-\contentsline {paragraph}{\nonumberline iOS limitations.}{75}{paragraph*.157}%
-\contentsline {subsection}{\numberline {9.2}Health and Wellbeing}{76}{subsection.9.2}%
-\contentsline {paragraph}{\nonumberline Data architecture.}{76}{paragraph*.158}%
-\contentsline {paragraph}{\nonumberline Data sources.}{76}{paragraph*.159}%
-\contentsline {paragraph}{\nonumberline Wearable pipeline.}{76}{paragraph*.160}%
-\contentsline {paragraph}{\nonumberline Graph integration.}{77}{paragraph*.161}%
-\contentsline {paragraph}{\nonumberline Settings and permissions.}{77}{paragraph*.163}%
-\contentsline {section}{\numberline {10}Developer Experience, Sustainability, and Roadmap}{77}{section.10}%
-\contentsline {subsection}{\numberline {10.1}Developer Experience and Infrastructure}{77}{subsection.10.1}%
-\contentsline {paragraph}{\nonumberline Repository structure.}{77}{paragraph*.164}%
-\contentsline {paragraph}{\nonumberline Build system.}{78}{paragraph*.165}%
-\contentsline {paragraph}{\nonumberline Update system.}{78}{paragraph*.166}%
-\contentsline {paragraph}{\nonumberline CI/CD pipeline.}{79}{paragraph*.167}%
-\contentsline {paragraph}{\nonumberline Local development workflow.}{80}{paragraph*.169}%
-\contentsline {paragraph}{\nonumberline Mock strategy.}{81}{paragraph*.170}%
-\contentsline {paragraph}{\nonumberline Project planning tooling.}{81}{paragraph*.171}%
-\contentsline {paragraph}{\nonumberline Documentation.}{81}{paragraph*.172}%
-\contentsline {subsection}{\numberline {10.2}Sustainability and Business Model}{82}{subsection.10.2}%
-\contentsline {paragraph}{\nonumberline Principles.}{82}{paragraph*.173}%
-\contentsline {paragraph}{\nonumberline Store revenue.}{82}{paragraph*.174}%
-\contentsline {paragraph}{\nonumberline Enterprise services.}{82}{paragraph*.175}%
-\contentsline {paragraph}{\nonumberline OEM and hardware partnerships.}{82}{paragraph*.176}%
-\contentsline {paragraph}{\nonumberline Support tiers.}{83}{paragraph*.177}%
-\contentsline {paragraph}{\nonumberline Public funding and grants.}{83}{paragraph*.178}%
-\contentsline {paragraph}{\nonumberline Path to incorporation.}{83}{paragraph*.179}%
-\contentsline {subsection}{\numberline {10.3}Roadmap}{83}{subsection.10.3}%
-\contentsline {paragraph}{\nonumberline Phase 0 - Foundation (current).}{84}{paragraph*.180}%
-\contentsline {paragraph}{\nonumberline Phase 1 and beyond.}{84}{paragraph*.181}%
+\contentsline {paragraph}{\nonumberline Feature tiers.}{75}{paragraph*.152}%
+\contentsline {paragraph}{\nonumberline Protocol and transport.}{75}{paragraph*.154}%
+\contentsline {paragraph}{\nonumberline Auto-connect.}{76}{paragraph*.156}%
+\contentsline {paragraph}{\nonumberline Theme synchronization.}{76}{paragraph*.157}%
+\contentsline {paragraph}{\nonumberline iOS limitations.}{76}{paragraph*.158}%
+\contentsline {subsection}{\numberline {9.2}Health and Wellbeing}{77}{subsection.9.2}%
+\contentsline {paragraph}{\nonumberline Data architecture.}{77}{paragraph*.159}%
+\contentsline {paragraph}{\nonumberline Data sources.}{77}{paragraph*.160}%
+\contentsline {paragraph}{\nonumberline Wearable pipeline.}{77}{paragraph*.161}%
+\contentsline {paragraph}{\nonumberline Graph integration.}{77}{paragraph*.162}%
+\contentsline {paragraph}{\nonumberline Settings and permissions.}{78}{paragraph*.164}%
+\contentsline {section}{\numberline {10}Developer Experience, Sustainability, and Roadmap}{78}{section.10}%
+\contentsline {subsection}{\numberline {10.1}Developer Experience and Infrastructure}{78}{subsection.10.1}%
+\contentsline {paragraph}{\nonumberline Repository structure.}{78}{paragraph*.165}%
+\contentsline {paragraph}{\nonumberline Build system.}{79}{paragraph*.166}%
+\contentsline {paragraph}{\nonumberline Update system.}{79}{paragraph*.167}%
+\contentsline {paragraph}{\nonumberline CI/CD pipeline.}{80}{paragraph*.168}%
+\contentsline {paragraph}{\nonumberline Local development workflow.}{81}{paragraph*.170}%
+\contentsline {paragraph}{\nonumberline Mock strategy.}{81}{paragraph*.171}%
+\contentsline {paragraph}{\nonumberline Project planning tooling.}{82}{paragraph*.172}%
+\contentsline {paragraph}{\nonumberline Documentation.}{82}{paragraph*.173}%
+\contentsline {subsection}{\numberline {10.2}Sustainability and Business Model}{83}{subsection.10.2}%
+\contentsline {paragraph}{\nonumberline Principles.}{83}{paragraph*.174}%
+\contentsline {paragraph}{\nonumberline Store revenue.}{83}{paragraph*.175}%
+\contentsline {paragraph}{\nonumberline Enterprise services.}{83}{paragraph*.176}%
+\contentsline {paragraph}{\nonumberline OEM and hardware partnerships.}{83}{paragraph*.177}%
+\contentsline {paragraph}{\nonumberline Support tiers.}{83}{paragraph*.178}%
+\contentsline {paragraph}{\nonumberline Public funding and grants.}{84}{paragraph*.179}%
+\contentsline {paragraph}{\nonumberline Path to incorporation.}{84}{paragraph*.180}%
+\contentsline {subsection}{\numberline {10.3}Roadmap}{84}{subsection.10.3}%
+\contentsline {paragraph}{\nonumberline Phase 0 - Foundation (current).}{84}{paragraph*.181}%
+\contentsline {paragraph}{\nonumberline Phase 1 and beyond.}{85}{paragraph*.182}%
 \providecommand \tocbasic@end@toc@file {}\tocbasic@end@toc@file 

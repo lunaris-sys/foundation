@@ -34,6 +34,9 @@
     \verb{url}
     \verb https://docs.anthropic.com/en/api/getting-started
     \endverb
+    \field{urlday}{02}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{mcp:spec}{misc}{}{}
@@ -54,6 +57,9 @@
     \verb https://spec.modelcontextprotocol.io
     \endverb
     \field{year}{2024}
+    \field{urlday}{02}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{apple:corebluetooth}{misc}{}{}
@@ -74,6 +80,9 @@
     \verb https://developer.apple.com/documentation/corebluetooth/about-core-bl
     \verb uetooth
     \endverb
+    \field{urlday}{02}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{apple:healthkit}{misc}{}{}
@@ -93,6 +102,9 @@
     \verb{url}
     \verb https://developer.apple.com/documentation/healthkit
     \endverb
+    \field{urlday}{02}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{apple:mfi}{misc}{}{}
@@ -112,6 +124,9 @@
     \verb{url}
     \verb https://developer.apple.com/programs/mfi/
     \endverb
+    \field{urlday}{02}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{archwiki:bluetooth}{misc}{}{}
@@ -132,6 +147,9 @@
     \verb{url}
     \verb https://wiki.archlinux.org/title/Bluetooth
     \endverb
+    \field{urlday}{01}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{archwiki:btrfs}{misc}{}{}
@@ -152,6 +170,9 @@
     \verb{url}
     \verb https://wiki.archlinux.org/title/Btrfs
     \endverb
+    \field{urlday}{21}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{archwiki:drm}{misc}{}{}
@@ -172,6 +193,9 @@
     \verb{url}
     \verb https://wiki.archlinux.org/title/Direct_Rendering_Manager
     \endverb
+    \field{urlday}{27}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{archwiki:luks}{misc}{}{}
@@ -192,6 +216,9 @@
     \verb{url}
     \verb https://wiki.archlinux.org/title/Dm-crypt
     \endverb
+    \field{urlday}{24}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{archwiki:flatpak}{misc}{}{}
@@ -212,6 +239,9 @@
     \verb{url}
     \verb https://wiki.archlinux.org/title/Flatpak
     \endverb
+    \field{urlday}{24}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{archwiki:keyring}{misc}{}{}
@@ -232,6 +262,9 @@
     \verb{url}
     \verb https://wiki.archlinux.org/title/Kernel_keyring
     \endverb
+    \field{urlday}{23}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{archwiki:iommu}{misc}{}{}
@@ -252,6 +285,9 @@
     \verb{url}
     \verb https://wiki.archlinux.org/title/PCI_passthrough_via_OVMF
     \endverb
+    \field{urlday}{28}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{archwiki:snapper}{misc}{}{}
@@ -272,6 +308,9 @@
     \verb{url}
     \verb https://wiki.archlinux.org/title/Snapper
     \endverb
+    \field{urlday}{21}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{archwiki:systemd}{misc}{}{}
@@ -292,6 +331,9 @@
     \verb{url}
     \verb https://wiki.archlinux.org/title/Systemd
     \endverb
+    \field{urlday}{23}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{archwiki:homed}{misc}{}{}
@@ -312,6 +354,9 @@
     \verb{url}
     \verb https://wiki.archlinux.org/title/Systemd-homed
     \endverb
+    \field{urlday}{23}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{archwiki:tpm}{misc}{}{}
@@ -332,6 +377,9 @@
     \verb{url}
     \verb https://wiki.archlinux.org/title/Trusted_Platform_Module
     \endverb
+    \field{urlday}{23}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{archwiki:secureboot}{misc}{}{}
@@ -353,6 +401,9 @@
     \verb https://wiki.archlinux.org/title/Unified_Extensible_Firmware_Interfac
     \verb e/Secure_Boot
     \endverb
+    \field{urlday}{23}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{archwiki:uki}{misc}{}{}
@@ -373,6 +424,9 @@
     \verb{url}
     \verb https://wiki.archlinux.org/title/Unified_kernel_image
     \endverb
+    \field{urlday}{23}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{archwiki:wine}{misc}{}{}
@@ -393,6 +447,9 @@
     \verb{url}
     \verb https://wiki.archlinux.org/title/Wine
     \endverb
+    \field{urlday}{16}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{archwiki:xwayland}{misc}{}{}
@@ -413,6 +470,9 @@
     \verb{url}
     \verb https://wiki.archlinux.org/title/XWayland
     \endverb
+    \field{urlday}{27}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{aya}{misc}{}{}
@@ -432,6 +492,9 @@
     \verb{url}
     \verb https://aya-rs.dev
     \endverb
+    \field{urlday}{25}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{qemu}{misc}{}{}
@@ -456,6 +519,9 @@
     \verb{url}
     \verb https://www.qemu.org
     \endverb
+    \field{urlday}{28}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{bsi2022sisyphus}{report}{}{}
@@ -481,6 +547,9 @@
     }
     \field{type}{techreport}
     \field{year}{2022}
+    \field{urlday}{17}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{rfc6762}{misc}{}{}
@@ -509,6 +578,9 @@
     \verb https://datatracker.ietf.org/doc/html/rfc6762
     \endverb
     \field{year}{2013}
+    \field{urlday}{01}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{codemirror}{misc}{}{}
@@ -528,6 +600,9 @@
     \verb{url}
     \verb https://codemirror.net
     \endverb
+    \field{urlday}{03}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{conaticus:fileexplorer}{misc}{}{}
@@ -548,6 +623,9 @@
     \verb{url}
     \verb https://github.com/conaticus/FileExplorer
     \endverb
+    \field{urlday}{03}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{rfc9562}{misc}{}{}
@@ -582,6 +660,9 @@
     \verb https://www.rfc-editor.org/rfc/rfc9562
     \endverb
     \field{year}{2024}
+    \field{urlday}{17}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{dxvk}{misc}{}{}
@@ -605,6 +686,9 @@
     \verb{url}
     \verb https://github.com/doitsujin/dxvk
     \endverb
+    \field{urlday}{18}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{wireguard}{misc}{}{}
@@ -626,6 +710,9 @@
     \verb{url}
     \verb https://www.wireguard.com
     \endverb
+    \field{urlday}{26}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{ebpf:io}{misc}{}{}
@@ -645,6 +732,9 @@
     \verb{url}
     \verb https://ebpf.io/what-is-ebpf/
     \endverb
+    \field{urlday}{25}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{ngi}{misc}{}{}
@@ -664,6 +754,9 @@
     \verb{url}
     \verb https://ngi.eu
     \endverb
+    \field{urlday}{05}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{fedora}{misc}{}{}
@@ -683,6 +776,9 @@
     \verb{url}
     \verb https://fedoraproject.org
     \endverb
+    \field{urlday}{14}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{gamemode}{misc}{}{}
@@ -702,6 +798,9 @@
     \verb{url}
     \verb https://github.com/FeralInteractive/gamemode
     \endverb
+    \field{urlday}{19}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{framework}{misc}{}{}
@@ -721,6 +820,9 @@
     \verb{url}
     \verb https://frame.work
     \endverb
+    \field{urlday}{15}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{fdo:notifications}{misc}{}{}
@@ -740,6 +842,9 @@
     \verb{url}
     \verb https://specifications.freedesktop.org/notification-spec/latest/
     \endverb
+    \field{urlday}{22}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{xdg:basedir}{misc}{}{}
@@ -759,6 +864,9 @@
     \verb{url}
     \verb https://specifications.freedesktop.org/basedir-spec/latest/
     \endverb
+    \field{urlday}{22}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{xdg:portal}{misc}{}{}
@@ -778,6 +886,9 @@
     \verb{url}
     \verb https://flatpak.github.io/xdg-desktop-portal/
     \endverb
+    \field{urlday}{22}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{llamacpp}{misc}{}{}
@@ -801,6 +912,9 @@
     \verb{url}
     \verb https://github.com/ggml-org/llama.cpp
     \endverb
+    \field{urlday}{01}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{gnome:goa}{misc}{}{}
@@ -820,6 +934,9 @@
     \verb{url}
     \verb https://wiki.gnome.org/Projects/GnomeOnlineAccounts
     \endverb
+    \field{urlday}{23}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{gtk}{misc}{}{}
@@ -839,6 +956,9 @@
     \verb{url}
     \verb https://gtk.org
     \endverb
+    \field{urlday}{19}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{libnotify}{misc}{}{}
@@ -858,6 +978,9 @@
     \verb{url}
     \verb https://gitlab.gnome.org/GNOME/libnotify
     \endverb
+    \field{urlday}{22}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{gnupg}{misc}{}{}
@@ -877,6 +1000,9 @@
     \verb{url}
     \verb https://gnupg.org
     \endverb
+    \field{urlday}{21}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{rfc6749}{misc}{}{}
@@ -899,6 +1025,9 @@
     \verb https://datatracker.ietf.org/doc/html/rfc6749
     \endverb
     \field{year}{2012}
+    \field{urlday}{20}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{ghostty}{misc}{}{}
@@ -920,6 +1049,9 @@
     \verb{url}
     \verb https://ghostty.org
     \endverb
+    \field{urlday}{04}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{fhir:r4}{misc}{}{}
@@ -941,12 +1073,15 @@
     \verb https://hl7.org/fhir/R4/
     \endverb
     \field{year}{2019}
+    \field{urlday}{02}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 
-  \entry{rust:image}{misc}{}{}
+  \entry{i2pd}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=i}{%
-         family={{image-rs contributors}},
+         family={{i2pd contributors}},
          familyi={i\bibinitperiod},
       }}%
     }
@@ -956,10 +1091,35 @@
     \field{labeltitlesource}{title}
     \field{sortinit}{I}
     \field{sortinithash}{I}
+    \field{title}{i2pd: {C++} implementation of the {I2P} router}
+    \verb{url}
+    \verb https://i2pd.website
+    \endverb
+    \field{urlday}{06}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{rust:image}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=i}{%
+         family={{image-rs contributors}},
+         familyi={i\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{i2}
+    \strng{fullhash}{i2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{I}
+    \field{sortinithash}{I}
     \field{title}{image: Imaging library written in {Rust}}
     \verb{url}
     \verb https://github.com/image-rs/image
     \endverb
+    \field{urlday}{04}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{intel:cet}{misc}{}{}
@@ -980,6 +1140,9 @@
     \verb https://www.intel.com/content/www/us/en/developer/articles/technical/
     \verb technical-look-control-flow-enforcement-technology.html
     \endverb
+    \field{urlday}{25}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{rfc8032}{misc}{}{}
@@ -1009,6 +1172,9 @@
     \verb https://datatracker.ietf.org/doc/html/rfc8032
     \endverb
     \field{year}{2017}
+    \field{urlday}{20}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{kdeconnect}{misc}{}{}
@@ -1028,6 +1194,9 @@
     \verb{url}
     \verb https://kdeconnect.kde.org
     \endverb
+    \field{urlday}{01}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{vulkan}{misc}{}{}
@@ -1047,6 +1216,9 @@
     \verb{url}
     \verb https://www.vulkan.org
     \endverb
+    \field{urlday}{18}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{kollnig2024apple}{inproceedings}{}{}
@@ -1073,6 +1245,9 @@
     \endverb
     \field{title}{Privacy of Default Apps in {Apple}'s Mobile Ecosystem}
     \field{year}{2024}
+    \field{urlday}{19}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{kuzu}{misc}{}{}
@@ -1092,6 +1267,9 @@
     \verb{url}
     \verb https://kuzudb.com
     \endverb
+    \field{urlday}{26}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{greetd}{misc}{}{}
@@ -1113,6 +1291,9 @@
     \verb{url}
     \verb https://git.sr.ht/~kennylevinsen/greetd
     \endverb
+    \field{urlday}{04}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{libbpf}{misc}{}{}
@@ -1132,6 +1313,9 @@
     \verb{url}
     \verb https://github.com/libbpf/libbpf
     \endverb
+    \field{urlday}{25}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{libinput}{misc}{}{}
@@ -1151,6 +1335,9 @@
     \verb{url}
     \verb https://wayland.freedesktop.org/libinput/doc/latest/
     \endverb
+    \field{urlday}{27}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{clang:cfi}{misc}{}{}
@@ -1170,6 +1357,9 @@
     \verb{url}
     \verb https://clang.llvm.org/docs/ControlFlowIntegrity.html
     \endverb
+    \field{urlday}{25}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{mangohud}{misc}{}{}
@@ -1189,6 +1379,9 @@
     \verb{url}
     \verb https://github.com/flightlessmango/MangoHud
     \endverb
+    \field{urlday}{19}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{mesa}{misc}{}{}
@@ -1208,6 +1401,9 @@
     \verb{url}
     \verb https://www.mesa3d.org
     \endverb
+    \field{urlday}{18}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{msrc2019memory}{misc}{}{}
@@ -1229,6 +1425,9 @@
     \verb secure-code/
     \endverb
     \field{year}{2019}
+    \field{urlday}{20}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{pdfjs}{misc}{}{}
@@ -1248,6 +1447,9 @@
     \verb{url}
     \verb https://mozilla.github.io/pdf.js/
     \endverb
+    \field{urlday}{03}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{rfc4120}{misc}{}{}
@@ -1273,6 +1475,9 @@
     \verb https://datatracker.ietf.org/doc/html/rfc4120
     \endverb
     \field{year}{2005}
+    \field{urlday}{21}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{nlnet}{misc}{}{}
@@ -1292,6 +1497,9 @@
     \verb{url}
     \verb https://nlnet.nl
     \endverb
+    \field{urlday}{05}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{ollama}{misc}{}{}
@@ -1311,6 +1519,9 @@
     \verb{url}
     \verb https://ollama.com
     \endverb
+    \field{urlday}{01}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{obs}{misc}{}{}
@@ -1330,6 +1541,9 @@
     \verb{url}
     \verb https://openbuildservice.org
     \endverb
+    \field{urlday}{16}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{openai:api}{misc}{}{}
@@ -1349,6 +1563,9 @@
     \verb{url}
     \verb https://platform.openai.com/docs/api-reference
     \endverb
+    \field{urlday}{02}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{opencypher}{misc}{}{}
@@ -1368,6 +1585,9 @@
     \verb{url}
     \verb https://opencypher.org
     \endverb
+    \field{urlday}{26}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{opensuse}{misc}{}{}
@@ -1387,6 +1607,9 @@
     \verb{url}
     \verb https://www.opensuse.org
     \endverb
+    \field{urlday}{14}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{zypper}{misc}{}{}
@@ -1406,6 +1629,9 @@
     \verb{url}
     \verb https://en.opensuse.org/SDB:Zypper_usage
     \endverb
+    \field{urlday}{15}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{openvpn}{misc}{}{}
@@ -1425,6 +1651,9 @@
     \verb{url}
     \verb https://openvpn.net
     \endverb
+    \field{urlday}{26}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{pine64}{misc}{}{}
@@ -1444,6 +1673,9 @@
     \verb{url}
     \verb https://www.pine64.org
     \endverb
+    \field{urlday}{15}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{toml}{misc}{}{}
@@ -1465,6 +1697,9 @@
     \verb{url}
     \verb https://toml.io
     \endverb
+    \field{urlday}{20}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{rfc8446}{misc}{}{}
@@ -1488,6 +1723,9 @@
     \verb https://datatracker.ietf.org/doc/html/rfc8446
     \endverb
     \field{year}{2018}
+    \field{urlday}{20}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{dnf}{misc}{}{}
@@ -1507,6 +1745,9 @@
     \verb{url}
     \verb https://dnf.readthedocs.io
     \endverb
+    \field{urlday}{15}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{rfc4511}{misc}{}{}
@@ -1530,6 +1771,9 @@
     \verb https://datatracker.ietf.org/doc/html/rfc4511
     \endverb
     \field{year}{2006}
+    \field{urlday}{21}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{shadcn}{misc}{}{}
@@ -1549,6 +1793,9 @@
     \verb{url}
     \verb https://ui.shadcn.com
     \endverb
+    \field{urlday}{03}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{smithay}{misc}{}{}
@@ -1568,6 +1815,9 @@
     \verb{url}
     \verb https://smithay.github.io
     \endverb
+    \field{urlday}{28}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{stf}{misc}{}{}
@@ -1587,6 +1837,9 @@
     \verb{url}
     \verb https://www.sovereigntechfund.de
     \endverb
+    \field{urlday}{05}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{cosmic:comp}{misc}{}{}
@@ -1606,6 +1859,9 @@
     \verb{url}
     \verb https://github.com/pop-os/cosmic-comp
     \endverb
+    \field{urlday}{28}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{mkosi}{misc}{}{}
@@ -1625,6 +1881,9 @@
     \verb{url}
     \verb https://github.com/systemd/mkosi
     \endverb
+    \field{urlday}{04}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{tailwind}{misc}{}{}
@@ -1644,6 +1903,9 @@
     \verb{url}
     \verb https://tailwindcss.com
     \endverb
+    \field{urlday}{03}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{tauri}{misc}{}{}
@@ -1663,12 +1925,15 @@
     \verb{url}
     \verb https://tauri.app
     \endverb
+    \field{urlday}{03}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 
-  \entry{qt}{misc}{}{}
+  \entry{i2p}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=T}{%
-         family={{The Qt Company}},
+         family={{The I2P Project}},
          familyi={T\bibinitperiod},
       }}%
     }
@@ -1678,16 +1943,19 @@
     \field{labeltitlesource}{title}
     \field{sortinit}{T}
     \field{sortinithash}{T}
-    \field{title}{{Qt} Framework}
+    \field{title}{{I2P}: The Invisible Internet Project}
     \verb{url}
-    \verb https://www.qt.io
+    \verb https://geti2p.net
     \endverb
+    \field{urlday}{06}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 
-  \entry{tuxedo}{misc}{}{}
+  \entry{qt}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=T}{%
-         family={{TUXEDO Computers GmbH}},
+         family={{The Qt Company}},
          familyi={T\bibinitperiod},
       }}%
     }
@@ -1697,10 +1965,57 @@
     \field{labeltitlesource}{title}
     \field{sortinit}{T}
     \field{sortinithash}{T}
+    \field{title}{{Qt} Framework}
+    \verb{url}
+    \verb https://www.qt.io
+    \endverb
+    \field{urlday}{19}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{tor}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=T}{%
+         family={{The Tor Project}},
+         familyi={T\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{T5}
+    \strng{fullhash}{T5}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{T}
+    \field{sortinithash}{T}
+    \field{title}{Tor: Anonymity Online}
+    \verb{url}
+    \verb https://www.torproject.org
+    \endverb
+    \field{urlday}{06}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{tuxedo}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=T}{%
+         family={{TUXEDO Computers GmbH}},
+         familyi={T\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{T6}
+    \strng{fullhash}{T6}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{T}
+    \field{sortinithash}{T}
     \field{title}{{TUXEDO Computers}}
     \verb{url}
     \verb https://www.tuxedocomputers.com
     \endverb
+    \field{urlday}{15}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{uefi}{misc}{}{}
@@ -1720,6 +2035,9 @@
     \verb{url}
     \verb https://uefi.org/specifications
     \endverb
+    \field{urlday}{23}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{usbguard}{misc}{}{}
@@ -1739,6 +2057,9 @@
     \verb{url}
     \verb https://usbguard.github.io
     \endverb
+    \field{urlday}{24}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{proton}{misc}{}{}
@@ -1758,6 +2079,9 @@
     \verb{url}
     \verb https://github.com/ValveSoftware/Proton
     \endverb
+    \field{urlday}{18}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{vkd3d:proton}{misc}{}{}
@@ -1777,6 +2101,9 @@
     \verb{url}
     \verb https://github.com/HansKristian-Work/vkd3d-proton
     \endverb
+    \field{urlday}{18}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{virtiofs}{misc}{}{}
@@ -1796,6 +2123,9 @@
     \verb{url}
     \verb https://virtio-fs.gitlab.io
     \endverb
+    \field{urlday}{28}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{vitest}{misc}{}{}
@@ -1815,6 +2145,9 @@
     \verb{url}
     \verb https://vitest.dev
     \endverb
+    \field{urlday}{03}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{wcag}{misc}{}{}
@@ -1835,6 +2168,9 @@
     \verb https://www.w3.org/TR/WCAG22/
     \endverb
     \field{year}{2023}
+    \field{urlday}{20}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{beyondcorp}{misc}{}{}
@@ -1865,6 +2201,9 @@
     \endverb
     \field{journaltitle}{;login: The USENIX Magazine}
     \field{year}{2014}
+    \field{urlday}{26}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{wifidirect}{misc}{}{}
@@ -1884,6 +2223,9 @@
     \verb{url}
     \verb https://www.wi-fi.org/discover-wi-fi/wi-fi-direct
     \endverb
+    \field{urlday}{01}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{wlr:protocols}{misc}{}{}
@@ -1903,6 +2245,9 @@
     \verb{url}
     \verb https://gitlab.freedesktop.org/wlroots/wlr-protocols
     \endverb
+    \field{urlday}{27}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{radix}{misc}{}{}
@@ -1922,6 +2267,9 @@
     \verb{url}
     \verb https://www.radix-ui.com
     \endverb
+    \field{urlday}{03}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{zen-browser}{misc}{}{}
@@ -1941,6 +2289,9 @@
     \verb{url}
     \verb https://zen-browser.app
     \endverb
+    \field{urlday}{07}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 
   \entry{zsh}{misc}{}{}
@@ -1960,6 +2311,9 @@
     \verb{url}
     \verb https://www.zsh.org
     \endverb
+    \field{urlday}{04}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
   \endentry
 \enddatalist
 \endinput

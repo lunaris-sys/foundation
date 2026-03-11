@@ -1,4 +1,4 @@
-This is LuaHBTeX, Version 1.24.0 (TeX Live 2026/Arch Linux)  (format=lualatex 2026.3.10)  11 MAR 2026 22:59
+This is LuaHBTeX, Version 1.24.0 (TeX Live 2026/Arch Linux)  (format=lualatex 2026.3.10)  11 MAR 2026 23:18
  restricted system commands enabled.
 **main.tex
 (./main.tex
@@ -3318,11 +3318,6 @@ LaTeX Warning: Citation 'ext:session-lock' on page 42 undefined on input line 4
 02.
 
 [42.42] [43.43]
-
-LaTeX Warning: Reference `tab:cli-theming' on page 44 undefined on input line 5
-35.
-
-
 Underfull \hbox (badness 10000) in paragraph at lines 571--571
 []|\TU/XCharter(0)/m/n/10.95 En-able in Set-tings; Set-
  []
@@ -3439,50 +3434,70 @@ Package fontspec Info:
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
  [65.65] [66.66]
-[67.67] [68.68] [69.69] [70.70] [71.71] [72.72]
-Overfull \hbox (11.14728pt too wide) in paragraph at lines 1056--1058
+[67.67] [68.68] [69.69] [70.70] [71.71] [72.72] [73.73]
+Overfull \hbox (11.14728pt too wide) in paragraph at lines 1108--1110
 []\TU/FiraSans(0)/b/n/10.95 Re-mote at-tes-ta-tion as net-work gate.[][] \TU/XC
 harter(0)/m/n/10.95 TPM Re-mote At-tes-ta-tion, de-scribed in Sec-tion []󰃥.
 󰃡.󰃞󰃝[],
  []
 
-) (./sections/09-companion-health.tex [73.73] [74.74] [75.75]
+) (./sections/09-companion-health.tex [74.74] [75.75] [76.76]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [76.76])
-(./sections/10-sustainability.tex [77.77]
+ [77.77])
+(./sections/10-sustainability.tex
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [78.78]
+ [78.78] [79.79]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [79.79] [80.80]
+ [80.80]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [81.81]
-[82.82] [83.83]) [84.84] [85.85
+ [81.81] [82.82]
+[83.83]) [84.84] [85.85] [86.86
 
 
-] [86.86] [87.87]
-(/usr/share/texmf-dist/tex/generic/stringenc/se-utf32be.def
+]
+Overfull \hbox (13.35266pt too wide) in paragraph at lines 98--98
+[]\TU/XCharter(0)/m/n/10.95 Fe-dora Project. \TU/XCharter(0)/m/it/10.95 Fe-dora Linux\TU/XCharter(0)/m/n/10.95 . \TU/XCharter(0)/m/sc/10.95 
+󰀠󰀝󰀗\TU/XCharter(0)/m/n/10.95 : []$\TU/FiraSans(0)/m/n/10.95 https : / 
+/ fedoraproject . org$[] \TU/XCharter(0)/m/n/10.95 (vis-ited on 󰃟󰃝󰃟
+󰃣-󰃝󰃟-󰃞󰃡). 
+ []
+
+[87.87] [88.88]
+Overfull \hbox (8.35558pt too wide) in paragraph at lines 98--98
+[]\TU/XCharter(0)/m/n/10.95 NL-net Foun-da-tion. \TU/XCharter(0)/m/it/10.95 NL-n
+et Foun-da-tion\TU/XCharter(0)/m/n/10.95 . \TU/XCharter(0)/m/sc/10.95 󰀠󰀝
+󰀗\TU/XCharter(0)/m/n/10.95 : []$\TU/FiraSans(0)/m/n/10.95 https : / / nlnet 
+. nl$[] \TU/XCharter(0)/m/n/10.95 (vis-ited on 󰃟󰃝󰃟󰃣-󰃝󰃠-󰃝
+󰃢). 
+ []
+
+[89.89]
+Overfull \hbox (5.28821pt too wide) in paragraph at lines 98--98
+[]\TU/XCharter(0)/m/n/10.95 Tail-wind Labs. \TU/XCharter(0)/m/it/10.95 Tail-wind
+ CSS\TU/XCharter(0)/m/n/10.95 . \TU/XCharter(0)/m/sc/10.95 󰀠󰀝󰀗\TU/XCha
+rter(0)/m/n/10.95 : []$\TU/FiraSans(0)/m/n/10.95 https : / / tailwindcss . com$
+[] \TU/XCharter(0)/m/n/10.95 (vis-ited on 󰃟󰃝󰃟󰃣-󰃝󰃠-󰃝󰃠). 
+
+ []
+
+[90.90] (/usr/share/texmf-dist/tex/generic/stringenc/se-utf32be.def
 File: se-utf32be.def 2019/11/29 v1.12 stringenc: UTF-32BE
 )
 (/usr/share/texmf-dist/tex/generic/stringenc/se-pdfdoc.def
 File: se-pdfdoc.def 2019/11/29 v1.12 stringenc: PDFDocEncoding
-) [88.88] [89.89]
-
-LaTeX Warning: Hook 'shipout/lastpage' executed on wrong page (88 not 89).
-               Rerun to correct this.
-
-(./main.aux)
+) [91.91] (./main.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
@@ -3505,36 +3520,16 @@ Package logreq Info: Writing requests to 'main.run.xml'.
 )
 
 Here is how much of LuaTeX's memory you used:
- 58853 strings out of 476076
- 381546,2373549 words of node,token memory allocated
- 1248 words of node memory still in use:
+ 58861 strings out of 476076
+ 305235,2373549 words of node,token memory allocated
+ 1260 words of node memory still in use:
    7 hlist, 2 vlist, 2 rule, 1 local_par, 4 glue, 4 kern, 1 penalty, 3 glyph, 10
-3 attribute, 88 glue_spec, 52 attribute_list, 3 write, 41 pdf_action nodes
-   avail lists: 1:11,2:7327,3:2210,4:6908,5:6859,6:138,7:12248,8:124,9:14052,10:
-40,11:980,12:4
- 79113 multiletter control sequences out of 65536+600000
+5 attribute, 88 glue_spec, 53 attribute_list, 3 write, 42 pdf_action nodes
+   avail lists: 1:11,2:7203,3:2167,4:6704,5:6028,6:335,7:12347,8:124,9:12861,10:
+40,11:856,12:4
+ 79125 multiletter control sequences out of 65536+600000
  245 fonts using 43073439 bytes
  94i,21n,142p,11228b,2791s stack positions out of 10000i,1000n,20000p,200000b,200000s
-
-warning  (pdf backend): unreferenced destination with name 'table.caption.166'
-
-warning  (pdf backend): unreferenced destination with name 'table.caption.160'
-
-warning  (pdf backend): unreferenced destination with name 'table.caption.150'
-
-warning  (pdf backend): unreferenced destination with name 'table.caption.140'
-
-warning  (pdf backend): unreferenced destination with name 'table.caption.100'
-
-warning  (pdf backend): unreferenced destination with name 'table.caption.94'
-
-warning  (pdf backend): unreferenced destination with name 'table.caption.91'
-
-warning  (pdf backend): unreferenced destination with name 'figure.caption.82'
-
-warning  (pdf backend): unreferenced destination with name 'table.caption.79'
-
-warning  (pdf backend): unreferenced destination with name 'figure.caption.77'
 
 warning  (pdf backend): unreferenced destination with name 'P:authorinfo:Tim\040
 Jochen\040Kicker'
@@ -3547,10 +3542,10 @@ xcharter/XCharter-Roman.otf></usr/share/texmf-dist/fonts/opentype/public/fira/Fi
 raSans-SemiBold.otf></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10
 .pfb></usr/share/texmf-dist/fonts/type1/public/mathdesign/mdbch/md-chr7y.pfb></u
 sr/share/texmf-dist/fonts/type1/public/mathdesign/mdbch/md-chrma.pfb>
-Output written on main.pdf (89 pages, 528754 bytes).
+Output written on main.pdf (91 pages, 536150 bytes).
 
-PDF statistics: 1834 PDF objects out of 2073 (max. 8388607)
- 1689 compressed objects within 17 object streams
- 683 named destinations out of 1000 (max. 1048576)
+PDF statistics: 1847 PDF objects out of 2073 (max. 8388607)
+ 1700 compressed objects within 17 object streams
+ 679 named destinations out of 1000 (max. 1048576)
  693 words of extra memory for PDF output out of 10000 (max. 100000000)
 
