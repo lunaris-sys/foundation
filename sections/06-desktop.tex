@@ -518,6 +518,79 @@ formats are supported: token overrides for authors who want to change colors and
 radius values without touching CSS, and full compiled CSS for themes that need
 structural changes beyond what the token system exposes.
 
+\paragraph{CLI and terminal theming.}
+The token system is not limited to GUI layers. The same color tokens that drive
+the Tauri shell and GTK4 can be projected onto terminal emulators, shells, and
+CLI tools, giving a user who installs a theme coherent colors across every
+context from the desktop to the command line.
+
+This is implemented as two complementary mechanisms. The first is
+\emph{generated configuration files}: for applications with a known,
+stable configuration format, the Settings daemon generates the appropriate
+file and writes it to the correct location on every theme switch. The second
+is \emph{environment variables}: for tools that accept color configuration
+via environment variables, the session environment is updated at login from
+the active theme's token values.
+
+Table~\ref{tab:cli-theming} lists the supported applications, their
+integration mechanism, and what the user must do to opt in.
+
+\begin{table}[htbp]
+\caption{CLI and terminal theme integration}
+\label{tab:cli-theming}
+\begin{tabularx}{\linewidth}{llX}
+\toprule
+\textbf{Application} & \textbf{Mechanism} & \textbf{User action required} \\
+\midrule
+Ghostty &
+  Generated config &
+  Enable in Settings; Settings daemon writes
+  \texttt{\textasciitilde/.config/ghostty/theme-managed.conf},
+  included from main config. \\
+Zsh prompt (Starship) &
+  Generated config &
+  Enable in Settings; generates
+  \texttt{\textasciitilde/.config/starship-theme.toml},
+  merged by Starship at startup. \\
+Neovim / Vim &
+  Generated Lua/Vimscript &
+  Enable in Settings; generates
+  \texttt{\textasciitilde/.config/nvim/theme-managed.lua}.
+  User adds \texttt{require('theme-managed')} to \texttt{init.lua}. \\
+bat &
+  Environment variable &
+  Automatic; \texttt{BAT\_THEME} set in session environment. \\
+fzf &
+  Environment variable &
+  Automatic; \texttt{FZF\_DEFAULT\_OPTS} color flags set in session
+  environment. \\
+delta / difftastic &
+  Environment variable &
+  Automatic; syntax theme exported via \texttt{DELTA\_FEATURES}. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The generated-file mechanism follows a strict non-destructive policy. The
+Settings daemon never writes to a file the user created manually. Each
+application has a dedicated \emph{theme-managed} file at a predictable path;
+the user's main configuration file is never touched. The user opts in by
+adding a single include or require line to their own configuration, and can
+remove it at any time to stop receiving theme updates for that application.
+This means a user with a heavily customized Neovim configuration loses nothing
+by enabling theme management: only the colors defined in the managed file
+change, and every other setting in the user's own files remains intact.
+
+Store themes can declare CLI coverage in their manifest alongside GUI coverage.
+A theme that covers Ghostty and Neovim alongside the shell and GTK4 shows all
+four coverage indicators in the Store listing. CLI coverage entries in a theme
+package contain only color token overrides in the same TOML format used for
+GUI tokens; they cannot contain arbitrary configuration directives or
+executable code. The Settings daemon generates the final output files from
+these token values, not by copying the theme's content verbatim. This
+constraint prevents a malicious Store theme from injecting shell aliases or
+editor keybindings under the guise of color configuration.
+
 \paragraph{Live switching.}
 Figure~\ref{fig:theme-chain} shows the theme inheritance chain. When the user
 applies a theme, the Settings daemon loads the package, merges its token

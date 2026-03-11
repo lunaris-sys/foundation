@@ -17,55 +17,57 @@ Reallocated singl_function (elt_size=8) to 100 items from 50.
 Reallocated singl_function (elt_size=8) to 100 items from 50.
 Reallocated singl_function (elt_size=8) to 100 items from 50.
 Reallocated singl_function (elt_size=8) to 100 items from 50.
-Reallocated field_info (elt_size=8) to 17880 items from 5000.
+Reallocated field_info (elt_size=8) to 18860 items from 5000.
 Database file #1: main-blx.bib
 Database file #2: references.bib
 Repeated entry---line 120 of file references.bib
  : @misc{bsi2022sisyphus
  :                      ,
 I'm skipping whatever remains of this entry
+Warning--I didn't find a database entry for "swaync"
+Warning--I didn't find a database entry for "ext:session-lock"
 Biblatex version: 3.21
 Reallocated wiz_functions (elt_size=8) to 9000 items from 6000.
 Reallocated singl_function (elt_size=8) to 100 items from 50.
-You've used 92 entries,
+You've used 97 entries,
             6402 wiz_defined-function locations,
-            1553 strings with 17135 characters,
-and the built_in function-call counts, 362875 in all, are:
-= -- 21408
-> -- 8067
-< -- 2222
-+ -- 6298
-- -- 2881
-* -- 23904
-:= -- 32178
+            1575 strings with 17515 characters,
+and the built_in function-call counts, 381180 in all, are:
+= -- 22443
+> -- 8457
+< -- 2342
++ -- 6563
+- -- 3011
+* -- 25109
+:= -- 33698
 add.period$ -- 0
-call.type$ -- 92
-change.case$ -- 746
+call.type$ -- 97
+change.case$ -- 786
 chr.to.int$ -- 50
-cite$ -- 182
-duplicate$ -- 39007
-empty$ -- 37242
-format.name$ -- 4579
-if$ -- 78658
+cite$ -- 192
+duplicate$ -- 40982
+empty$ -- 39192
+format.name$ -- 4809
+if$ -- 82668
 int.to.chr$ -- 0
-int.to.str$ -- 275
+int.to.str$ -- 285
 missing$ -- 0
-newline$ -- 1861
-num.names$ -- 4013
-pop$ -- 30332
+newline$ -- 1956
+num.names$ -- 4218
+pop$ -- 31982
 preamble$ -- 1
-purify$ -- 943
+purify$ -- 993
 quote$ -- 0
-skip$ -- 14855
+skip$ -- 15640
 stack$ -- 0
-substring$ -- 32601
-swap$ -- 9446
-text.length$ -- 2243
-text.prefix$ -- 91
+substring$ -- 34171
+swap$ -- 9941
+text.length$ -- 2363
+text.prefix$ -- 96
 top$ -- 1
-type$ -- 3115
+type$ -- 3285
 warning$ -- 0
-while$ -- 3814
+while$ -- 3989
 width$ -- 0
-write$ -- 1770
+write$ -- 1860
 (There was 1 error message)

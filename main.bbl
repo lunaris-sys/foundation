@@ -511,6 +511,45 @@
     \field{year}{2013}
   \endentry
 
+  \entry{codemirror}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=C}{%
+         family={{CodeMirror contributors}},
+         familyi={C\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{C1}
+    \strng{fullhash}{C1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{C}
+    \field{sortinithash}{C}
+    \field{title}{{CodeMirror} 6}
+    \verb{url}
+    \verb https://codemirror.net
+    \endverb
+  \endentry
+
+  \entry{conaticus:fileexplorer}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=c}{%
+         family={{conaticus}},
+         familyi={c\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{c1}
+    \strng{fullhash}{c1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{C}
+    \field{sortinithash}{C}
+    \field{title}{{FileExplorer}: A fast file explorer written with {Tauri} and
+  {React}}
+    \verb{url}
+    \verb https://github.com/conaticus/FileExplorer
+    \endverb
+  \endentry
+
   \entry{rfc9562}{misc}{}{}
     \name{author}{3}{}{%
       {{hash=DB}{%
@@ -862,6 +901,27 @@
     \field{year}{2012}
   \endentry
 
+  \entry{ghostty}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=HM}{%
+         family={Hashimoto},
+         familyi={H\bibinitperiod},
+         given={Mitchell},
+         giveni={M\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{HM1}
+    \strng{fullhash}{HM1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{H}
+    \field{sortinithash}{H}
+    \field{title}{Ghostty}
+    \verb{url}
+    \verb https://ghostty.org
+    \endverb
+  \endentry
+
   \entry{fhir:r4}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=H}{%
@@ -881,6 +941,25 @@
     \verb https://hl7.org/fhir/R4/
     \endverb
     \field{year}{2019}
+  \endentry
+
+  \entry{rust:image}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=i}{%
+         family={{image-rs contributors}},
+         familyi={i\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{i1}
+    \strng{fullhash}{i1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{I}
+    \field{sortinithash}{I}
+    \field{title}{image: Imaging library written in {Rust}}
+    \verb{url}
+    \verb https://github.com/image-rs/image
+    \endverb
   \endentry
 
   \entry{intel:cet}{misc}{}{}
@@ -1152,6 +1231,25 @@
     \field{year}{2019}
   \endentry
 
+  \entry{pdfjs}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=M}{%
+         family={{Mozilla}},
+         familyi={M\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{M4}
+    \strng{fullhash}{M4}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{M}
+    \field{sortinithash}{M}
+    \field{title}{{PDF.js}}
+    \verb{url}
+    \verb https://mozilla.github.io/pdf.js/
+    \endverb
+  \endentry
+
   \entry{rfc4120}{misc}{}{}
     \true{moreauthor}
     \true{morelabelname}
@@ -1369,27 +1467,6 @@
     \endverb
   \endentry
 
-  \entry{swaync}{misc}{}{}
-    \name{author}{1}{}{%
-      {{hash=RE}{%
-         family={Reider},
-         familyi={R\bibinitperiod},
-         given={Erik},
-         giveni={E\bibinitperiod},
-      }}%
-    }
-    \strng{namehash}{RE1}
-    \strng{fullhash}{RE1}
-    \field{labelnamesource}{author}
-    \field{labeltitlesource}{title}
-    \field{sortinit}{R}
-    \field{sortinithash}{R}
-    \field{title}{{SwayNotificationCenter}}
-    \verb{url}
-    \verb https://github.com/ErikReider/SwayNotificationCenter
-    \endverb
-  \endentry
-
   \entry{rfc8446}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=RE}{%
@@ -1399,8 +1476,8 @@
          giveni={E\bibinitperiod},
       }}%
     }
-    \strng{namehash}{RE2}
-    \strng{fullhash}{RE2}
+    \strng{namehash}{RE1}
+    \strng{fullhash}{RE1}
     \field{labelnamesource}{author}
     \field{labeltitlesource}{title}
     \field{sortinit}{R}
@@ -1790,25 +1867,6 @@
     \field{year}{2014}
   \endentry
 
-  \entry{ext:session-lock}{misc}{}{}
-    \name{author}{1}{}{%
-      {{hash=W}{%
-         family={{Wayland protocols}},
-         familyi={W\bibinitperiod},
-      }}%
-    }
-    \strng{namehash}{W2}
-    \strng{fullhash}{W2}
-    \field{labelnamesource}{author}
-    \field{labeltitlesource}{title}
-    \field{sortinit}{W}
-    \field{sortinithash}{W}
-    \field{title}{ext-session-lock-v1}
-    \verb{url}
-    \verb https://wayland.app/protocols/ext-session-lock-v1
-    \endverb
-  \endentry
-
   \entry{wifidirect}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=W}{%
@@ -1816,8 +1874,8 @@
          familyi={W\bibinitperiod},
       }}%
     }
-    \strng{namehash}{W3}
-    \strng{fullhash}{W3}
+    \strng{namehash}{W2}
+    \strng{fullhash}{W2}
     \field{labelnamesource}{author}
     \field{labeltitlesource}{title}
     \field{sortinit}{W}
@@ -1863,6 +1921,44 @@
     \field{title}{Radix {UI}}
     \verb{url}
     \verb https://www.radix-ui.com
+    \endverb
+  \endentry
+
+  \entry{zen-browser}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=Z}{%
+         family={{Zen Browser contributors}},
+         familyi={Z\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{Z1}
+    \strng{fullhash}{Z1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{Z}
+    \field{sortinithash}{Z}
+    \field{title}{Zen Browser}
+    \verb{url}
+    \verb https://zen-browser.app
+    \endverb
+  \endentry
+
+  \entry{zsh}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=Z}{%
+         family={{Zsh contributors}},
+         familyi={Z\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{Z2}
+    \strng{fullhash}{Z2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{Z}
+    \field{sortinithash}{Z}
+    \field{title}{Zsh: The Z Shell}
+    \verb{url}
+    \verb https://www.zsh.org
     \endverb
   \endentry
 \enddatalist
