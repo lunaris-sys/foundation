@@ -102,7 +102,7 @@ all sources. Figure~\ref{fig:notifications} shows the pipeline.
 
 \node[proc]  (toast) at (7.4,  2.4) {Toast Renderer\\(Tauri)};
 \node[proc]  (nc)    at (7.4,  1.2) {Notification Center\\(Tauri shell)};
-\node[store] (al)    at (7.4,  0.0) {Audit Log};
+\node[proc] (al) at (7.4, 0.0) {Audit Log};
 
 \draw[arr] (dbus)   -- (nd);
 \draw[arr] (native) -- (nd);

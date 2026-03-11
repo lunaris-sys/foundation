@@ -13,33 +13,32 @@ interfaces that neither side reaches past.
 \label{sec:desktop-ipc}
 
 Three communication channels connect the compositor core to the shell and its
-frontend, each carrying a different class of data. Figure~\ref{fig:shell-ipc}
-shows the structure.
+frontend, each carrying a different class of data. 
 
 \begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[
-  box/.style={
-    draw, thick, rectangle, rounded corners=2pt,
-    minimum width=3.4cm, minimum height=0.9cm,
-    font=\small, align=center, inner sep=6pt
-  },
-  arr/.style={<->, thick},
-  lbl/.style={font=\footnotesize, fill=white, inner sep=2pt, align=center},
-]
-
-\node[box] (smithay) at (0,   0) {\textbf{Smithay Core}\\{\footnotesize Rust}};
-\node[box] (tauri)   at (5.4, 0) {\textbf{Tauri Shell}\\{\footnotesize Rust backend}};
-\node[box] (ui)      at (10.8,0) {\textbf{Shell UI}\\{\footnotesize TypeScript / Tailwind}};
-
-\draw[arr] (smithay.north) .. controls +(0,1.1) and +(0,1.1) .. 
-  node[lbl, above] {Wayland protocols\\(layer-shell, toplevel, workspaces)} (tauri.north);
-
-\draw[arr] (smithay.south) .. controls +(0,-1.1) and +(0,-1.1) ..
-  node[lbl, below] {Unix socket (custom events)} (tauri.south);
-
-\draw[arr] (tauri) -- node[lbl, above] {Tauri command bridge\\(\texttt{invoke} / events)} (ui);
-
+	box/.style={
+		draw, thick, rectangle, rounded corners=2pt,
+		minimum width=5.5cm, minimum height=0.9cm,
+		font=\small, align=center, inner sep=6pt
+	},
+	arr/.style={->, thick},
+	lbl/.style={font=\footnotesize, fill=white, inner sep=2pt, align=center},
+	]
+	
+	\node[box] (smithay) at (0, 4.0) {\textbf{Smithay Core} \quad {\footnotesize Rust}};
+	\node[box] (tauri)   at (0, 2.0) {\textbf{Tauri Shell} \quad {\footnotesize Rust backend}};
+	\node[box] (ui)      at (0, 0.0) {\textbf{Shell UI} \quad {\footnotesize TypeScript / Tailwind}};
+	
+	\draw[arr] ([xshift= 0.5cm]smithay.south) -- ([xshift= 0.5cm]tauri.north)
+	node[lbl, right, midway] {Wayland protocols (layer-shell, xdg-toplevel)};
+	\draw[arr] ([xshift=-0.5cm]tauri.north) -- ([xshift=-0.5cm]smithay.south)
+	node[lbl, left, midway] {Unix socket (custom events)};
+	
+	\draw[arr] (tauri.south) -- (ui.north)
+	node[lbl, right, midway] {Tauri command bridge (\texttt{invoke} / events)};
+	
 \end{tikzpicture}
 \caption{Shell IPC architecture. Wayland protocols carry window management data
 (open windows, focus, workspace state). The Unix socket carries system-specific
@@ -405,7 +404,7 @@ second; GTK4 regeneration may take one to two seconds on slower hardware.
   lbl/.style={font=\footnotesize\itshape, anchor=west},
 ]
 
-\def\sep{1.1}
+\def\sep{1.6}
 
 \node[box] (shadcn) at (0, 3*\sep)
   {shadcn/ui defaults};

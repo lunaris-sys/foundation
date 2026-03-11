@@ -167,7 +167,6 @@ are unaffected.
 
 \subsection{Why Rust}
 \label{sec:rust-intro}
-
 All system daemons and Tauri application backends in this project are written in
 \emph{Rust}, a systems programming language developed by Mozilla Research with
 its 1.0 release in 2015. Understanding why requires a brief look at what systems
@@ -178,8 +177,8 @@ performance-critical software for decades. Their advantage is direct control
 over memory and hardware with minimal overhead. Their liability is that this
 control is entirely manual: the programmer allocates memory and is responsible
 for freeing it correctly, without using it afterward, without reading past its
-bounds, and without sharing it unsafely across threads. Memory safety bugs ---
-use-after-free, buffer overflows, data races --- are the single largest source
+bounds, and without sharing it unsafely across threads. Memory safety bugs
+(use-after-free, buffer overflows, data races) are the single largest source
 of exploitable vulnerabilities in system software. Google's Project Zero and
 Microsoft's Security Response Center have independently reported that roughly
 70\% of serious security vulnerabilities in their codebases are memory safety
@@ -192,7 +191,7 @@ significant compared to C or Rust.
 
 Rust enforces memory safety through a compile-time ownership and borrowing
 system. An entire class of bugs that would be exploitable vulnerabilities in C
-simply cannot compile in Rust --- the compiler rejects them. This is not a
+simply cannot compile in Rust; the compiler rejects them. This is not a
 runtime check with performance overhead; it is a zero-cost compile-time
 guarantee. Rust has no garbage collector and achieves performance comparable to
 C and C++.
@@ -203,7 +202,7 @@ credentials and graph queries. Writing them in Rust eliminates an entire
 vulnerability class without sacrificing performance.
 
 A \emph{Rust trait} is the language's mechanism for defining a shared interface
-that multiple concrete types can implement --- analogous to an interface in Java
+that multiple concrete types can implement, analogous to an interface in Java
 or a pure abstract class in C++. When this document refers to the AI provider
 abstraction as a Rust trait, it means that every AI backend implements the same
 set of methods, and the rest of the codebase calls only those methods without
