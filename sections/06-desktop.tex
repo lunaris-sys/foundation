@@ -265,6 +265,78 @@ app-files/
     pages/
 \end{lstlisting}
 
+\subsection{Default Applications}
+\label{sec:default-apps}
+
+The system ships a curated set of default applications. The selection
+criteria are consistent: Wayland-native where possible, open source,
+and either first-party Tauri applications or well-maintained projects
+with a clear separation between backend logic and visual presentation.
+
+\paragraph{Terminal emulator.}
+The default terminal is \emph{Ghostty}~\cite{ghostty}, a GPU-accelerated
+terminal emulator written in Zig by Mitchell Hashimoto. Ghostty is
+Wayland-native, carries an MIT license, and ships its own terminfo entry.
+The base system image includes the \texttt{xterm-ghostty} terminfo entry
+so that SSH sessions to remote hosts do not require a separate setup step.
+The primary alternative, \emph{kitty}, was considered but Ghostty's
+Wayland-first design and more permissive license are better fits for
+this project.
+
+\paragraph{Default shell.}
+The default interactive shell is \emph{Zsh}~\cite{zsh}. Zsh is
+POSIX-compatible, shares the broad shell scripting ecosystem with Bash,
+and has a mature plugin and completion infrastructure. It has been the
+default shell on macOS since 2019, which reduces friction for users
+arriving from that platform. The system ships a minimal Zsh configuration
+that enables syntax highlighting, history-based autosuggestions, and a
+clean prompt without pulling in a framework such as oh-my-zsh.
+Fish was evaluated for its superior out-of-the-box UX but rejected for
+its POSIX incompatibility, which would make a significant fraction of
+shell snippets and scripts from the wider ecosystem fail silently.
+
+\paragraph{Web browser.}
+The default browser is \emph{Zen Browser}~\cite{zen-browser}, a
+Firefox-based browser focused on privacy and a clean UI. It inherits
+Firefox's rendering engine and extension ecosystem while adding a more
+opinionated interface. Using a Firefox-based browser aligns with the
+project's European digital autonomy goals: Mozilla is a non-profit
+foundation, and the Gecko engine is the only major browser engine not
+controlled by a US technology company.
+
+\paragraph{File manager.}
+The file manager is a first-party Tauri application. The Rust backend
+handles filesystem operations using the standard library and the
+\texttt{notify} crate for filesystem event watching; the TypeScript
+frontend provides the directory view, file previews, and bulk operations.
+The \emph{conaticus/FileExplorer}~\cite{conaticus:fileexplorer} project,
+a Tauri~v2 file explorer with a similar backend architecture, was reviewed
+as a reference implementation. The first-party file manager integrates
+with the Knowledge Graph via os-sdk: opening, moving, and deleting files
+emit events that become graph nodes, enabling the temporal filesystem view
+described in Section~\ref{sec:temporal-fs}. One known Tauri limitation is
+that drag-and-drop of files to native (non-Tauri) applications is not
+currently supported by the framework; this is documented and will be
+resolved when upstream Tauri adds the capability.
+
+\paragraph{Text editor.}
+The default text editor is a first-party Tauri application embedding
+\emph{CodeMirror~6}~\cite{codemirror} as the editing component.
+CodeMirror provides syntax highlighting for over 150 languages, a
+language server protocol (LSP) client interface, and accessible keyboard
+navigation out of the box. The Tauri backend handles file I/O and
+integrates with the graph for recent-file tracking.
+
+\paragraph{PDF viewer, image viewer, archive manager.}
+These three applications are first-party Tauri applications with minimal
+backends. The PDF viewer embeds \emph{PDF.js}~\cite{pdfjs} in the
+WebView. The image viewer renders directly in a \texttt{<canvas>} element
+with a Rust backend handling format decoding via the \texttt{image}
+crate~\cite{rust:image}. The archive manager calls \texttt{libarchive}
+from the Rust backend for read and write operations across zip, tar, and
+common compression formats. All three write open-file events to the
+Knowledge Graph.
+
 \subsection{Spotlight}
 \label{sec:spotlight}
 
