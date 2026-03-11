@@ -68,5 +68,26 @@
     \field{title}{Privacy of Default Apps in {Apple}'s Mobile Ecosystem}
     \field{year}{2024}
   \endentry
+
+  \entry{msrc2019memory}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=M}{%
+         family={{Microsoft Security Response Center}},
+         familyi={M\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{M1}
+    \strng{fullhash}{M1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{M}
+    \field{sortinithash}{M}
+    \field{title}{A proactive approach to more secure code}
+    \verb{url}
+    \verb https://msrc.microsoft.com/blog/2019/07/a-proactive-approach-to-more-
+    \verb secure-code/
+    \endverb
+    \field{year}{2019}
+  \endentry
 \enddatalist
 \endinput
