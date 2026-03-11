@@ -124,36 +124,43 @@ project aims to land. No system targeting mainstream usability currently occupie
 
   % Project target
   \node[font=\small\bfseries, align=center]
-    at (4.8, 5.5) {[Project]\\target};
+    at (4.8, 5.5) {target};
 
 \end{tikzpicture}
 \caption{Design space: ease of use versus user sovereignty. The shaded quadrant
 is the project target. Mainstream commercial systems land in the lower-right
 (usable but extractive); privacy-oriented Linux distributions in the upper-left
-(sovereign but inaccessible). No mainstream system currently occupies the
+(sovereign but inaccessible). No system targeting mainstream usability currently occupies the
 upper-right.}
 \label{fig:positioning}
 \end{figure}
 
-\subsection{What This Project Is Not}
+\subsection{Scope and Non-Goals}
 \label{sec:nongoals}
 
-Clarifying what this project is not is as important as describing what it is.
+The scope of this project is worth stating precisely, because several reasonable
+expectations turn out not to apply here.
 
-It is not a minimal system stripped to its essentials. There is real complexity
-here, and that is intentional: a system that works for non-technical users
-requires more infrastructure, not less.
+Complexity is intentional. A system that works for non-technical users requires
+more infrastructure than a minimal one, not less. This is not a stripped-down
+environment optimized for simplicity of implementation.
 
-It is not a fully declarative system where every piece of software is managed
-through configuration files. Reproducibility is a goal; mandatory declarative
-configuration is not.
+Reproducibility is a goal; mandatory declarative configuration is not. Users
+should not need to manage configuration files to install software or change
+settings. Where declarative tooling is useful under the hood, it is used, but
+it is never a requirement imposed on the user.
 
-It is not a distro aimed at advanced Linux users only. New users are explicitly
-part of the target. Advanced users are welcome and well-served, but they are not
-the primary design constraint.
+The primary design constraint is the non-technical user switching from a
+commercial system. Advanced Linux users are well-served by the architecture
+and are welcome, but their preferences do not override decisions made for
+accessibility and usability. Those two audiences rarely conflict, but when they
+do, the newcomer wins.
 
-It is not a corporate product that happens to be open source. Business use is
-secondary; user rights are not negotiable.
+Business deployment is a future consideration, not a present one. The architecture
+supports managed environments, but the system is not designed as an enterprise
+product. User rights are not negotiable regardless of deployment context.
 
-It is not a Windows or macOS clone. The goal is a better alternative, not a
-familiar imitation.
+The goal is a better alternative to existing systems, not a familiar imitation
+of them. Compatibility bridges are provided so that existing software works, but
+the interface, the architecture, and the underlying model are not constrained by
+what Windows or macOS do.

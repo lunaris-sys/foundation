@@ -204,35 +204,42 @@ interaction by calling their respective servers in sequence.
 Figure~\ref{fig:mcp} shows the topology.
 
 \begin{figure}[htbp]
-\centering
-\begin{tikzpicture}[
-  box/.style={
-    draw, thick, rectangle, rounded corners=2pt,
-    minimum width=2.8cm, minimum height=0.8cm,
-    font=\small, align=center, inner sep=5pt
-  },
-  srv/.style={
-    draw, thick, rectangle, rounded corners=2pt,
-    minimum width=2.8cm, minimum height=0.8cm,
-    font=\small, align=center, inner sep=5pt
-  },
-  arr/.style={->, thick},
-]
+	\centering
+	\begin{tikzpicture}[
+		box/.style={
+			draw, thick, rectangle, rounded corners=2pt,
+			minimum width=2.8cm, minimum height=0.8cm,
+			font=\small, align=center, inner sep=5pt
+		},
+		srv/.style={
+			draw, thick, rectangle, rounded corners=2pt,
+			minimum width=2.8cm, minimum height=0.8cm,
+			font=\small, align=center, inner sep=5pt
+		},
+		arr/.style={->, thick},
+		]
+		\node[box] (model)  at (0, 0)   {\textbf{AI Model}};
+		\node[box] (client) at (3.4, 0) {MCP Client};
+		\node[srv] (fm)     at (7.8,  2.4) {MCP: File Manager};
+		\node[srv] (term)   at (7.8,  0.8) {MCP: Terminal};
+		\node[srv] (kg)     at (7.8, -0.8) {MCP: Knowledge Graph};
+		\node[srv] (ext)    at (7.8, -2.4) {MCP: third-party};
+		
+		\draw[arr] (model) -- (client);
+		
+		% Bus: horizontal stub then vertical rail
+		\coordinate (stub) at (5.0, 0);
+		\draw[thick] (client.east) -- (stub);
+		\draw[thick] (stub |- fm.west)  -- (stub |- ext.west);
+		
+		% Horizontal branches from rail to each server
+		\draw[arr] (stub |- fm.west)   -- (fm.west);
+		\draw[arr] (stub |- term.west) -- (term.west);
+		\draw[arr] (stub |- kg.west)   -- (kg.west);
+		\draw[arr] (stub |- ext.west)  -- (ext.west);
+	\end{tikzpicture}
 
-\node[box] (model)  at (0, 0)   {\textbf{AI Model}};
-\node[box] (client) at (3.4, 0) {MCP Client};
-\node[srv] (fm)     at (6.8,  1.8) {MCP: File Manager};
-\node[srv] (term)   at (6.8,  0.6) {MCP: Terminal};
-\node[srv] (kg)     at (6.8, -0.6) {MCP: Knowledge Graph};
-\node[srv] (ext)    at (6.8, -1.8) {MCP: third-party};
 
-\draw[arr] (model)  -- (client);
-\draw[arr] (client) -- (fm);
-\draw[arr] (client) -- (term);
-\draw[arr] (client) -- (kg);
-\draw[arr] (client.east) -- (ext);
-
-\end{tikzpicture}
 \caption{MCP topology. The AI model communicates through a single MCP client
 that dispatches to individual application servers. Third-party applications
 from the Store can ship their own MCP servers, subject to the permission model

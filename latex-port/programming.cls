@@ -894,33 +894,33 @@
 \newcommand*\P@firstpage{\pageref{P:firstpage}}
 \newcommand*\P@lastpage{\pageref{TotPages}}
 
-\defpagestyle{P@titlepage}{{}{}{}}{%
-{}{%
-  \begin{minipage}[b][0pt][b]{\textwidth}
-    \null\noindent%
-    \normalfont%
-    \hspace{-1mm}\P@doclicenseImage%
-    \hfill%
-    \begin{minipage}[b]%
-      {\dimexpr\linewidth - \doclicenseimagewidth - 1\columnsep\relax}%
-      \ignorespaces
-      \scriptsize%
-      \textcopyright\ {\@authorrunning}\\
-      \doclicenseText\\
-      \ifboolexpr{bool{P@submission}}%
-        {Submitted to \textit{\P@banner}.}%
-        {In \textit{\P@banner}\ignorespaces%
-          \ifcsvoid{P@Volume}{}{, vol.\,\P@Volume\ignorespaces}%
-          \ifcsvoid{P@Issue}{}{, \IfInteger{\P@Issue}{no.\,}{}\P@Issue\ignorespaces}%
-          \ifcsvoid{P@Year}{}{, \P@Year\ignorespaces}%
-          \ifcsvoid{P@ArticleNumber}{}{, article \P@ArticleNumber}%
-          ; \P@lastpage\space pages.}%
-    \end{minipage}%
-  \end{minipage}
-}{}
-}
-\renewcommand*{\titlepagestyle}{P@titlepage}
-
+%% [patched] \defpagestyle{P@titlepage}{{}{}{}}{%
+%% [patched] {}{%
+%% [patched]   \begin{minipage}[b][0pt][b]{\textwidth}
+%% [patched]     \null\noindent%
+%% [patched]     \normalfont%
+%% [patched]     \hspace{-1mm}\P@doclicenseImage%
+%% [patched]     \hfill%
+%% [patched]     \begin{minipage}[b]%
+%% [patched]       {\dimexpr\linewidth - \doclicenseimagewidth - 1\columnsep\relax}%
+%% [patched]       \ignorespaces
+%% [patched]       \scriptsize%
+%% [patched]       \textcopyright\ {\@authorrunning}\\
+%% [patched]       \doclicenseText\\
+%% [patched]       \ifboolexpr{bool{P@submission}}%
+%% [patched]         {Submitted to \textit{\P@banner}.}%
+%% [patched]         {In \textit{\P@banner}\ignorespaces%
+%% [patched]           \ifcsvoid{P@Volume}{}{, vol.\,\P@Volume\ignorespaces}%
+%% [patched]           \ifcsvoid{P@Issue}{}{, \IfInteger{\P@Issue}{no.\,}{}\P@Issue\ignorespaces}%
+%% [patched]           \ifcsvoid{P@Year}{}{, \P@Year\ignorespaces}%
+%% [patched]           \ifcsvoid{P@ArticleNumber}{}{, article \P@ArticleNumber}%
+%% [patched]           ; \P@lastpage\space pages.}%
+%% [patched]     \end{minipage}%
+%% [patched]   \end{minipage}
+%% [patched] }{}
+%% [patched] }
+%% [patched] \renewcommand*{\titlepagestyle}{P@titlepage}
+%% [patched] 
 \addtokomafont{title}{\Large\sffamily\bfseries\mathversion{bold}}
 \addtokomafont{author}{\large}
 \addtokomafont{subject}{\sffamily\itshape\color{P@GrayFG}}
@@ -1005,32 +1005,32 @@
     \P@keywords}}%
   \par%
   \vfill%
-  \noindent\null\begin{minipage}[t][6\P@corebaselineskip][t]{\linewidth}{}%
-    \vspace*{0pt}%
-    \ifthenelse{\value{page} > 1}{\P@warning{%
-        Your abstract seems to extend over the first page. Please consider
-        adding \string\smaller\ right after \string\begin{abstract}.
-      }}{}%
-  {\microtypesetup{activate=false}%
-    \Large\selectfont \P@banner\par}
-  {\color{P@Blue}\rule{\linewidth}{.5\P@corebaselineskip}\par}%
-  \sffamily
-    \ifboolexpr{bool{P@submission}}{%
-      {{\P@headersection{\rlap{Perspective}\phantom{Area of Submission}}}{\normalsize\P@perspective}}\strut%
-      {{\P@headersection{Area of Submission}}{\normalsize\P@area}}\strut%
-    }{%
-      \DTMifsaveddate{P@date@submitted}{%
-        {{\P@headersection{{Submitted}}}
-            \DTMUsedate{P@date@submitted}}}{}\strut%
-      \DTMifsaveddate{P@date@published}{%
-        {{{\P@headersection{\rlap{Published}\phantom{Submitted}}}
-            \DTMUsedate{P@date@published}}}}{}\strut%
-      \ifcsvoid{P@DOI}{}{%
-        {{\P@headersection{\rlap{\textsc{doi}}\phantom{Submitted}}}
-          \href{\P@DOI@BASE\P@DOI}{\P@DOI}}}%
-    }\par
-    \vfill
-  \end{minipage}
+%% [patched]   \noindent\null\begin{minipage}[t][6\P@corebaselineskip][t]{\linewidth}{}%
+%% [patched]     \vspace*{0pt}%
+%% [patched]     \ifthenelse{\value{page} > 1}{\P@warning{%
+%% [patched]         Your abstract seems to extend over the first page. Please consider
+%% [patched]         adding \string\smaller\ right after \string\begin{abstract}.
+%% [patched]       }}{}%
+%% [patched]   {\microtypesetup{activate=false}%
+%% [patched]     \Large\selectfont \P@banner\par}
+%% [patched]   {\color{P@Blue}\rule{\linewidth}{.5\P@corebaselineskip}\par}%
+%% [patched]   \sffamily
+%% [patched]     \ifboolexpr{bool{P@submission}}{%
+%% [patched]       {{\P@headersection{\rlap{Perspective}\phantom{Area of Submission}}}{\normalsize\P@perspective}}\strut%
+%% [patched]       {{\P@headersection{Area of Submission}}{\normalsize\P@area}}\strut%
+%% [patched]     }{%
+%% [patched]       \DTMifsaveddate{P@date@submitted}{%
+%% [patched]         {{\P@headersection{{Submitted}}}
+%% [patched]             \DTMUsedate{P@date@submitted}}}{}\strut%
+%% [patched]       \DTMifsaveddate{P@date@published}{%
+%% [patched]         {{{\P@headersection{\rlap{Published}\phantom{Submitted}}}
+%% [patched]             \DTMUsedate{P@date@published}}}}{}\strut%
+%% [patched]       \ifcsvoid{P@DOI}{}{%
+%% [patched]         {{\P@headersection{\rlap{\textsc{doi}}\phantom{Submitted}}}
+%% [patched]           \href{\P@DOI@BASE\P@DOI}{\P@DOI}}}%
+%% [patched]     }\par
+%% [patched]     \vfill
+%% [patched]   \end{minipage}
   % \setlength{\skip\footins}{.5\baselineskip}
   \endgroup
   \endgroup

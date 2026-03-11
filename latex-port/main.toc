@@ -1,0 +1,217 @@
+\babel@toc {english}{}\relax 
+\contentsline {section}{\numberline {1}Introduction}{4}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Motivation}{4}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Target Audience}{4}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}Design Principles}{5}{subsection.1.3}%
+\contentsline {subsection}{\numberline {1.4}Positioning}{5}{subsection.1.4}%
+\contentsline {subsection}{\numberline {1.5}Scope and Non-Goals}{5}{subsection.1.5}%
+\contentsline {section}{\numberline {2}System Overview}{7}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Architecture Summarized}{7}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Layer Responsibilities}{7}{subsection.2.2}%
+\contentsline {paragraph}{\nonumberline OS Base.}{7}{paragraph*.3}%
+\contentsline {paragraph}{\nonumberline Desktop Environment.}{7}{paragraph*.4}%
+\contentsline {paragraph}{\nonumberline Event Bus.}{8}{paragraph*.5}%
+\contentsline {paragraph}{\nonumberline MCP Server Layer.}{8}{paragraph*.6}%
+\contentsline {paragraph}{\nonumberline Knowledge Graph.}{8}{paragraph*.7}%
+\contentsline {paragraph}{\nonumberline First-party applications.}{8}{paragraph*.8}%
+\contentsline {paragraph}{\nonumberline System daemons.}{8}{paragraph*.9}%
+\contentsline {paragraph}{\nonumberline AI daemon (optional).}{8}{paragraph*.10}%
+\contentsline {subsection}{\numberline {2.3}Why Rust}{9}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Why Wayland}{9}{subsection.2.4}%
+\contentsline {subsection}{\numberline {2.5}Why Tauri}{10}{subsection.2.5}%
+\contentsline {subsection}{\numberline {2.6}Why Smithay}{11}{subsection.2.6}%
+\contentsline {subsection}{\numberline {2.7}Component Boundaries}{11}{subsection.2.7}%
+\contentsline {subsection}{\numberline {2.8}Communication Model}{12}{subsection.2.8}%
+\contentsline {subsubsection}{\numberline {2.8.1}Unix Sockets}{12}{subsubsection.2.8.1}%
+\contentsline {subsubsection}{\numberline {2.8.2}Protocol Buffers}{13}{subsubsection.2.8.2}%
+\contentsline {subsubsection}{\numberline {2.8.3}Knowledge Graph Rationale}{13}{subsubsection.2.8.3}%
+\contentsline {subsection}{\numberline {2.9}D-Bus Coexistence}{14}{subsection.2.9}%
+\contentsline {section}{\numberline {3}OS Foundation}{15}{section.3}%
+\contentsline {subsection}{\numberline {3.1}What is a Linux Distribution}{15}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Base Distribution}{15}{subsection.3.2}%
+\contentsline {paragraph}{\nonumberline Candidate A: Fedora.}{16}{paragraph*.14}%
+\contentsline {paragraph}{\nonumberline Candidate B: OpenSUSE Slowroll.}{16}{paragraph*.16}%
+\contentsline {subsection}{\numberline {3.3}Update Strategy}{17}{subsection.3.3}%
+\contentsline {paragraph}{\nonumberline Btrfs and copy-on-write.}{18}{paragraph*.19}%
+\contentsline {paragraph}{\nonumberline Btrfs subvolumes.}{18}{paragraph*.20}%
+\contentsline {paragraph}{\nonumberline Snapper.}{18}{paragraph*.21}%
+\contentsline {paragraph}{\nonumberline Bootloader integration.}{18}{paragraph*.22}%
+\contentsline {paragraph}{\nonumberline Post-update health check.}{19}{paragraph*.23}%
+\contentsline {paragraph}{\nonumberline Snapshot retention.}{19}{paragraph*.24}%
+\contentsline {subsection}{\numberline {3.4}System Infrastructure}{19}{subsection.3.4}%
+\contentsline {paragraph}{\nonumberline systemd.}{19}{paragraph*.25}%
+\contentsline {paragraph}{\nonumberline systemd-homed.}{19}{paragraph*.26}%
+\contentsline {paragraph}{\nonumberline Package management.}{20}{paragraph*.27}%
+\contentsline {paragraph}{\nonumberline Flatpak.}{20}{paragraph*.28}%
+\contentsline {subsection}{\numberline {3.5}Hardware Requirements}{20}{subsection.3.5}%
+\contentsline {paragraph}{\nonumberline Vulkan.}{20}{paragraph*.30}%
+\contentsline {subsection}{\numberline {3.6}Configuration Format}{21}{subsection.3.6}%
+\contentsline {section}{\numberline {4}Event System and Knowledge Graph}{22}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Overview}{22}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Kernel Monitoring with eBPF}{22}{subsection.4.2}%
+\contentsline {paragraph}{\nonumberline Why aya.}{23}{paragraph*.32}%
+\contentsline {paragraph}{\nonumberline Noise filtering.}{23}{paragraph*.33}%
+\contentsline {subsection}{\numberline {4.3}Event Bus}{24}{subsection.4.3}%
+\contentsline {paragraph}{\nonumberline Event schema.}{24}{paragraph*.35}%
+\contentsline {paragraph}{\nonumberline D-Bus coexistence.}{25}{paragraph*.36}%
+\contentsline {subsection}{\numberline {4.4}Backpressure and Batching}{25}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}Knowledge Graph}{25}{subsection.4.5}%
+\contentsline {paragraph}{\nonumberline Why a graph.}{25}{paragraph*.37}%
+\contentsline {paragraph}{\nonumberline Kuzu.}{26}{paragraph*.38}%
+\contentsline {paragraph}{\nonumberline Schema.}{26}{paragraph*.39}%
+\contentsline {subsection}{\numberline {4.6}Retention Policy}{27}{subsection.4.6}%
+\contentsline {paragraph}{\nonumberline Summarization.}{27}{paragraph*.42}%
+\contentsline {paragraph}{\nonumberline User controls.}{27}{paragraph*.43}%
+\contentsline {section}{\numberline {5}AI Layer}{28}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Overview}{28}{subsection.5.1}%
+\contentsline {paragraph}{\nonumberline Query-first.}{28}{paragraph*.44}%
+\contentsline {paragraph}{\nonumberline Provider-agnostic.}{28}{paragraph*.45}%
+\contentsline {paragraph}{\nonumberline Opt-out at any point.}{28}{paragraph*.46}%
+\contentsline {subsection}{\numberline {5.2}Cold-Start Behavior}{28}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Provider Abstraction}{29}{subsection.5.3}%
+\contentsline {paragraph}{\nonumberline Local providers.}{30}{paragraph*.48}%
+\contentsline {paragraph}{\nonumberline Cloud providers.}{30}{paragraph*.49}%
+\contentsline {paragraph}{\nonumberline Routing policy.}{30}{paragraph*.50}%
+\contentsline {subsection}{\numberline {5.4}MCP Integration}{30}{subsection.5.4}%
+\contentsline {subsection}{\numberline {5.5}Interaction Model}{31}{subsection.5.5}%
+\contentsline {paragraph}{\nonumberline Phase 1: Query-based (default).}{31}{paragraph*.52}%
+\contentsline {paragraph}{\nonumberline Phase 2: Autonomous agent (explicit opt-in).}{32}{paragraph*.53}%
+\contentsline {subsection}{\numberline {5.6}MCP Permission Model}{32}{subsection.5.6}%
+\contentsline {section}{\numberline {6}Desktop Environment and Design Language}{33}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Architecture and IPC}{33}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Compositor and Window Manager}{34}{subsection.6.2}%
+\contentsline {paragraph}{\nonumberline Wayland protocol extensions.}{34}{paragraph*.57}%
+\contentsline {paragraph}{\nonumberline XWayland.}{36}{paragraph*.59}%
+\contentsline {subsection}{\numberline {6.3}Shell and Application Framework}{36}{subsection.6.3}%
+\contentsline {paragraph}{\nonumberline What GTK is.}{36}{paragraph*.60}%
+\contentsline {paragraph}{\nonumberline Tailwind CSS.}{36}{paragraph*.61}%
+\contentsline {paragraph}{\nonumberline ui-kit.}{37}{paragraph*.62}%
+\contentsline {paragraph}{\nonumberline os-sdk.}{37}{paragraph*.63}%
+\contentsline {subsection}{\numberline {6.4}Spotlight}{38}{subsection.6.4}%
+\contentsline {subsection}{\numberline {6.5}Multi-Monitor and HiDPI}{38}{subsection.6.5}%
+\contentsline {subsection}{\numberline {6.6}Design Language and Theming}{39}{subsection.6.6}%
+\contentsline {paragraph}{\nonumberline Token system.}{39}{paragraph*.64}%
+\contentsline {paragraph}{\nonumberline Built-in themes.}{39}{paragraph*.65}%
+\contentsline {paragraph}{\nonumberline GTK and Qt coverage.}{39}{paragraph*.66}%
+\contentsline {paragraph}{\nonumberline Store themes.}{39}{paragraph*.67}%
+\contentsline {paragraph}{\nonumberline Live switching.}{40}{paragraph*.68}%
+\contentsline {section}{\numberline {7}Apps, Modules, and the Store}{40}{section.7}%
+\contentsline {subsection}{\numberline {7.1}App Ecosystem}{40}{subsection.7.1}%
+\contentsline {paragraph}{\nonumberline First-party applications.}{40}{paragraph*.70}%
+\contentsline {paragraph}{\nonumberline Third-party integration layers.}{41}{paragraph*.72}%
+\contentsline {paragraph}{\nonumberline Shared standards.}{41}{paragraph*.73}%
+\contentsline {subsection}{\numberline {7.2}Notification System}{41}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}Permission System}{42}{subsection.7.3}%
+\contentsline {paragraph}{\nonumberline Permission file format.}{42}{paragraph*.76}%
+\contentsline {paragraph}{\nonumberline Store-supplied profiles.}{43}{paragraph*.77}%
+\contentsline {paragraph}{\nonumberline Flatpak adapter.}{43}{paragraph*.78}%
+\contentsline {paragraph}{\nonumberline First-run learning mode.}{43}{paragraph*.79}%
+\contentsline {paragraph}{\nonumberline Runtime behavior.}{44}{paragraph*.80}%
+\contentsline {subsection}{\numberline {7.4}Module System}{44}{subsection.7.4}%
+\contentsline {paragraph}{\nonumberline Module categories.}{44}{paragraph*.81}%
+\contentsline {paragraph}{\nonumberline Manifest format.}{44}{paragraph*.83}%
+\contentsline {paragraph}{\nonumberline Module Runtime.}{45}{paragraph*.84}%
+\contentsline {paragraph}{\nonumberline Shell API.}{45}{paragraph*.86}%
+\contentsline {paragraph}{\nonumberline Global Input Manager.}{46}{paragraph*.87}%
+\contentsline {paragraph}{\nonumberline Developer experience.}{46}{paragraph*.88}%
+\contentsline {subsection}{\numberline {7.5}Store}{46}{subsection.7.5}%
+\contentsline {paragraph}{\nonumberline Publishing.}{46}{paragraph*.89}%
+\contentsline {paragraph}{\nonumberline Revenue model.}{47}{paragraph*.90}%
+\contentsline {paragraph}{\nonumberline User-facing features.}{47}{paragraph*.92}%
+\contentsline {paragraph}{\nonumberline Developer dashboard.}{47}{paragraph*.93}%
+\contentsline {paragraph}{\nonumberline Security Audit Badge.}{47}{paragraph*.94}%
+\contentsline {paragraph}{\nonumberline Long-term support.}{47}{paragraph*.95}%
+\contentsline {paragraph}{\nonumberline Profile package distribution.}{48}{paragraph*.96}%
+\contentsline {section}{\numberline {8}Platform, Profiles, and Security}{48}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Account System}{48}{subsection.8.1}%
+\contentsline {paragraph}{\nonumberline Architecture.}{48}{paragraph*.97}%
+\contentsline {paragraph}{\nonumberline Service-level permissions.}{48}{paragraph*.98}%
+\contentsline {paragraph}{\nonumberline Multiple accounts and resolution order.}{49}{paragraph*.99}%
+\contentsline {paragraph}{\nonumberline Token security.}{49}{paragraph*.100}%
+\contentsline {paragraph}{\nonumberline Offline behavior.}{49}{paragraph*.101}%
+\contentsline {paragraph}{\nonumberline GNOME Online Accounts bridge.}{50}{paragraph*.102}%
+\contentsline {subsection}{\numberline {8.2}Profile System}{50}{subsection.8.2}%
+\contentsline {paragraph}{\nonumberline Personal profiles.}{50}{paragraph*.103}%
+\contentsline {paragraph}{\nonumberline Work and custom profiles.}{50}{paragraph*.104}%
+\contentsline {paragraph}{\nonumberline Locked profiles.}{50}{paragraph*.105}%
+\contentsline {paragraph}{\nonumberline Guest mode.}{50}{paragraph*.106}%
+\contentsline {paragraph}{\nonumberline Technical foundation.}{51}{paragraph*.107}%
+\contentsline {paragraph}{\nonumberline Data transfer between profiles.}{51}{paragraph*.108}%
+\contentsline {paragraph}{\nonumberline Signed profile packages.}{51}{paragraph*.109}%
+\contentsline {subsection}{\numberline {8.3}Gaming and Windows Compatibility}{52}{subsection.8.3}%
+\contentsline {paragraph}{\nonumberline Wine and Proton.}{52}{paragraph*.110}%
+\contentsline {paragraph}{\nonumberline Wine theming.}{53}{paragraph*.111}%
+\contentsline {paragraph}{\nonumberline Performance tooling.}{53}{paragraph*.112}%
+\contentsline {paragraph}{\nonumberline Knowledge Graph integration.}{53}{paragraph*.113}%
+\contentsline {subsection}{\numberline {8.4}Security and Privacy}{53}{subsection.8.4}%
+\contentsline {paragraph}{\nonumberline Core principles.}{53}{paragraph*.114}%
+\contentsline {subsubsection}{\numberline {8.4.1}Threat Model}{54}{subsubsection.8.4.1}%
+\contentsline {paragraph}{\nonumberline In scope.}{54}{paragraph*.115}%
+\contentsline {paragraph}{\nonumberline Out of scope.}{54}{paragraph*.116}%
+\contentsline {paragraph}{\nonumberline Knowledge Graph as a high-value target.}{54}{paragraph*.117}%
+\contentsline {subsubsection}{\numberline {8.4.2}Full Disk Encryption}{55}{subsubsection.8.4.2}%
+\contentsline {subsubsection}{\numberline {8.4.3}Secure Boot, Unified Kernel Images, and Measured Boot}{55}{subsubsection.8.4.3}%
+\contentsline {subsubsection}{\numberline {8.4.4}App Sandboxing}{56}{subsubsection.8.4.4}%
+\contentsline {subsubsection}{\numberline {8.4.5}Knowledge Graph Security}{57}{subsubsection.8.4.5}%
+\contentsline {paragraph}{\nonumberline Three axes of permission.}{57}{paragraph*.119}%
+\contentsline {paragraph}{\nonumberline Two permission layers.}{57}{paragraph*.120}%
+\contentsline {paragraph}{\nonumberline Kuzu file protection.}{57}{paragraph*.121}%
+\contentsline {paragraph}{\nonumberline Cypher injection prevention.}{58}{paragraph*.122}%
+\contentsline {paragraph}{\nonumberline Capability tokens.}{58}{paragraph*.123}%
+\contentsline {paragraph}{\nonumberline Token issuance and the Policy Store.}{58}{paragraph*.124}%
+\contentsline {paragraph}{\nonumberline Graph Daemon hardening.}{59}{paragraph*.125}%
+\contentsline {paragraph}{\nonumberline Read/write process split.}{59}{paragraph*.126}%
+\contentsline {paragraph}{\nonumberline Compromise scenario and damage control.}{59}{paragraph*.127}%
+\contentsline {paragraph}{\nonumberline Rate limiting and query complexity.}{60}{paragraph*.128}%
+\contentsline {subsubsection}{\numberline {8.4.6}AI Security}{60}{subsubsection.8.4.6}%
+\contentsline {paragraph}{\nonumberline AI access levels.}{60}{paragraph*.129}%
+\contentsline {paragraph}{\nonumberline Prompt injection.}{61}{paragraph*.131}%
+\contentsline {paragraph}{\nonumberline AI network proxy.}{61}{paragraph*.132}%
+\contentsline {subsubsection}{\numberline {8.4.7}Audit Log}{62}{subsubsection.8.4.7}%
+\contentsline {paragraph}{\nonumberline Hash chain integrity and TPM anchoring.}{62}{paragraph*.133}%
+\contentsline {subsubsection}{\numberline {8.4.8}Anomaly Detection}{63}{subsubsection.8.4.8}%
+\contentsline {subsubsection}{\numberline {8.4.9}Network Security}{63}{subsubsection.8.4.9}%
+\contentsline {subsubsection}{\numberline {8.4.10}Physical Security}{64}{subsubsection.8.4.10}%
+\contentsline {subsubsection}{\numberline {8.4.11}Memory Safety}{64}{subsubsection.8.4.11}%
+\contentsline {subsubsection}{\numberline {8.4.12}Multi-User Isolation}{65}{subsubsection.8.4.12}%
+\contentsline {subsection}{\numberline {8.5}Managed Environments}{65}{subsection.8.5}%
+\contentsline {paragraph}{\nonumberline Policy Engine.}{65}{paragraph*.134}%
+\contentsline {paragraph}{\nonumberline LDAP and Active Directory.}{66}{paragraph*.135}%
+\contentsline {paragraph}{\nonumberline MDM-style management.}{66}{paragraph*.136}%
+\contentsline {paragraph}{\nonumberline Remote attestation as network gate.}{66}{paragraph*.137}%
+\contentsline {paragraph}{\nonumberline GDPR and compliance tension.}{66}{paragraph*.138}%
+\contentsline {section}{\numberline {9}Companion App and Health}{67}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Companion App}{67}{subsection.9.1}%
+\contentsline {paragraph}{\nonumberline Feature tiers.}{67}{paragraph*.139}%
+\contentsline {paragraph}{\nonumberline Protocol and transport.}{67}{paragraph*.141}%
+\contentsline {paragraph}{\nonumberline Auto-connect.}{68}{paragraph*.143}%
+\contentsline {paragraph}{\nonumberline Theme synchronization.}{68}{paragraph*.144}%
+\contentsline {paragraph}{\nonumberline iOS limitations.}{69}{paragraph*.145}%
+\contentsline {subsection}{\numberline {9.2}Health and Wellbeing}{69}{subsection.9.2}%
+\contentsline {paragraph}{\nonumberline Data architecture.}{69}{paragraph*.146}%
+\contentsline {paragraph}{\nonumberline Data sources.}{69}{paragraph*.147}%
+\contentsline {paragraph}{\nonumberline Wearable pipeline.}{70}{paragraph*.148}%
+\contentsline {paragraph}{\nonumberline Graph integration.}{70}{paragraph*.149}%
+\contentsline {paragraph}{\nonumberline Settings and permissions.}{70}{paragraph*.151}%
+\contentsline {section}{\numberline {10}Developer Experience, Sustainability, and Roadmap}{71}{section.10}%
+\contentsline {subsection}{\numberline {10.1}Developer Experience and Infrastructure}{71}{subsection.10.1}%
+\contentsline {paragraph}{\nonumberline Repository structure.}{71}{paragraph*.152}%
+\contentsline {paragraph}{\nonumberline Build system.}{71}{paragraph*.153}%
+\contentsline {paragraph}{\nonumberline Update system.}{72}{paragraph*.154}%
+\contentsline {paragraph}{\nonumberline CI/CD pipeline.}{72}{paragraph*.155}%
+\contentsline {paragraph}{\nonumberline Local development workflow.}{73}{paragraph*.157}%
+\contentsline {paragraph}{\nonumberline Mock strategy.}{74}{paragraph*.158}%
+\contentsline {paragraph}{\nonumberline Project planning tooling.}{74}{paragraph*.159}%
+\contentsline {paragraph}{\nonumberline Documentation.}{75}{paragraph*.160}%
+\contentsline {subsection}{\numberline {10.2}Sustainability and Business Model}{75}{subsection.10.2}%
+\contentsline {paragraph}{\nonumberline Principles.}{75}{paragraph*.161}%
+\contentsline {paragraph}{\nonumberline Store revenue.}{75}{paragraph*.162}%
+\contentsline {paragraph}{\nonumberline Enterprise services.}{75}{paragraph*.163}%
+\contentsline {paragraph}{\nonumberline OEM and hardware partnerships.}{76}{paragraph*.164}%
+\contentsline {paragraph}{\nonumberline Support tiers.}{76}{paragraph*.165}%
+\contentsline {paragraph}{\nonumberline Public funding and grants.}{76}{paragraph*.166}%
+\contentsline {paragraph}{\nonumberline Path to incorporation.}{76}{paragraph*.167}%
+\contentsline {subsection}{\numberline {10.3}Roadmap}{77}{subsection.10.3}%
+\contentsline {paragraph}{\nonumberline Phase 0 - Foundation (current).}{77}{paragraph*.168}%
+\contentsline {paragraph}{\nonumberline Phase 1 and beyond.}{77}{paragraph*.169}%
+\providecommand \tocbasic@end@toc@file {}\tocbasic@end@toc@file 

@@ -120,56 +120,54 @@ store anything. Figure~\ref{fig:event-flow} shows the full pipeline.
 \begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[
-  src/.style={
-    draw, thick, rectangle, rounded corners=3pt,
-    minimum width=2.6cm, minimum height=0.8cm,
-    font=\footnotesize, align=center, inner sep=4pt
-  },
-  proc/.style={
-    draw, thick, rectangle,
-    minimum width=2.6cm, minimum height=0.8cm,
-    font=\footnotesize, align=center, inner sep=4pt
-  },
-  store/.style={
-    draw, thick, cylinder, shape border rotate=90,
-    minimum width=1.8cm, minimum height=0.9cm,
-    font=\footnotesize, align=center, inner sep=4pt
-  },
-  arr/.style={->, thick},
-]
-
-% Sources column (x=0)
-\node[src] (ebpf)    at (0,  3.6) {eBPF\\programs};
-\node[src] (wayland) at (0,  2.4) {Wayland\\compositor};
-\node[src] (apps)    at (0,  1.2) {First-party\\apps};
-\node[src] (logwrap) at (0,  0.0) {Log\\wrappers};
-
-% Normalizer + LLM (x=3.2)
-\node[proc] (norm) at (3.2, 3.6) {eBPF\\normalizer};
-\node[proc] (llm)  at (3.2, 0.0) {Async LLM\\extraction};
-
-% Event Bus (x=6.0)
-\node[proc, minimum height=3.4cm, minimum width=2.0cm]
-  (bus) at (6.0, 1.9) {Event Bus\\(Unix socket\\+ protobuf)};
-
-% Graph Writer (x=8.8)
-\node[proc] (gw) at (8.8, 1.9) {Graph\\Writer};
-
-% Kuzu (x=11.2)
-\node[store] (kuzu) at (11.2, 1.9) {Kuzu};
-
-% Arrows: sources to normalizer/bus
-\draw[arr] (ebpf)    -- (norm);
-\draw[arr] (norm)    -- (bus.west |- norm) -- (bus.west);
-\draw[arr] (wayland) -- (bus.west |- wayland) -- (bus.west);
-\draw[arr] (apps)    -- (bus.west |- apps) -- (bus.west);
-\draw[arr] (logwrap) -- (llm);
-\draw[arr] (llm)     -- (bus.west |- llm) -- (bus.west);
-
-% Bus to writer to store
-\draw[arr] (bus.east) -- (gw);
-\draw[arr] (gw)       -- (kuzu);
-
+	src/.style={
+		draw, thick, rectangle, rounded corners=3pt,
+		minimum width=2.4cm, minimum height=0.8cm,
+		font=\footnotesize, align=center, inner sep=4pt
+	},
+	proc/.style={
+		draw, thick, rectangle,
+		minimum width=2.4cm, minimum height=0.8cm,
+		font=\footnotesize, align=center, inner sep=4pt
+	},
+	store/.style={
+		draw, thick, cylinder, shape border rotate=90,
+		minimum width=1.6cm, minimum height=1.0cm,
+		font=\footnotesize, align=center, inner sep=4pt
+	},
+	arr/.style={->, thick},
+	]
+	
+	% Sources (x=0)
+	\node[src] (ebpf)    at (0, 4.5) {eBPF\\programs};
+	\node[src] (wayland) at (0, 3.0) {Wayland\\compositor};
+	\node[src] (apps)    at (0, 1.5) {First-party\\apps};
+	\node[src] (logwrap) at (0, 0.0) {Log\\wrappers};
+	
+	% Pre-processors (x=3.6)
+	\node[proc] (norm) at (3.6, 4.5) {eBPF\\normalizer};
+	\node[proc] (llm)  at (3.6, 0.0) {Async LLM\\extraction};
+	
+	% Event Bus (x=7.0) — tall box centered at y=2.25
+	\node[proc, minimum width=2.2cm, minimum height=5.4cm, text width=1.8cm]
+	(bus) at (7.0, 2.25) {Event Bus\\(Unix socket\\+ protobuf)};
+	
+	% Graph Writer (x=10.2) and Kuzu (x=12.8) — both at y=2.25
+	\node[proc]  (gw)   at (10.2, 2.25) {Graph\\Writer};
+	\node[store] (kuzu) at (12.8, 2.25) {Kuzu};
+	
+	% Source arrows
+	\draw[arr] (ebpf)    -- (norm);
+	\draw[arr] (norm)    -- (bus.west |- norm);
+	\draw[arr] (wayland) -- (bus.west |- wayland);
+	\draw[arr] (apps)    -- (bus.west |- apps);
+	\draw[arr] (logwrap) -- (llm);
+	\draw[arr] (llm)     -- (bus.west |- llm);
+	
+	% Bus → Writer → Kuzu
+	\draw[arr] (bus.east) -- (gw);
+	\draw[arr] (gw)       -- (kuzu);
+	
 \end{tikzpicture}
 \caption{Event pipeline. Raw kernel events pass through a normalizer before
 reaching the bus. Log output from third-party applications is processed
@@ -312,20 +310,24 @@ individual syscalls.
 	lbl/.style={font=\footnotesize\itshape, fill=white, inner sep=2pt},
 	]
 	
-	\node[node] (file)    at (2.0,  4.0) {File};
-	\node[node] (app)     at (6.0,  4.0) {App};
-	\node[node] (project) at (0.0,  2.0) {Project};
-	\node[node] (session) at (6.0,  2.0) {Session};
-	\node[node] (event)   at (0.0,  0.0) {Event};
-	\node[node] (action)  at (4.0,  0.0) {UserAction};
+	\node[node] (file)    at (0, 4) {File};
+	\node[node] (app)     at (5, 4) {App};
+	\node[node] (session) at (9, 4) {Session};
+	\node[node] (project) at (0, 1) {Project};
+	\node[node] (event)   at (5, 1) {Event};
+	\node[node] (action)  at (9, 1) {UserAction};
 	
-	\draw[edge] (file)    to node[lbl, above]      {accessed by}  (app);
-	\draw[edge] (file)    to node[lbl, left]        {belongs to}   (project);
-	\draw[edge] (app)     to node[lbl, right]       {active in}    (session);
-	\draw[edge] (session) to node[lbl, above]       {worked on}    (project);
-	\draw[edge] (event.west) -- ++(-0.8,0) -- ++(0,5.2)
-	-| node[pos=0.75, above, font=\footnotesize\itshape] {emitted by} (app.north);
-	\draw[edge] (action)  to node[lbl, above]       {derived from} (event);
+	\draw[edge] (file)   -- node[lbl, above] {accessed by}  (app);
+	\draw[edge] (file)   -- node[lbl, left]  {belongs to}   (project);
+	\draw[edge] (app)    -- node[lbl, above] {active in}    (session);
+	\draw[edge] (event)  -- node[lbl, right] {emitted by}   (app);
+	\draw[edge] (action) -- node[lbl, above] {derived from} (event);
+	
+	% Session -> Project: routed below all nodes
+	\coordinate (sw) at (9,  0.0);
+	\coordinate (se) at (0,  0.0);
+	\draw[edge] (session.south) -- (sw) -- (se) -- (project.south);
+	\node[lbl] at (4.5, 0.0) {worked on};
 	
 \end{tikzpicture}
 \caption{Knowledge Graph core schema. Nodes represent entities; edges

@@ -1,7 +1,7 @@
 \section{System Overview}
 \label{sec:overview}
 
-\subsection{Architecture at a Glance}
+\subsection{Architecture Summarized}
 \label{sec:arch-glance}
 
 The system is organized as a layered stack. Lower layers provide services to
@@ -14,74 +14,71 @@ structure.
 
 \begin{figure}[htbp]
 \centering
+
 \begin{tikzpicture}[
-  box/.style={
-    draw, thick, rectangle,
-    minimum width=8.4cm, minimum height=1.1cm,
-    font=\small\bfseries, align=center, inner sep=5pt
-  },
-  splitbox/.style={
-    draw, thick, rectangle,
-    minimum width=4.2cm, text width=3.8cm, minimum height=1.1cm,
-    font=\small\bfseries, align=center, inner sep=5pt
-  },
-  tribox/.style={
-    draw, thick, rectangle,
-    minimum width=2.5cm, text width=2.3cm, minimum height=1.1cm,
-    font=\small\bfseries, align=center, inner sep=4pt
-  },
-  optbox/.style={
-    draw, thick, dashed, rectangle,
-    minimum width=2.5cm, text width=2.3cm, minimum height=1.1cm,
-    font=\small\bfseries, align=center, inner sep=4pt
-  },
-  arr/.style={->, thick, gray},
-]
-
-\def\sep{1.2}
-\def\triw{2.8}
-
-% Bottom four layers
-\node[box] (os) at (0, 0) {
-  OS Base\\[-2pt]
-  {\mdseries\footnotesize Fedora/OpenSUSE $\cdot$ systemd $\cdot$ Btrfs $\cdot$ RPM/Flatpak}
-};
-\node[box] (de) at (0, \sep) {
-  Desktop Environment\\[-2pt]
-  {\mdseries\footnotesize Wayland (Smithay) $\cdot$ Shell $\cdot$ Tauri $\cdot$ ui-kit $\cdot$ os-sdk}
-};
-\node[splitbox, anchor=east] (eb) at (0.0, 2*\sep) {
-  Event Bus\\[-2pt]
-  {\mdseries\footnotesize Unix socket $\cdot$ protobuf}
-};
-\node[splitbox, anchor=west] (mcp) at (0.0, 2*\sep) {
-  MCP Server Layer\\[-2pt]
-  {\mdseries\footnotesize App capability bridge}
-};
-\node[box] (kg) at (0, 3*\sep) {
-  Knowledge Graph\\[-2pt]
-  {\mdseries\footnotesize Graph Daemon $\cdot$ Kuzu $\cdot$ Cypher $\cdot$ capability tokens}
-};
-
-% Top row: three consumer boxes
-\node[tribox] (apps) at (-\triw, 4*\sep) {
-  First-party\\Applications\\[-2pt]
-  {\mdseries\footnotesize via os-sdk}
-};
-\node[tribox] (daemons) at (0, 4*\sep) {
-  System\\Daemons\\[-2pt]
-  {\mdseries\footnotesize Account, Health \ldots}
-};
-\node[optbox] (ai) at (\triw, 4*\sep) {
-  AI Daemon\\[-2pt]
-  {\mdseries\footnotesize optional}
-};
-
-% Arrows from consumers down to Knowledge Graph
-\draw[arr] (apps)    -- (kg.north -| apps);
-\draw[arr] (daemons) -- (kg.north);
-\draw[arr] (ai)      -- (kg.north -| ai);
-
+	box/.style={
+		draw, thick, rectangle,
+		minimum width=8.4cm, minimum height=1.1cm,
+		font=\small\bfseries, align=center, inner sep=5pt
+	},
+	splitbox/.style={
+		draw, thick, rectangle,
+		minimum width=4.2cm, text width=3.8cm, minimum height=1.1cm,
+		font=\small\bfseries, align=center, inner sep=5pt
+	},
+	tribox/.style={
+		draw, thick, rectangle,
+		minimum width=2.6cm, text width=2.3cm, minimum height=1.1cm,
+		font=\small\bfseries, align=center, inner sep=4pt
+	},
+	optbox/.style={
+		draw, thick, dashed, rectangle,
+		minimum width=2.6cm, text width=2.3cm, minimum height=1.1cm,
+		font=\small\bfseries, align=center, inner sep=4pt
+	},
+	arr/.style={->, thick, gray},
+	]
+	\def\sep{1.2}
+	
+	\node[box] (os) at (0, 0) {
+		OS Base\\[-2pt]
+		{\mdseries\footnotesize Fedora/OpenSUSE $\cdot$ systemd $\cdot$ Btrfs $\cdot$ RPM/Flatpak}
+	};
+	\node[box] (de) at (0, \sep) {
+		Desktop Environment\\[-2pt]
+		{\mdseries\footnotesize Wayland (Smithay) $\cdot$ Shell $\cdot$ Tauri $\cdot$ ui-kit $\cdot$ os-sdk}
+	};
+	\node[splitbox, anchor=east] (eb)  at (0.0, 2*\sep) {
+		Event Bus\\[-2pt]
+		{\mdseries\footnotesize Unix socket $\cdot$ protobuf}
+	};
+	\node[splitbox, anchor=west] (mcp) at (0.0, 2*\sep) {
+		MCP Server Layer\\[-2pt]
+		{\mdseries\footnotesize App capability bridge}
+	};
+	\node[box] (kg) at (0, 3*\sep) {
+		Knowledge Graph\\[-2pt]
+		{\mdseries\footnotesize Graph Daemon $\cdot$ Kuzu $\cdot$ Cypher $\cdot$ capability tokens}
+	};
+	
+	% Top row at y=5.3 — boxes at x=-2.9/0/+2.9 fill exactly 8.4cm
+	\node[tribox]  (apps)    at (-2.9, 5.3) {
+		First-party\\Applications\\[-2pt]
+		{\mdseries\footnotesize via os-sdk}
+	};
+	\node[tribox]  (daemons) at ( 0.0, 5.3) {
+		System\\Daemons\\[-2pt]
+		{\mdseries\footnotesize Account, Health \ldots}
+	};
+	\node[optbox]  (ai)      at ( 2.9, 5.3) {
+		AI Daemon\\[-2pt]
+		{\mdseries\footnotesize optional}
+	};
+	
+	\draw[arr] (apps)    -- (kg.north -| apps);
+	\draw[arr] (daemons) -- (kg.north);
+	\draw[arr] (ai)      -- (kg.north -| ai);
+	
 \end{tikzpicture}
 \caption{System layer structure. The bottom four layers are always present and
 initialize in order from bottom to top. The top row shows the three classes of
