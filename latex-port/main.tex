@@ -1,0 +1,67 @@
+% -*- coding: utf-8; -*-
+\documentclass[english,submission]{programming}
+\usepackage{hyperref} 
+\usepackage{tikz}
+\usepackage{xcolor}
+\usepackage{listings}
+\lstset{
+	basicstyle=\ttfamily\small,
+	keywordstyle=\color{blue!70!black}\bfseries,
+	commentstyle=\color{gray},
+	stringstyle=\color{teal!80!black},
+	backgroundcolor=\color{gray!8},
+	frame=single,
+	framerule=0pt,
+	rulecolor=\color{gray!25},
+	breaklines=true,
+	captionpos=b,
+}
+\usetikzlibrary{shapes.geometric}
+\usepackage{listings}
+\usepackage{tabularx} 
+\usepackage[backend=biber]{biblatex}
+\addbibresource{references.bib}
+\addbibresource{references.bib}
+
+\paperdetails{
+  perspective=engineering,
+  area={Programming environments, Operating systems, Social coding},
+}
+
+\title{[Project Name TBD]: A Privacy-First Operating System with Integrated Knowledge Infrastructure}
+\subtitle{Design, Architecture, and Philosophy}
+\titlerunning{[Project Name TBD]: Design and Architecture}
+
+\author{Tim}
+\affiliation{University of Innsbruck, Austria}
+
+\keywords{operating system, knowledge graph, privacy, user sovereignty, AI integration, Linux}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+TODO
+\end{abstract}
+
+%% Sections
+\input{sections/01-introduction}
+\input{sections/02-overview}
+\input{sections/03-foundation}
+\input{sections/04-event-knowledge}
+\input{sections/05-ai}
+\input{sections/06-desktop}
+\input{sections/07-apps-modules}
+\input{sections/08-platform}
+\input{sections/09-companion-health}
+\input{sections/10-sustainability}
+
+%% Appendices
+\appendix
+\input{appendix/a-technical-schemas}
+\input{appendix/b-technology-decisions}
+
+\printbibliography
+
+\end{document}

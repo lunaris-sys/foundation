@@ -1,0 +1,237 @@
+\section{System Overview}
+\label{sec:overview}
+
+\subsection{Architecture at a Glance}
+\label{sec:arch-glance}
+
+The system is organized as a vertical stack of layers. Lower layers provide
+services to higher layers; no layer reaches past its immediate neighbor.
+A problem in one layer does not propagate downward, and the upper layers can
+be developed, replaced, or disabled independently of the foundation beneath
+them. The AI layer, for example, sits at the top of the stack and can be
+removed entirely without affecting anything below it.
+
+Figure~\ref{fig:layers} shows the full layer structure.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  box/.style={
+    draw, thick, rectangle,
+    minimum width=8.4cm, minimum height=1.1cm,
+    font=\small\bfseries, align=center, inner sep=5pt
+  },
+  optbox/.style={
+    draw, thick, dashed, rectangle,
+    minimum width=8.4cm, minimum height=1.1cm,
+    font=\small\bfseries, align=center, inner sep=5pt
+  },
+  % split boxes: each exactly half the total width minus the shared border
+  splitbox/.style={
+  	draw, thick, rectangle,
+  	minimum width=4.2cm, text width=3.8cm, minimum height=1.1cm,
+  	font=\small\bfseries, align=center, inner sep=5pt
+  },
+]
+
+\def\sep{1.2}
+
+% OS Base
+\node[box] (os) at (0, 0) {
+  OS Base\\[-2pt]
+  {\mdseries\footnotesize Fedora/OpenSUSE $\cdot$ systemd $\cdot$ Btrfs/Snapper $\cdot$ RPM/Flatpak}
+};
+
+% Desktop Environment
+\node[box] (de) at (0, \sep) {
+  Desktop Environment\\[-2pt]
+  {\mdseries\footnotesize Wayland compositor (Smithay) $\cdot$ Shell $\cdot$ Tauri apps}
+};
+
+% Event Bus + MCP: anchored so outer edges align with the boxes above/below
+\node[splitbox, anchor=east] (eb)  at (0.0, 2*\sep) {
+  Event Bus\\[-2pt]
+  {\mdseries\footnotesize Unix socket $\cdot$ protobuf}
+};
+\node[splitbox, anchor=west] (mcp) at (0.0, 2*\sep) {
+  MCP Server Layer\\[-2pt]
+  {\mdseries\footnotesize Tool bridge for AI}
+};
+
+% Knowledge Graph
+\node[box] (kg) at (0, 3*\sep) {
+  Knowledge Graph\\[-2pt]
+  {\mdseries\footnotesize Kuzu $\cdot$ Graph Daemon $\cdot$ Cypher queries}
+};
+
+% AI Layer (dashed = optional)
+\node[optbox] (ai) at (0, 4*\sep) {
+  AI Interface Layer\\[-2pt]
+  {\mdseries\footnotesize Local + cloud providers $\cdot$ MCP tools $\cdot$ fully removable}
+};
+
+% Optional label outside the box
+\node[font=\footnotesize\itshape, gray, anchor=west]
+  at ([xshift=3pt] ai.east) {optional};
+
+\end{tikzpicture}
+\caption{System layer structure. Each layer depends on the layer below it.
+The AI Interface Layer is dashed to indicate it is fully optional and can be
+disabled without affecting any other layer.}
+\label{fig:layers}
+\end{figure}
+
+\subsection{Layer Responsibilities}
+\label{sec:layer-responsibilities}
+
+\paragraph{OS Base.}
+The foundation is a standard Linux distribution providing the kernel, init
+system, package manager, and base userspace tools. Nothing at this layer is
+custom-built. The system builds on top of it; it does not replace it. Details
+are covered in Section~\ref{sec:foundation}.
+
+\paragraph{Desktop Environment.}
+The Wayland compositor and the shell sit at this layer. This is what the user
+directly interacts with: windows, the taskbar, Spotlight, notifications, the
+lock screen. UI applications are built with \emph{Tauri} (a framework combining
+a Rust backend with a web-based frontend), which gives them consistent access to
+system services without the memory overhead of Electron-style approaches.
+
+\paragraph{Event Bus.}
+The internal message bus handles all communication between custom system
+components. It receives, validates, and routes structured events from kernel
+monitoring, the display system, and first-party applications. It runs as a
+background service over Unix sockets using \emph{Protocol Buffers} (protobuf)
+for schema-enforced message serialization. Its role is purely to move data; it
+does not interpret or store anything.
+
+\paragraph{MCP Server Layer.}
+The \emph{Model Context Protocol} (MCP) is an open standard for exposing system
+capabilities as callable tools that AI models can invoke. This layer wraps
+system services in MCP-compatible interfaces, which gives the AI layer a
+structured, permission-gated way to act on the system without direct access to
+internals. The same interfaces are available to any MCP-compatible client.
+
+\paragraph{Knowledge Graph.}
+The graph database is the system's long-term memory. It stores events arriving
+from the Event Bus as typed nodes and relationships, making it possible to query
+across time, application boundaries, and data types. The Graph Daemon is the
+sole reader and writer of the underlying Kuzu database; no other component
+accesses the database file directly. Queries are expressed in Cypher, a
+declarative graph query language that reads similarly to natural language.
+
+\paragraph{AI Interface Layer.}
+The top layer provides AI capabilities to the rest of the system. It queries the
+Knowledge Graph for context, exposes tools via the MCP layer, and mediates
+between user requests and AI model providers. All AI providers, whether local
+models or remote API services, are interchangeable behind a common interface.
+This layer is entirely optional: disabling it removes AI features and nothing
+else. The system is fully functional without it.
+
+\subsection{Component Boundaries}
+\label{sec:component-boundaries}
+
+The system's components divide cleanly into two categories: background services
+that run silently at all times, and applications with a user interface.
+
+Background services are called \emph{daemons} in Linux terminology: programs
+with no visible window that start at boot, wait to be called, and restart
+automatically if they crash. All daemons in this system are written in Rust
+for memory safety and predictable performance.
+
+\begin{table}[htbp]
+\caption{Background services (daemons)}
+\label{tab:daemons}
+\begin{tabularx}{\linewidth}{lX}
+\toprule
+\textbf{Service} & \textbf{Responsibility} \\
+\midrule
+Event Bus         & Receives, validates, and routes internal events between components \\
+Graph Daemon      & Sole reader/writer of the Knowledge Graph database \\
+Account Daemon    & Credential management and login token handling \\
+AI Layer Daemon   & Runs AI models, coordinates tools, queries the graph \\
+Module Runtime    & Manages the lifecycle of shell extensions \\
+Transfer Daemon   & Controls data movement between user profiles \\
+Compositor        & Draws windows, manages the display (Wayland compositor) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+User-facing applications are built with Tauri, giving them a native Rust
+backend that communicates with daemons over Unix sockets, and a web-based
+frontend for the interface. This combination avoids the weight of Electron
+while still enabling a modern, consistent UI.
+
+\begin{table}[htbp]
+\caption{User-facing applications}
+\label{tab:apps}
+\begin{tabularx}{\linewidth}{lX}
+\toprule
+\textbf{Application} & \textbf{Notes} \\
+\midrule
+Shell        & Taskbar, Spotlight, notifications, lock screen \\
+Settings     & System configuration UI \\
+File Manager & First-party file browser \\
+Store        & App store UI \\
+Terminal     & First-party terminal emulator \\
+Wine Manager & Windows compatibility management UI \\
+Modules      & Extensions running in isolated containers under Module Runtime \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Communication Model}
+\label{sec:communication}
+
+All inter-component communication uses \emph{Unix sockets}: a fast,
+local-only channel built into the kernel. Unix sockets are not networked; they
+exist only on the local machine. Latency is measured in microseconds. Data
+transmitted over these sockets is serialized with Protocol Buffers, a compact
+binary format that enforces a strict schema. A message that does not match the
+expected schema is rejected before it reaches the handler.
+
+The four communication paths in the system are:
+
+\begin{table}[htbp]
+	\caption{Inter-component communication paths}
+	\label{tab:comms}
+	\begin{tabularx}{\linewidth}{lX}
+		\toprule
+		\textbf{Path} & \textbf{Transport} \\
+		\midrule
+		Daemon $\leftrightarrow$ Daemon            & Unix socket (protobuf) \\
+		App backend $\leftrightarrow$ Daemon       & Unix socket (protobuf) \\
+		App backend $\leftrightarrow$ App frontend & Tauri command bridge (typed) \\
+		Compositor $\leftrightarrow$ Shell         & Wayland protocols + Unix socket \\
+		\bottomrule
+	\end{tabularx}
+\end{table}
+
+A concrete example: a user action in the UI that queries the Knowledge Graph
+follows this path:
+
+\begin{quote}
+\texttt{UI event $\to$ App backend $\to$ Unix socket $\to$ Graph Daemon $\to$ Database}
+\end{quote}
+
+Four steps, all local to the machine. The full round-trip is imperceptible to
+the user.
+
+\subsection{D-Bus Coexistence}
+\label{sec:dbus}
+
+\emph{D-Bus} is the standard inter-process communication system used by nearly
+every Linux distribution. Network management, Bluetooth, hardware event
+notifications, and desktop portals all speak D-Bus. It is part of the
+Freedesktop standard and cannot be removed without breaking compatibility with
+the broader Linux ecosystem.
+
+This system does not replace D-Bus. It runs alongside it. D-Bus remains
+responsible for everything it already handles: third-party app notifications,
+hardware events, portal interfaces for sandboxed apps. The custom Event Bus
+handles communication between project-internal components only. The two systems
+are parallel and non-overlapping.
+
+This distinction matters for developers: if a component is part of this project,
+it communicates over the internal Event Bus. If a component is a standard Linux
+service or a third-party app, it communicates over D-Bus as it always has.

@@ -1,0 +1,274 @@
+\section{OS Foundation}
+\label{sec:foundation}
+
+Every operating system needs a foundation: a kernel that talks directly to
+hardware, a startup system, a package manager, and a base set of system tools.
+Building all of this from scratch would take decades and produce something
+inferior to what already exists. This project therefore builds on top of an
+existing Linux distribution that provides the entire foundation layer, and adds
+everything above it: the desktop environment, event system, knowledge graph,
+and AI layer. The distribution provides the load-bearing walls; the layout and
+everything inside them is custom.
+
+\subsection{Base Distribution}
+\label{sec:base-distro}
+
+The base distribution has not yet been finalized; two candidates are under
+evaluation and the decision will be made before Phase~1 begins. Both use the
+\emph{RPM} package format, which means the build pipeline and tooling are
+compatible with either choice.
+
+The requirements for the base are deliberately narrow. Packages need to be
+current enough for modern development toolchains and recent hardware support,
+but not so fresh that unvalidated changes arrive daily. Governance should not
+be fully concentrated in a single commercial entity. \emph{Btrfs} must be
+available as a first-class filesystem, since the update strategy described in
+Section~\ref{sec:updates} depends on it. Driver and package coverage must be
+broad enough to support consumer hardware without manual intervention.
+
+\paragraph{Candidate A: Fedora.}
+Fedora is a community distribution backed by Red Hat infrastructure but
+governed independently through the Fedora Council, which makes binding
+decisions on project direction without requiring Red Hat sign-off. Packages
+track upstream closely and a new release ships every six months, making it
+one of the more current stable distributions available. Btrfs has been the
+default filesystem since Fedora~33, and the Flatpak and Wayland ecosystems
+are better supported here than on most other distributions.
+
+\begin{table}[htbp]
+\caption{Fedora: evaluation summary}
+\label{tab:fedora}
+\begin{tabularx}{\linewidth}{XX}
+\toprule
+\textbf{Strengths} & \textbf{Weaknesses} \\
+\midrule
+Independent governance via Fedora Council &
+  Six-month release cycle requires periodic major upgrades \\
+Current packages, strong hardware support &
+  Red Hat/IBM infrastructure in the background \\
+Btrfs default, large ecosystem &
+  Major upgrades need more integration testing than rolling updates \\
+Strong Flatpak and Wayland support & \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Candidate B: OpenSUSE Slowroll.}
+Slowroll occupies the space between Tumbleweed, which is fully rolling and
+ships new packages daily, and Leap, which follows a fixed annual release
+cycle. It pulls packages from Tumbleweed after a validation delay of several
+weeks, giving a cadence that is current enough for modern toolchains while
+providing a buffer against regressions. Btrfs and Snapper are more deeply
+integrated on OpenSUSE than anywhere else in the Linux ecosystem, which is
+a genuine advantage for the update strategy.
+
+\begin{table}[htbp]
+\caption{OpenSUSE Slowroll: evaluation summary}
+\label{tab:slowroll}
+\begin{tabularx}{\linewidth}{XX}
+\toprule
+\textbf{Strengths} & \textbf{Weaknesses} \\
+\midrule
+Best Btrfs and Snapper integration in the ecosystem &
+  SUSE owned by EQT Partners (private equity); governance risk \\
+Rolling with validation delay; good update cadence &
+  EQT ownership weakens European sovereignty narrative \\
+Open Build Service is best-in-class for RPM packaging &
+  Smaller community and hardware coverage than Fedora \\
+European roots and presence & \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The current preference is Fedora, primarily on governance grounds. The
+EQT ownership of SUSE is not a technical problem, but it is a liability when
+applying for European software independence funding through programs such as
+the Sovereign Tech Fund or NGI: funders will scrutinize the ownership
+structure and the connection to a US private equity firm sitting above a
+nominally European project is a difficult position to defend. Fedora's
+governance is cleaner for that argument. Both distributions use RPM packaging,
+so the Open Build Service can target either without changes to the build
+pipeline.
+
+\subsection{Update Strategy}
+\label{sec:updates}
+
+Updates on most operating systems involve some degree of risk: something
+breaks, the user does not know why, and getting back to a working state
+requires either expertise or luck. This system addresses that with a
+layered approach that makes the worst-case outcome a single keypress rather
+than an afternoon in recovery mode.
+
+The approach is a mutable filesystem with automatic rollback protection.
+\emph{Mutable} means the filesystem works the way Linux filesystems always
+have: software can be installed freely, system files can be modified, and
+standard developer tools work without restrictions. This distinguishes it from
+the immutable distributions that have gained popularity recently, where the
+root filesystem is read-only and changes require going through a specific
+toolchain. Immutable systems have genuine safety benefits, but they break
+workflows that the target audience relies on, including installing language
+runtimes, building projects from source, and running development servers
+locally. The safety benefits of immutability are achievable through snapshot
+tooling without those costs.
+
+Figure~\ref{fig:update-flow} shows the full update flow.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  block/.style={
+    draw, thick, rectangle, rounded corners=3pt,
+    minimum width=5cm, minimum height=0.85cm,
+    font=\small, align=center, inner sep=5pt
+  },
+  decision/.style={
+    draw, thick, diamond, aspect=3,
+    minimum width=5cm, minimum height=0.85cm,
+    font=\small, align=center, inner sep=4pt
+  },
+  outcome/.style={
+    draw, thick, rectangle, rounded corners=3pt,
+    minimum width=3.8cm, minimum height=0.85cm,
+    font=\small, align=center, inner sep=5pt
+  },
+  arr/.style={->, thick},
+]
+
+\def\sep{1.15}
+
+\node[block]    (avail)    at (0, 4*\sep) {Update available};
+\node[block]    (snap)     at (0, 3*\sep) {Pre-update snapshot (Snapper)};
+\node[block]    (apply)    at (0, 2*\sep) {Update applied};
+\node[block]    (boot)     at (0, \sep)   {First boot after update};
+\node[decision] (check)    at (0, 0)      {Health check};
+\node[outcome]  (ok)       at (-3.2, -2*\sep) {Continue normally};
+\node[outcome]  (fail)     at ( 3.2, -2*\sep) {Auto-rollback + notify};
+
+\draw[arr] (avail) -- (snap);
+\draw[arr] (snap)  -- (apply);
+\draw[arr] (apply) -- (boot);
+\draw[arr] (boot)  -- (check);
+\draw[arr] (check.west)  -| node[pos=0.2, above, font=\footnotesize] {pass} (ok);
+\draw[arr] (check.east)  -| node[pos=0.2, above, font=\footnotesize] {fail} (fail);
+
+\end{tikzpicture}
+\caption{Update flow. A Snapper snapshot is created before every update.
+If the post-update health check fails, the system rolls back to the
+snapshot automatically.}
+\label{fig:update-flow}
+\end{figure}
+
+\paragraph{Btrfs and Snapper.}
+\emph{Btrfs} is a Linux filesystem with a built-in copy-on-write mechanism:
+when a file changes, the old version is preserved rather than overwritten,
+which makes filesystem-level snapshots nearly free in terms of disk space.
+\emph{Snapper} is the snapshot management tool that sits on top of Btrfs and
+handles creating, listing, and restoring snapshots automatically. The
+filesystem is divided into subvolumes, with \texttt{/} and \texttt{/home}
+on separate subvolumes so that a system rollback never touches personal data.
+
+\paragraph{Pre-update snapshots.}
+Before any update is applied, Snapper creates a snapshot of the current
+system state. This happens automatically and requires no user action; it is a
+precondition for the update, not an optional step.
+
+\paragraph{Bootloader integration.}
+If an update produces a system that fails to boot, the bootloader detects the
+failure and presents the previous snapshot as a recovery option on the next
+start. The user is not asked to open a terminal or enter recovery mode; they
+see a clear prompt with a single keypress to continue on the last working
+version.
+
+\paragraph{Post-update health check.}
+On the first boot after an update, a small background service verifies that
+critical components are functional: the display system initializes correctly,
+network is reachable, and no fatal errors appear in the service log. If the
+check fails, the system rolls back to the pre-update snapshot and notifies the
+user with a plain-language explanation. This catches the case where an update
+boots but leaves the system in a degraded state that would not be obvious
+until the user runs into something broken.
+
+\paragraph{Snapshot retention.}
+To prevent old snapshots from accumulating and consuming disk space,
+Snapper removes snapshots older than seven days automatically while always
+retaining the five most recent, regardless of age. Both values are adjustable
+in Settings.
+
+\subsection{System Infrastructure}
+\label{sec:infra}
+
+\emph{systemd} is used as-is with no replacements planned. It handles service
+startup ordering, dependency management, and automatic restarts for crashed
+services, and it is standard across both candidate distributions.
+\texttt{systemd-homed} manages user home directories with built-in encryption,
+which feeds into the account and profile system described in
+Section~\ref{sec:platform}.
+
+Package management at the base level uses the native manager for whichever
+distribution is chosen: \texttt{dnf} for Fedora, \texttt{zypper} for
+OpenSUSE. First-party project packages are built and distributed through the
+\emph{Open Build Service} (OBS), a platform that compiles packages for
+multiple distributions and CPU architectures from a single set of build
+instructions and handles package signing and repository hosting. Store
+applications are distributed as \emph{Flatpaks}, sandboxed packages that
+include their own dependencies and run isolated from the rest of the system,
+while system-level components ship as native RPMs. The Store infrastructure
+handles both formats transparently.
+
+\subsection{Hardware Requirements}
+\label{sec:hardware}
+
+Three hard requirements determine the minimum supported hardware. They are
+not adjustable without significant changes to the security and graphics stack,
+so they are treated as constraints rather than recommendations. In practice
+they exclude hardware older than roughly 2018--2019.
+
+\begin{table}[htbp]
+\caption{Minimum hardware requirements}
+\label{tab:hardware}
+\begin{tabularx}{\linewidth}{lX}
+\toprule
+\textbf{Requirement} & \textbf{Reason} \\
+\midrule
+Linux kernel 6.6 or newer &
+  Required for the eBPF features used by the event monitoring system and for
+  current security capabilities. Standard on both candidate distributions. \\
+Vulkan-capable GPU &
+  Required for hardware-accelerated rendering and Windows compatibility.
+  Covered automatically on AMD and Intel; Nvidia requires the proprietary
+  driver, with installer guidance provided. \\
+systemd 255 or newer &
+  Required for full \texttt{systemd-homed} functionality used by the account
+  system. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Configuration Format}
+\label{sec:config}
+
+All system components and first-party applications use \emph{TOML} as the
+configuration format. TOML is a human-readable format designed to be
+unambiguous and easy to edit manually, without the indentation pitfalls of
+YAML or the verbosity of JSON. Using it consistently across every component
+means that a user or developer who understands one configuration file
+understands all of them, and it means that tooling for reading, validating,
+and migrating configuration only needs to be written once.
+
+Personal settings live at \texttt{\textasciitilde/.config/<app-id>/config.toml}
+and system-wide settings at \texttt{/etc/<service-name>/config.toml}. Some
+third-party applications expect other formats; a small helper bridges this
+without moving the source of truth:
+
+\begin{lstlisting}[language=bash]
+# Export as environment variables for a legacy app
+eval $(os-config-helper export \
+    --toml ~/.config/myapp/config.toml --format env)
+
+# Export as JSON for tools that require it
+os-config-helper export \
+    --toml ~/.config/myapp/config.toml --format json
+\end{lstlisting}
+
+The TOML file is always the authoritative source; the helper is a read-only
+translation layer with no business logic of its own.
