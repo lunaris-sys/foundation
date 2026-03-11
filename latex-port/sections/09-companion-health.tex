@@ -1,1 +1,186 @@
-% TODO
+\section{Companion App and Health}
+\label{sec:companion-health}
+
+\subsection{Companion App}
+\label{sec:companion}
+
+The system ships with a first-party companion app for Android and iOS that
+bridges phone and desktop into a single coherent experience. It is built with
+Tauri 2.0 using the same Rust backend, the same design token system, and the
+same UI component library as the desktop. The companion app looks and feels
+like the OS because it is built from the same parts.
+
+The protocol is custom. KDE Connect was evaluated and rejected: its protocol
+design would obstruct the deeper integration features planned for later tiers,
+and building on top of it would mean working around its assumptions rather than
+designing for the actual requirements.
+
+\paragraph{Feature tiers.}
+Features are organized into three trust tiers established at pairing time.
+Table~\ref{tab:companion-tiers} shows the breakdown. The distinction between
+\texttt{paired} and \texttt{trusted} exists because Tier 2 features involve
+access to graph context and health data, which require a higher trust
+level than file transfer and notification mirroring. Tier 2 is restricted
+to the official app; a third-party client that implements the pairing protocol
+only gets Tier 1.
+
+\begin{table}[htbp]
+\caption{Companion app feature tiers}
+\label{tab:companion-tiers}
+\begin{tabularx}{\linewidth}{llX}
+\toprule
+\textbf{Tier} & \textbf{Trust level} & \textbf{Features} \\
+\midrule
+1 & \texttt{paired}  &
+  File Drop; clipboard sync (manual trigger only, not automatic);
+  notification mirroring; media playback control \\
+2 & \texttt{trusted} &
+  Handoff (continue reading, browsing, or editing across devices);
+  Unified Timeline (cross-device activity, local only);
+  graph presence (phone sends active app and content context);
+  health data forwarding \\
+3 & Planned          &
+  Wearable data pipeline; extended context sharing \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Protocol and transport.}
+Discovery uses mDNS service advertisement on a shared WLAN. Without a shared
+network, the desktop and phone locate each other via BLE presence broadcast
+carrying the device ID. Transport is selected by availability at connection
+time, shown in Table~\ref{tab:companion-transport}.
+
+\begin{table}[htbp]
+\caption{Companion app transport selection}
+\label{tab:companion-transport}
+\begin{tabularx}{\linewidth}{lX}
+\toprule
+\textbf{Transport} & \textbf{Use case} \\
+\midrule
+HTTPS over LAN  & Primary transport; full feature set \\
+WiFi Direct     & Large transfers without a shared router \\
+Bluetooth       & Small data only: clipboard, notifications, control commands \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Pairing uses a Trust on First Use model. Both devices generate an Ed25519
+keypair on first launch. The first connection uses TLS with self-signed
+certificates plus a six-digit confirmation code displayed on the desktop and
+confirmed on the phone. After pairing, reconnection is automatic with no
+further confirmation. Unpair deletes the key on both sides with no trace.
+
+\paragraph{Auto-connect.}
+Paired devices broadcast BLE presence in the background. When a known device
+is detected, the system connects automatically using the best available
+transport. No user action is required after initial pairing. Android supports
+full background BLE advertising reliably. iOS imposes CoreBluetooth Background
+Mode restrictions: auto-connect works but is less reliable and carries a
+marginally higher battery cost on the iPhone side.
+
+\paragraph{Theme synchronization.}
+Because the companion app uses the same design token system as the desktop,
+the active theme propagates to the phone automatically: accent color, dark and
+light mode, typography. This is a structural side effect of the shared token
+infrastructure, not a feature that was separately implemented.
+
+\paragraph{iOS limitations.}
+iOS imposes constraints that cannot be worked around. There is no persistent
+background BLE scanning, which makes auto-connect less reliable and requires
+more manual reconnects than on Android. WiFi Direct is not available to
+third-party iOS apps. USB-C is inaccessible to third-party apps without
+MFi certification. Health data forwarding via HealthKit is feasible with
+explicit user permission.
+
+Tier 1 works well on iOS. Tier 2 is functional but degraded. iOS is explicitly
+a secondary platform and this limitation is communicated honestly in the app
+and in documentation rather than obscured.
+
+\subsection{Health and Wellbeing}
+\label{sec:health}
+
+The system includes a first-party health data component: a local daemon that
+aggregates, stores, and optionally analyzes health and wellbeing data from
+connected sources. This is not a fitness application. It is health data
+infrastructure: an open, local equivalent of Apple Health or Google Fit, built
+as a system component with the same privacy guarantees as the rest of the
+platform.
+
+\paragraph{Data architecture.}
+Health data lives in a dedicated local store managed by a \emph{Health Daemon},
+separate from the Graph Daemon. Data never leaves the device without an
+explicit user action. Clinical data uses FHIR R4 (HL7 Fast Healthcare
+Interoperability Resources) where applicable, enabling import from hospital and
+clinic systems, which are increasingly FHIR-capable across the EU, and export
+to FHIR-compatible tools without conversion. Non-clinical data such as steps,
+sleep stages, heart rate variability, and nutrition uses an open JSON schema
+with documented field definitions. There is no proprietary format; full export
+is always available.
+
+\paragraph{Data sources.}
+The initial release supports manual input and phone sensors forwarded via the
+Companion App: steps, GPS, and screen time. The plugin-based architecture is
+designed from the start to accommodate further sources without structural
+changes: wearables via the Companion App, hospital and clinic FHIR import, and
+third-party applications via a documented Health API gated by the standard
+permission system.
+
+\paragraph{Wearable pipeline.}
+Wearables connect to the system through the Companion App rather than directly,
+using the wearable manufacturer's existing phone SDK on the phone side. The
+data path is:
+
+\begin{lstlisting}[language=bash, caption={Wearable data path}]
+Wearable -> Companion App (phone, manufacturer SDK)
+         -> OS Health Daemon (via Companion protocol)
+\end{lstlisting}
+
+No direct wearable protocol implementation is required in the OS. The Health
+Daemon's plugin interface is designed to accept forwarded wearable data from
+the start, so that adding wearable sources later does not require structural
+changes. This is planned architecture, not initial release scope.
+
+\paragraph{Graph integration.}
+Health data integration with the Knowledge Graph is strictly opt-in and split
+into three explicit levels, all of which default to off.
+Table~\ref{tab:health-graph} lists the levels. Each level requires the
+previous one; the Settings UI enforces this and does not allow incompatible
+states. The AI layer's health-adjacent features are gated entirely on these
+toggles. With all three off, the health module is a pure local viewer and
+aggregator with no AI involvement whatsoever.
+
+\begin{table}[htbp]
+\caption{Health graph integration levels}
+\label{tab:health-graph}
+\begin{tabularx}{\linewidth}{lX}
+\toprule
+\textbf{Level} & \textbf{What it enables} \\
+\midrule
+1 - Health Nodes     &
+  Health events appear as standalone nodes in the Knowledge Graph \\
+2 - Correlations     &
+  Graph links health data to activity data by time window
+  (e.g.\ sleep quality correlated with focus session length) \\
+3 - Pattern Recognition &
+  Full cross-domain analysis across health, productivity, and
+  communication data \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Settings and permissions.}
+Health has its own dedicated section in Settings rather than being buried under
+general privacy settings. Controls include per-source enable and disable for
+each data source independently; per-data-type enable and disable so the user
+can, for example, share step data with an app but not sleep data; the graph
+integration toggles from Table~\ref{tab:health-graph} presented as a grouped
+sub-section with clear explanations of what each level enables; a configurable
+data retention period per data type; full FHIR and JSON export; and full
+deletion with a confirmation step.
+
+Third-party applications request health data access per data type through the
+standard permission system, but health-specific confirmation dialogs are more
+explicit about data sensitivity than generic permission prompts. A fitness app
+requesting sleep data gets a dialog that names the data type and explains
+clearly that this is health information, not a generic file access request.

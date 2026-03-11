@@ -142,10 +142,280 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Retention Policy}{16}{subsection.4.6}\protected@file@percent }
 \newlabel{sec:retention}{{4.6}{16}{Retention Policy}{subsection.4.6}{}}
 \@writefile{toc}{\contentsline {paragraph}{\nonumberline Summarization.}{16}{paragraph*.44}\protected@file@percent }
-\BKM@entry{id=26,dest={6269622E73656374696F6E},srcline={65},srcfile={2E2F6D61696E2E746578}}{5C3337365C3337375C303030525C303030655C303030665C303030655C303030725C303030655C3030306E5C303030635C303030655C30303073}
+\BKM@entry{id=26,dest={73656374696F6E2E35},srcline={1},srcfile={2E2F73656374696F6E732F30352D61692E746578}}{5C3337365C3337375C303030355C3030305C3034305C303030415C303030495C3030305C3034305C3030304C5C303030615C303030795C303030655C30303072}
+\BKM@entry{id=27,dest={73756273656374696F6E2E352E31},srcline={4},srcfile={2E2F73656374696F6E732F30352D61692E746578}}{5C3337365C3337375C303030355C3030302E5C303030315C3030305C3034305C3030304F5C303030765C303030655C303030725C303030765C303030695C303030655C30303077}
 \@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces Knowledge Graph retention tiers}}{17}{table.caption.43}\protected@file@percent }
 \newlabel{tab:retention}{{8}{17}{Knowledge Graph retention tiers}{table.caption.43}{}}
 \@writefile{toc}{\contentsline {paragraph}{\nonumberline User controls.}{17}{paragraph*.45}\protected@file@percent }
-\newlabel{TotPages}{{17}{17}{}{page.17}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}AI Layer}{17}{section.5}\protected@file@percent }
+\newlabel{sec:ai}{{5}{17}{AI Layer}{section.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Overview}{17}{subsection.5.1}\protected@file@percent }
+\newlabel{sec:ai-overview}{{5.1}{17}{Overview}{subsection.5.1}{}}
+\BKM@entry{id=28,dest={73756273656374696F6E2E352E32},srcline={39},srcfile={2E2F73656374696F6E732F30352D61692E746578}}{5C3337365C3337375C303030355C3030302E5C303030325C3030305C3034305C303030435C3030306F5C3030306C5C303030645C3030302D5C303030535C303030745C303030615C303030725C303030745C3030305C3034305C303030425C303030655C303030685C303030615C303030765C303030695C3030306F5C30303072}
+\BKM@entry{id=29,dest={73756273656374696F6E2E352E33},srcline={67},srcfile={2E2F73656374696F6E732F30352D61692E746578}}{5C3337365C3337375C303030355C3030302E5C303030335C3030305C3034305C303030505C303030725C3030306F5C303030765C303030695C303030645C303030655C303030725C3030305C3034305C303030415C303030625C303030735C303030745C303030725C303030615C303030635C303030745C303030695C3030306F5C3030306E}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Query-first.}{18}{paragraph*.46}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Provider-agnostic.}{18}{paragraph*.47}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Opt-out at any point.}{18}{paragraph*.48}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Cold-Start Behavior}{18}{subsection.5.2}\protected@file@percent }
+\newlabel{sec:ai-coldstart}{{5.2}{18}{Cold-Start Behavior}{subsection.5.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Provider Abstraction}{18}{subsection.5.3}\protected@file@percent }
+\newlabel{sec:ai-providers}{{5.3}{18}{Provider Abstraction}{subsection.5.3}{}}
+\BKM@entry{id=30,dest={73756273656374696F6E2E352E34},srcline={134},srcfile={2E2F73656374696F6E732F30352D61692E746578}}{5C3337365C3337375C303030355C3030302E5C303030345C3030305C3034305C3030304D5C303030435C303030505C3030305C3034305C303030495C3030306E5C303030745C303030655C303030675C303030725C303030615C303030745C303030695C3030306F5C3030306E}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3}{\ignorespaces AI provider trait}}{19}{lstlisting.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Provider abstraction. The AI layer speaks only to the trait; the concrete backend is a configuration choice. Local and cloud providers are interchangeable from the perspective of anything above the trait boundary.}}{19}{figure.caption.49}\protected@file@percent }
+\newlabel{fig:providers}{{6}{19}{Provider abstraction. The AI layer speaks only to the trait; the concrete backend is a configuration choice. Local and cloud providers are interchangeable from the perspective of anything above the trait boundary}{figure.caption.49}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}MCP Integration}{19}{subsection.5.4}\protected@file@percent }
+\newlabel{sec:mcp}{{5.4}{19}{MCP Integration}{subsection.5.4}{}}
+\BKM@entry{id=31,dest={73756273656374696F6E2E352E35},srcline={196},srcfile={2E2F73656374696F6E732F30352D61692E746578}}{5C3337365C3337375C303030355C3030302E5C303030355C3030305C3034305C303030495C3030306E5C303030745C303030655C303030725C303030615C303030635C303030745C303030695C3030306F5C3030306E5C3030305C3034305C3030304D5C3030306F5C303030645C303030655C3030306C}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces MCP topology. The AI model communicates through a single MCP client that dispatches to individual application servers. Third-party applications from the Store can ship their own MCP servers, subject to the permission model described in Section~\ref {sec:mcp-permissions}.}}{20}{figure.caption.50}\protected@file@percent }
+\newlabel{fig:mcp}{{7}{20}{MCP topology. The AI model communicates through a single MCP client that dispatches to individual application servers. Third-party applications from the Store can ship their own MCP servers, subject to the permission model described in Section~\ref {sec:mcp-permissions}}{figure.caption.50}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.5}Interaction Model}{20}{subsection.5.5}\protected@file@percent }
+\newlabel{sec:ai-interaction}{{5.5}{20}{Interaction Model}{subsection.5.5}{}}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Phase 1: Query-based (default).}{20}{paragraph*.51}\protected@file@percent }
+\BKM@entry{id=32,dest={73756273656374696F6E2E352E36},srcline={231},srcfile={2E2F73656374696F6E732F30352D61692E746578}}{5C3337365C3337375C303030355C3030302E5C303030365C3030305C3034305C3030304D5C303030435C303030505C3030305C3034305C303030505C303030655C303030725C3030306D5C303030695C303030735C303030735C303030695C3030306F5C3030306E5C3030305C3034305C3030304D5C3030306F5C303030645C303030655C3030306C}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Phase 2: Autonomous agent (explicit opt-in).}{21}{paragraph*.52}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.6}MCP Permission Model}{21}{subsection.5.6}\protected@file@percent }
+\newlabel{sec:mcp-permissions}{{5.6}{21}{MCP Permission Model}{subsection.5.6}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {9}{\ignorespaces Read-only MCP servers (permitted by default)}}{21}{table.caption.53}\protected@file@percent }
+\newlabel{tab:mcp-read}{{9}{21}{Read-only MCP servers (permitted by default)}{table.caption.53}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {10}{\ignorespaces Write and action MCP servers (per-session authorization required)}}{21}{table.caption.54}\protected@file@percent }
+\newlabel{tab:mcp-write}{{10}{21}{Write and action MCP servers (per-session authorization required)}{table.caption.54}{}}
+\BKM@entry{id=33,dest={73656374696F6E2E36},srcline={1},srcfile={2E2F73656374696F6E732F30362D6465736B746F702E746578}}{5C3337365C3337375C303030365C3030305C3034305C303030445C303030655C303030735C3030306B5C303030745C3030306F5C303030705C3030305C3034305C303030455C3030306E5C303030765C303030695C303030725C3030306F5C3030306E5C3030306D5C303030655C3030306E5C303030745C3030305C3034305C303030615C3030306E5C303030645C3030305C3034305C303030445C303030655C303030735C303030695C303030675C3030306E5C3030305C3034305C3030304C5C303030615C3030306E5C303030675C303030755C303030615C303030675C30303065}
+\BKM@entry{id=34,dest={73756273656374696F6E2E362E31},srcline={12},srcfile={2E2F73656374696F6E732F30362D6465736B746F702E746578}}{5C3337365C3337375C303030365C3030302E5C303030315C3030305C3034305C303030415C303030725C303030635C303030685C303030695C303030745C303030655C303030635C303030745C303030755C303030725C303030655C3030305C3034305C303030615C3030306E5C303030645C3030305C3034305C303030495C303030505C30303043}
+\BKM@entry{id=35,dest={73756273656374696F6E2E362E32},srcline={63},srcfile={2E2F73656374696F6E732F30362D6465736B746F702E746578}}{5C3337365C3337375C303030365C3030302E5C303030325C3030305C3034305C303030435C3030306F5C3030306D5C303030705C3030306F5C303030735C303030695C303030745C3030306F5C303030725C3030305C3034305C303030615C3030306E5C303030645C3030305C3034305C303030575C303030695C3030306E5C303030645C3030306F5C303030775C3030305C3034305C3030304D5C303030615C3030306E5C303030615C303030675C303030655C30303072}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Desktop Environment and Design Language}{22}{section.6}\protected@file@percent }
+\newlabel{sec:desktop}{{6}{22}{Desktop Environment and Design Language}{section.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Architecture and IPC}{22}{subsection.6.1}\protected@file@percent }
+\newlabel{sec:desktop-ipc}{{6.1}{22}{Architecture and IPC}{subsection.6.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Shell IPC architecture. Wayland protocols carry window management data (open windows, focus, workspace state). The Unix socket carries system-specific events with no Wayland equivalent: theme updates, module lifecycle events, graph notifications. The Tauri command bridge connects the Rust backend to the TypeScript frontend within the shell process.}}{22}{figure.caption.55}\protected@file@percent }
+\newlabel{fig:shell-ipc}{{8}{22}{Shell IPC architecture. Wayland protocols carry window management data (open windows, focus, workspace state). The Unix socket carries system-specific events with no Wayland equivalent: theme updates, module lifecycle events, graph notifications. The Tauri command bridge connects the Rust backend to the TypeScript frontend within the shell process}{figure.caption.55}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Compositor and Window Manager}{23}{subsection.6.2}\protected@file@percent }
+\newlabel{sec:compositor}{{6.2}{23}{Compositor and Window Manager}{subsection.6.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {11}{\ignorespaces Implemented Wayland protocol extensions}}{23}{table.caption.56}\protected@file@percent }
+\newlabel{tab:wayland-protocols}{{11}{23}{Implemented Wayland protocol extensions}{table.caption.56}{}}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline XWayland.}{23}{paragraph*.57}\protected@file@percent }
+\BKM@entry{id=36,dest={73756273656374696F6E2E362E33},srcline={119},srcfile={2E2F73656374696F6E732F30362D6465736B746F702E746578}}{5C3337365C3337375C303030365C3030302E5C303030335C3030305C3034305C303030535C303030685C303030655C3030306C5C3030306C5C3030305C3034305C303030615C3030306E5C303030645C3030305C3034305C303030415C303030705C303030705C3030306C5C303030695C303030635C303030615C303030745C303030695C3030306F5C3030306E5C3030305C3034305C303030465C303030725C303030615C3030306D5C303030655C303030775C3030306F5C303030725C3030306B}
+\BKM@entry{id=37,dest={73756273656374696F6E2E362E34},srcline={165},srcfile={2E2F73656374696F6E732F30362D6465736B746F702E746578}}{5C3337365C3337375C303030365C3030302E5C303030345C3030305C3034305C303030535C303030705C3030306F5C303030745C3030306C5C303030695C303030675C303030685C30303074}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Shell and Application Framework}{24}{subsection.6.3}\protected@file@percent }
+\newlabel{sec:shell}{{6.3}{24}{Shell and Application Framework}{subsection.6.3}{}}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline ui-kit.}{24}{paragraph*.58}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline os-sdk.}{24}{paragraph*.59}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {4}{\ignorespaces Standard first-party app structure}}{24}{lstlisting.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Spotlight}{24}{subsection.6.4}\protected@file@percent }
+\newlabel{sec:spotlight}{{6.4}{24}{Spotlight}{subsection.6.4}{}}
+\BKM@entry{id=38,dest={73756273656374696F6E2E362E35},srcline={187},srcfile={2E2F73656374696F6E732F30362D6465736B746F702E746578}}{5C3337365C3337375C303030365C3030302E5C303030355C3030305C3034305C3030304D5C303030755C3030306C5C303030745C303030695C3030302D5C3030304D5C3030306F5C3030306E5C303030695C303030745C3030306F5C303030725C3030305C3034305C303030615C3030306E5C303030645C3030305C3034305C303030485C303030695C303030445C303030505C30303049}
+\BKM@entry{id=39,dest={73756273656374696F6E2E362E36},srcline={215},srcfile={2E2F73656374696F6E732F30362D6465736B746F702E746578}}{5C3337365C3337375C303030365C3030302E5C303030365C3030305C3034305C303030445C303030655C303030735C303030695C303030675C3030306E5C3030305C3034305C3030304C5C303030615C3030306E5C303030675C303030755C303030615C303030675C303030655C3030305C3034305C303030615C3030306E5C303030645C3030305C3034305C303030545C303030685C303030655C3030306D5C303030695C3030306E5C30303067}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.5}Multi-Monitor and HiDPI}{25}{subsection.6.5}\protected@file@percent }
+\newlabel{sec:multimonitor}{{6.5}{25}{Multi-Monitor and HiDPI}{subsection.6.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.6}Design Language and Theming}{25}{subsection.6.6}\protected@file@percent }
+\newlabel{sec:theming}{{6.6}{25}{Design Language and Theming}{subsection.6.6}{}}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Token system.}{25}{paragraph*.60}\protected@file@percent }
+\BKM@entry{id=40,dest={73656374696F6E2E37},srcline={1},srcfile={2E2F73656374696F6E732F30372D617070732D6D6F64756C65732E746578}}{5C3337365C3337375C303030375C3030305C3034305C303030415C303030705C303030705C303030735C3030302C5C3030305C3034305C3030304D5C3030306F5C303030645C303030755C3030306C5C303030655C303030735C3030302C5C3030305C3034305C303030615C3030306E5C303030645C3030305C3034305C303030745C303030685C303030655C3030305C3034305C303030535C303030745C3030306F5C303030725C30303065}
+\BKM@entry{id=41,dest={73756273656374696F6E2E372E31},srcline={4},srcfile={2E2F73656374696F6E732F30372D617070732D6D6F64756C65732E746578}}{5C3337365C3337375C303030375C3030302E5C303030315C3030305C3034305C303030415C303030705C303030705C3030305C3034305C303030455C303030635C3030306F5C303030735C303030795C303030735C303030745C303030655C3030306D}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Built-in themes.}{26}{paragraph*.61}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline GTK and Qt coverage.}{26}{paragraph*.62}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Store themes.}{26}{paragraph*.63}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Live switching.}{26}{paragraph*.64}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Theme inheritance chain. Each layer overrides only what it declares; everything else falls through to the layer below. A Store theme that covers only the shell and GTK4 leaves Wine and Qt at the base theme.}}{27}{figure.caption.65}\protected@file@percent }
+\newlabel{fig:theme-chain}{{9}{27}{Theme inheritance chain. Each layer overrides only what it declares; everything else falls through to the layer below. A Store theme that covers only the shell and GTK4 leaves Wine and Qt at the base theme}{figure.caption.65}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Apps, Modules, and the Store}{27}{section.7}\protected@file@percent }
+\newlabel{sec:apps-modules}{{7}{27}{Apps, Modules, and the Store}{section.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}App Ecosystem}{27}{subsection.7.1}\protected@file@percent }
+\newlabel{sec:app-ecosystem}{{7.1}{27}{App Ecosystem}{subsection.7.1}{}}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline First-party applications.}{27}{paragraph*.66}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {12}{\ignorespaces First-party system applications}}{27}{table.caption.67}\protected@file@percent }
+\newlabel{tab:first-party}{{12}{27}{First-party system applications}{table.caption.67}{}}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Third-party integration layers.}{27}{paragraph*.68}\protected@file@percent }
+\BKM@entry{id=42,dest={73756273656374696F6E2E372E32},srcline={70},srcfile={2E2F73656374696F6E732F30372D617070732D6D6F64756C65732E746578}}{5C3337365C3337375C303030375C3030302E5C303030325C3030305C3034305C3030304E5C3030306F5C303030745C303030695C303030665C303030695C303030635C303030615C303030745C303030695C3030306F5C3030306E5C3030305C3034305C303030535C303030795C303030735C303030745C303030655C3030306D}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Shared standards.}{28}{paragraph*.69}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.2}Notification System}{28}{subsection.7.2}\protected@file@percent }
+\newlabel{sec:notifications}{{7.2}{28}{Notification System}{subsection.7.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Notification pipeline. All sources converge on the Notification Daemon, which normalizes, groups, and applies priority logic before forwarding to the toast renderer and notification center. Every notification is logged in the Audit Log by sender and timestamp, never by content.}}{28}{figure.caption.70}\protected@file@percent }
+\newlabel{fig:notifications}{{10}{28}{Notification pipeline. All sources converge on the Notification Daemon, which normalizes, groups, and applies priority logic before forwarding to the toast renderer and notification center. Every notification is logged in the Audit Log by sender and timestamp, never by content}{figure.caption.70}{}}
+\BKM@entry{id=43,dest={73756273656374696F6E2E372E33},srcline={157},srcfile={2E2F73656374696F6E732F30372D617070732D6D6F64756C65732E746578}}{5C3337365C3337375C303030375C3030302E5C303030335C3030305C3034305C303030505C303030655C303030725C3030306D5C303030695C303030735C303030735C303030695C3030306F5C3030306E5C3030305C3034305C303030535C303030795C303030735C303030745C303030655C3030306D}
+\@writefile{lot}{\contentsline {table}{\numberline {13}{\ignorespaces Notification priority levels}}{29}{table.caption.71}\protected@file@percent }
+\newlabel{tab:notifications}{{13}{29}{Notification priority levels}{table.caption.71}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.3}Permission System}{29}{subsection.7.3}\protected@file@percent }
+\newlabel{sec:permissions}{{7.3}{29}{Permission System}{subsection.7.3}{}}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Permission file format.}{29}{paragraph*.72}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5}{\ignorespaces Example permission file}}{29}{lstlisting.5}\protected@file@percent }
+\BKM@entry{id=44,dest={73756273656374696F6E2E372E34},srcline={228},srcfile={2E2F73656374696F6E732F30372D617070732D6D6F64756C65732E746578}}{5C3337365C3337375C303030375C3030302E5C303030345C3030305C3034305C3030304D5C3030306F5C303030645C303030755C3030306C5C303030655C3030305C3034305C303030535C303030795C303030735C303030745C303030655C3030306D}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Store-supplied profiles.}{30}{paragraph*.73}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Flatpak adapter.}{30}{paragraph*.74}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline First-run learning mode.}{30}{paragraph*.75}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Runtime behavior.}{30}{paragraph*.76}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.4}Module System}{30}{subsection.7.4}\protected@file@percent }
+\newlabel{sec:modules}{{7.4}{30}{Module System}{subsection.7.4}{}}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Module categories.}{30}{paragraph*.77}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Manifest format.}{30}{paragraph*.79}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {14}{\ignorespaces Module categories and extension points}}{31}{table.caption.78}\protected@file@percent }
+\newlabel{tab:modules}{{14}{31}{Module categories and extension points}{table.caption.78}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {6}{\ignorespaces Example module manifest}}{31}{lstlisting.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Module Runtime.}{31}{paragraph*.80}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {15}{\ignorespaces Module crash recovery policy}}{32}{table.caption.81}\protected@file@percent }
+\newlabel{tab:crash-recovery}{{15}{32}{Module crash recovery policy}{table.caption.81}{}}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Shell API.}{32}{paragraph*.82}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {7}{\ignorespaces Module SDK surface (TypeScript)}}{32}{lstlisting.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Global Input Manager.}{32}{paragraph*.83}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Developer experience.}{32}{paragraph*.84}\protected@file@percent }
+\BKM@entry{id=45,dest={73756273656374696F6E2E372E35},srcline={377},srcfile={2E2F73656374696F6E732F30372D617070732D6D6F64756C65732E746578}}{5C3337365C3337375C303030375C3030302E5C303030355C3030305C3034305C303030535C303030745C3030306F5C303030725C30303065}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.5}Store}{33}{subsection.7.5}\protected@file@percent }
+\newlabel{sec:store}{{7.5}{33}{Store}{subsection.7.5}{}}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Publishing.}{33}{paragraph*.85}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Revenue model.}{33}{paragraph*.86}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {16}{\ignorespaces Store commission tiers}}{33}{table.caption.87}\protected@file@percent }
+\newlabel{tab:commission}{{16}{33}{Store commission tiers}{table.caption.87}{}}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline User-facing features.}{33}{paragraph*.88}\protected@file@percent }
+\BKM@entry{id=46,dest={73656374696F6E2E38},srcline={1},srcfile={2E2F73656374696F6E732F30382D706C6174666F726D2E746578}}{5C3337365C3337375C303030385C3030305C3034305C303030505C3030306C5C303030615C303030745C303030665C3030306F5C303030725C3030306D5C3030302C5C3030305C3034305C303030505C303030725C3030306F5C303030665C303030695C3030306C5C303030655C303030735C3030302C5C3030305C3034305C303030615C3030306E5C303030645C3030305C3034305C303030535C303030655C303030635C303030755C303030725C303030695C303030745C30303079}
+\BKM@entry{id=47,dest={73756273656374696F6E2E382E31},srcline={4},srcfile={2E2F73656374696F6E732F30382D706C6174666F726D2E746578}}{5C3337365C3337375C303030385C3030302E5C303030315C3030305C3034305C303030415C303030635C303030635C3030306F5C303030755C3030306E5C303030745C3030305C3034305C303030535C303030795C303030735C303030745C303030655C3030306D}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Developer dashboard.}{34}{paragraph*.89}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Security Audit Badge.}{34}{paragraph*.90}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Long-term support.}{34}{paragraph*.91}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Profile package distribution.}{34}{paragraph*.92}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {8}Platform, Profiles, and Security}{34}{section.8}\protected@file@percent }
+\newlabel{sec:platform}{{8}{34}{Platform, Profiles, and Security}{section.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.1}Account System}{34}{subsection.8.1}\protected@file@percent }
+\newlabel{sec:accounts}{{8.1}{34}{Account System}{subsection.8.1}{}}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Architecture.}{34}{paragraph*.93}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Service-level permissions.}{35}{paragraph*.94}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {8}{\ignorespaces Service-level permission view (Settings)}}{35}{lstlisting.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Multiple accounts and resolution order.}{35}{paragraph*.95}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {9}{\ignorespaces Account resolution configuration}}{35}{lstlisting.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Token security.}{35}{paragraph*.96}\protected@file@percent }
+\BKM@entry{id=48,dest={73756273656374696F6E2E382E32},srcline={96},srcfile={2E2F73656374696F6E732F30382D706C6174666F726D2E746578}}{5C3337365C3337375C303030385C3030302E5C303030325C3030305C3034305C303030505C303030725C3030306F5C303030665C303030695C3030306C5C303030655C3030305C3034305C303030535C303030795C303030735C303030745C303030655C3030306D}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Offline behavior.}{36}{paragraph*.97}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline GNOME Online Accounts bridge.}{36}{paragraph*.98}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.2}Profile System}{36}{subsection.8.2}\protected@file@percent }
+\newlabel{sec:profiles}{{8.2}{36}{Profile System}{subsection.8.2}{}}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Personal profiles.}{36}{paragraph*.99}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Work and custom profiles.}{36}{paragraph*.100}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Locked profiles.}{36}{paragraph*.101}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Guest mode.}{37}{paragraph*.102}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Technical foundation.}{37}{paragraph*.103}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Data transfer between profiles.}{37}{paragraph*.104}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {10}{\ignorespaces Cross-profile transfer configuration}}{37}{lstlisting.10}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Signed profile packages.}{37}{paragraph*.105}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {11}{\ignorespaces Signed profile package format}}{37}{lstlisting.11}\protected@file@percent }
+\BKM@entry{id=49,dest={73756273656374696F6E2E382E33},srcline={225},srcfile={2E2F73656374696F6E732F30382D706C6174666F726D2E746578}}{5C3337365C3337375C303030385C3030302E5C303030335C3030305C3034305C303030475C303030615C3030306D5C303030695C3030306E5C303030675C3030305C3034305C303030615C3030306E5C303030645C3030305C3034305C303030575C303030695C3030306E5C303030645C3030306F5C303030775C303030735C3030305C3034305C303030435C3030306F5C3030306D5C303030705C303030615C303030745C303030695C303030625C303030695C3030306C5C303030695C303030745C30303079}
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.3}Gaming and Windows Compatibility}{38}{subsection.8.3}\protected@file@percent }
+\newlabel{sec:gaming}{{8.3}{38}{Gaming and Windows Compatibility}{subsection.8.3}{}}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Wine and Proton.}{38}{paragraph*.106}\protected@file@percent }
+\BKM@entry{id=50,dest={73756273656374696F6E2E382E34},srcline={286},srcfile={2E2F73656374696F6E732F30382D706C6174666F726D2E746578}}{5C3337365C3337375C303030385C3030302E5C303030345C3030305C3034305C303030535C303030655C303030635C303030755C303030725C303030695C303030745C303030795C3030305C3034305C303030615C3030306E5C303030645C3030305C3034305C303030505C303030725C303030695C303030765C303030615C303030635C30303079}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Wine theming.}{39}{paragraph*.107}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Performance tooling.}{39}{paragraph*.108}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Knowledge Graph integration.}{39}{paragraph*.109}\protected@file@percent }
+\BKM@entry{id=51,dest={73756273756273656374696F6E2E382E342E31},srcline={313},srcfile={2E2F73656374696F6E732F30382D706C6174666F726D2E746578}}{5C3337365C3337375C303030385C3030302E5C303030345C3030302E5C303030315C3030305C3034305C303030465C303030755C3030306C5C3030306C5C3030305C3034305C303030445C303030695C303030735C3030306B5C3030305C3034305C303030455C3030306E5C303030635C303030725C303030795C303030705C303030745C303030695C3030306F5C3030306E}
+\BKM@entry{id=52,dest={73756273756273656374696F6E2E382E342E32},srcline={341},srcfile={2E2F73656374696F6E732F30382D706C6174666F726D2E746578}}{5C3337365C3337375C303030385C3030302E5C303030345C3030302E5C303030325C3030305C3034305C303030535C303030655C303030635C303030755C303030725C303030655C3030305C3034305C303030425C3030306F5C3030306F5C303030745C3030302C5C3030305C3034305C303030555C3030306E5C303030695C303030665C303030695C303030655C303030645C3030305C3034305C3030304B5C303030655C303030725C3030306E5C303030655C3030306C5C3030305C3034305C303030495C3030306D5C303030615C303030675C303030655C303030735C3030302C5C3030305C3034305C303030615C3030306E5C303030645C3030305C3034305C3030304D5C303030655C303030615C303030735C303030755C303030725C303030655C303030645C3030305C3034305C303030425C3030306F5C3030306F5C30303074}
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.4}Security and Privacy}{40}{subsection.8.4}\protected@file@percent }
+\newlabel{sec:security}{{8.4}{40}{Security and Privacy}{subsection.8.4}{}}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Core principles.}{40}{paragraph*.110}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {8.4.1}Full Disk Encryption}{40}{subsubsection.8.4.1}\protected@file@percent }
+\newlabel{sec:fde}{{8.4.1}{40}{Full Disk Encryption}{subsubsection.8.4.1}{}}
+\BKM@entry{id=53,dest={73756273756273656374696F6E2E382E342E33},srcline={378},srcfile={2E2F73656374696F6E732F30382D706C6174666F726D2E746578}}{5C3337365C3337375C303030385C3030302E5C303030345C3030302E5C303030335C3030305C3034305C303030415C303030705C303030705C3030305C3034305C303030535C303030615C3030306E5C303030645C303030625C3030306F5C303030785C303030695C3030306E5C30303067}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {8.4.2}Secure Boot, Unified Kernel Images, and Measured Boot}{41}{subsubsection.8.4.2}\protected@file@percent }
+\newlabel{sec:secureboot}{{8.4.2}{41}{Secure Boot, Unified Kernel Images, and Measured Boot}{subsubsection.8.4.2}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {8.4.3}App Sandboxing}{41}{subsubsection.8.4.3}\protected@file@percent }
+\newlabel{sec:sandboxing}{{8.4.3}{41}{App Sandboxing}{subsubsection.8.4.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {17}{\ignorespaces Sandboxing mechanism layers}}{41}{table.caption.111}\protected@file@percent }
+\newlabel{tab:sandboxing}{{17}{41}{Sandboxing mechanism layers}{table.caption.111}{}}
+\BKM@entry{id=54,dest={73756273756273656374696F6E2E382E342E34},srcline={419},srcfile={2E2F73656374696F6E732F30382D706C6174666F726D2E746578}}{5C3337365C3337375C303030385C3030302E5C303030345C3030302E5C303030345C3030305C3034305C3030304B5C3030306E5C3030306F5C303030775C3030306C5C303030655C303030645C303030675C303030655C3030305C3034305C303030475C303030725C303030615C303030705C303030685C3030305C3034305C303030535C303030655C303030635C303030755C303030725C303030695C303030745C30303079}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {8.4.4}Knowledge Graph Security}{42}{subsubsection.8.4.4}\protected@file@percent }
+\newlabel{sec:graph-security}{{8.4.4}{42}{Knowledge Graph Security}{subsubsection.8.4.4}{}}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Three axes of permission.}{42}{paragraph*.112}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {12}{\ignorespaces Graph permission entry}}{42}{lstlisting.12}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Two permission layers.}{42}{paragraph*.113}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Kuzu file protection.}{43}{paragraph*.114}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Cypher injection prevention.}{43}{paragraph*.115}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {13}{\ignorespaces Parameterized graph queries}}{43}{lstlisting.13}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Capability tokens.}{43}{paragraph*.116}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Graph Daemon hardening.}{43}{paragraph*.117}\protected@file@percent }
+\BKM@entry{id=55,dest={73756273756273656374696F6E2E382E342E35},srcline={544},srcfile={2E2F73656374696F6E732F30382D706C6174666F726D2E746578}}{5C3337365C3337375C303030385C3030302E5C303030345C3030302E5C303030355C3030305C3034305C303030415C303030495C3030305C3034305C303030535C303030655C303030635C303030755C303030725C303030695C303030745C30303079}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Rate limiting and query complexity.}{44}{paragraph*.118}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {8.4.5}AI Security}{44}{subsubsection.8.4.5}\protected@file@percent }
+\newlabel{sec:ai-security}{{8.4.5}{44}{AI Security}{subsubsection.8.4.5}{}}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline AI access levels.}{44}{paragraph*.119}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Prompt injection.}{44}{paragraph*.121}\protected@file@percent }
+\BKM@entry{id=56,dest={73756273756273656374696F6E2E382E342E36},srcline={615},srcfile={2E2F73656374696F6E732F30382D706C6174666F726D2E746578}}{5C3337365C3337375C303030385C3030302E5C303030345C3030302E5C303030365C3030305C3034305C303030415C303030755C303030645C303030695C303030745C3030305C3034305C3030304C5C3030306F5C30303067}
+\@writefile{lot}{\contentsline {table}{\numberline {18}{\ignorespaces AI read access levels}}{45}{table.caption.120}\protected@file@percent }
+\newlabel{tab:ai-access}{{18}{45}{AI read access levels}{table.caption.120}{}}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline AI network proxy.}{45}{paragraph*.122}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {8.4.6}Audit Log}{45}{subsubsection.8.4.6}\protected@file@percent }
+\newlabel{sec:audit-log}{{8.4.6}{45}{Audit Log}{subsubsection.8.4.6}{}}
+\BKM@entry{id=57,dest={73756273756273656374696F6E2E382E342E37},srcline={650},srcfile={2E2F73656374696F6E732F30382D706C6174666F726D2E746578}}{5C3337365C3337375C303030385C3030302E5C303030345C3030302E5C303030375C3030305C3034305C303030415C3030306E5C3030306F5C3030306D5C303030615C3030306C5C303030795C3030305C3034305C303030445C303030655C303030745C303030655C303030635C303030745C303030695C3030306F5C3030306E}
+\BKM@entry{id=58,dest={73756273756273656374696F6E2E382E342E38},srcline={682},srcfile={2E2F73656374696F6E732F30382D706C6174666F726D2E746578}}{5C3337365C3337375C303030385C3030302E5C303030345C3030302E5C303030385C3030305C3034305C3030304E5C303030655C303030745C303030775C3030306F5C303030725C3030306B5C3030305C3034305C303030535C303030655C303030635C303030755C303030725C303030695C303030745C30303079}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {8.4.7}Anomaly Detection}{46}{subsubsection.8.4.7}\protected@file@percent }
+\newlabel{sec:anomaly}{{8.4.7}{46}{Anomaly Detection}{subsubsection.8.4.7}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {8.4.8}Network Security}{46}{subsubsection.8.4.8}\protected@file@percent }
+\newlabel{sec:network-security}{{8.4.8}{46}{Network Security}{subsubsection.8.4.8}{}}
+\BKM@entry{id=59,dest={73756273756273656374696F6E2E382E342E39},srcline={699},srcfile={2E2F73656374696F6E732F30382D706C6174666F726D2E746578}}{5C3337365C3337375C303030385C3030302E5C303030345C3030302E5C303030395C3030305C3034305C303030505C303030685C303030795C303030735C303030695C303030635C303030615C3030306C5C3030305C3034305C303030535C303030655C303030635C303030755C303030725C303030695C303030745C30303079}
+\BKM@entry{id=60,dest={73756273756273656374696F6E2E382E342E3130},srcline={737},srcfile={2E2F73656374696F6E732F30382D706C6174666F726D2E746578}}{5C3337365C3337375C303030385C3030302E5C303030345C3030302E5C303030315C303030305C3030305C3034305C3030304D5C303030655C3030306D5C3030306F5C303030725C303030795C3030305C3034305C303030535C303030615C303030665C303030655C303030745C30303079}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {8.4.9}Physical Security}{47}{subsubsection.8.4.9}\protected@file@percent }
+\newlabel{sec:physical}{{8.4.9}{47}{Physical Security}{subsubsection.8.4.9}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {8.4.10}Memory Safety}{47}{subsubsection.8.4.10}\protected@file@percent }
+\newlabel{sec:memory-safety}{{8.4.10}{47}{Memory Safety}{subsubsection.8.4.10}{}}
+\BKM@entry{id=61,dest={73756273756273656374696F6E2E382E342E3131},srcline={760},srcfile={2E2F73656374696F6E732F30382D706C6174666F726D2E746578}}{5C3337365C3337375C303030385C3030302E5C303030345C3030302E5C303030315C303030315C3030305C3034305C3030304D5C303030755C3030306C5C303030745C303030695C3030302D5C303030555C303030735C303030655C303030725C3030305C3034305C303030495C303030735C3030306F5C3030306C5C303030615C303030745C303030695C3030306F5C3030306E}
+\BKM@entry{id=62,dest={73656374696F6E2E39},srcline={1},srcfile={2E2F73656374696F6E732F30392D636F6D70616E696F6E2D6865616C74682E746578}}{5C3337365C3337375C303030395C3030305C3034305C303030435C3030306F5C3030306D5C303030705C303030615C3030306E5C303030695C3030306F5C3030306E5C3030305C3034305C303030415C303030705C303030705C3030305C3034305C303030615C3030306E5C303030645C3030305C3034305C303030485C303030655C303030615C3030306C5C303030745C30303068}
+\BKM@entry{id=63,dest={73756273656374696F6E2E392E31},srcline={4},srcfile={2E2F73656374696F6E732F30392D636F6D70616E696F6E2D6865616C74682E746578}}{5C3337365C3337375C303030395C3030302E5C303030315C3030305C3034305C303030435C3030306F5C3030306D5C303030705C303030615C3030306E5C303030695C3030306F5C3030306E5C3030305C3034305C303030415C303030705C30303070}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {8.4.11}Multi-User Isolation}{48}{subsubsection.8.4.11}\protected@file@percent }
+\newlabel{sec:multiuser}{{8.4.11}{48}{Multi-User Isolation}{subsubsection.8.4.11}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {9}Companion App and Health}{48}{section.9}\protected@file@percent }
+\newlabel{sec:companion-health}{{9}{48}{Companion App and Health}{section.9}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.1}Companion App}{48}{subsection.9.1}\protected@file@percent }
+\newlabel{sec:companion}{{9.1}{48}{Companion App}{subsection.9.1}{}}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Feature tiers.}{49}{paragraph*.123}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {19}{\ignorespaces Companion app feature tiers}}{49}{table.caption.124}\protected@file@percent }
+\newlabel{tab:companion-tiers}{{19}{49}{Companion app feature tiers}{table.caption.124}{}}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Protocol and transport.}{49}{paragraph*.125}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {20}{\ignorespaces Companion app transport selection}}{49}{table.caption.126}\protected@file@percent }
+\newlabel{tab:companion-transport}{{20}{49}{Companion app transport selection}{table.caption.126}{}}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Auto-connect.}{49}{paragraph*.127}\protected@file@percent }
+\BKM@entry{id=64,dest={73756273656374696F6E2E392E32},srcline={100},srcfile={2E2F73656374696F6E732F30392D636F6D70616E696F6E2D6865616C74682E746578}}{5C3337365C3337375C303030395C3030302E5C303030325C3030305C3034305C303030485C303030655C303030615C3030306C5C303030745C303030685C3030305C3034305C303030615C3030306E5C303030645C3030305C3034305C303030575C303030655C3030306C5C3030306C5C303030625C303030655C303030695C3030306E5C30303067}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Theme synchronization.}{50}{paragraph*.128}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline iOS limitations.}{50}{paragraph*.129}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.2}Health and Wellbeing}{50}{subsection.9.2}\protected@file@percent }
+\newlabel{sec:health}{{9.2}{50}{Health and Wellbeing}{subsection.9.2}{}}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Data architecture.}{50}{paragraph*.130}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Data sources.}{50}{paragraph*.131}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Wearable pipeline.}{50}{paragraph*.132}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {14}{\ignorespaces Wearable data path}}{50}{lstlisting.14}\protected@file@percent }
+\BKM@entry{id=65,dest={73656374696F6E2E3130},srcline={1},srcfile={2E2F73656374696F6E732F31302D7375737461696E6162696C6974792E746578}}{5C3337365C3337375C303030315C303030305C3030305C3034305C303030445C303030655C303030765C303030655C3030306C5C3030306F5C303030705C303030655C303030725C3030305C3034305C303030455C303030785C303030705C303030655C303030725C303030695C303030655C3030306E5C303030635C303030655C3030302C5C3030305C3034305C303030535C303030755C303030735C303030745C303030615C303030695C3030306E5C303030615C303030625C303030695C3030306C5C303030695C303030745C303030795C3030302C5C3030305C3034305C303030615C3030306E5C303030645C3030305C3034305C303030525C3030306F5C303030615C303030645C3030306D5C303030615C30303070}
+\BKM@entry{id=66,dest={73756273656374696F6E2E31302E31},srcline={4},srcfile={2E2F73656374696F6E732F31302D7375737461696E6162696C6974792E746578}}{5C3337365C3337375C303030315C303030305C3030302E5C303030315C3030305C3034305C303030445C303030655C303030765C303030655C3030306C5C3030306F5C303030705C303030655C303030725C3030305C3034305C303030455C303030785C303030705C303030655C303030725C303030695C303030655C3030306E5C303030635C303030655C3030305C3034305C303030615C3030306E5C303030645C3030305C3034305C303030495C3030306E5C303030665C303030725C303030615C303030735C303030745C303030725C303030755C303030635C303030745C303030755C303030725C30303065}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Graph integration.}{51}{paragraph*.133}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {21}{\ignorespaces Health graph integration levels}}{51}{table.caption.134}\protected@file@percent }
+\newlabel{tab:health-graph}{{21}{51}{Health graph integration levels}{table.caption.134}{}}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Settings and permissions.}{51}{paragraph*.135}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {10}Developer Experience, Sustainability, and Roadmap}{51}{section.10}\protected@file@percent }
+\newlabel{sec:sustainability}{{10}{51}{Developer Experience, Sustainability, and Roadmap}{section.10}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.1}Developer Experience and Infrastructure}{51}{subsection.10.1}\protected@file@percent }
+\newlabel{sec:devex}{{10.1}{51}{Developer Experience and Infrastructure}{subsection.10.1}{}}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Repository structure.}{52}{paragraph*.136}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {15}{\ignorespaces Repository structure}}{52}{lstlisting.15}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Build system.}{52}{paragraph*.137}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Update system.}{52}{paragraph*.138}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {16}{\ignorespaces Interface compatibility check at startup}}{53}{lstlisting.16}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline CI/CD pipeline.}{53}{paragraph*.139}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {22}{\ignorespaces CI trigger summary}}{53}{table.caption.140}\protected@file@percent }
+\newlabel{tab:ci-triggers}{{22}{53}{CI trigger summary}{table.caption.140}{}}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Local development workflow.}{54}{paragraph*.141}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Mock strategy.}{54}{paragraph*.142}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {17}{\ignorespaces Conditional mock usage in tests}}{54}{lstlisting.17}\protected@file@percent }
+\BKM@entry{id=67,dest={73756273656374696F6E2E31302E32},srcline={201},srcfile={2E2F73656374696F6E732F31302D7375737461696E6162696C6974792E746578}}{5C3337365C3337375C303030315C303030305C3030302E5C303030325C3030305C3034305C303030535C303030755C303030735C303030745C303030615C303030695C3030306E5C303030615C303030625C303030695C3030306C5C303030695C303030745C303030795C3030305C3034305C303030615C3030306E5C303030645C3030305C3034305C303030425C303030755C303030735C303030695C3030306E5C303030655C303030735C303030735C3030305C3034305C3030304D5C3030306F5C303030645C303030655C3030306C}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Documentation.}{55}{paragraph*.143}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.2}Sustainability and Business Model}{55}{subsection.10.2}\protected@file@percent }
+\newlabel{sec:business}{{10.2}{55}{Sustainability and Business Model}{subsection.10.2}{}}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Principles.}{55}{paragraph*.144}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Store revenue.}{55}{paragraph*.145}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Enterprise services.}{55}{paragraph*.146}\protected@file@percent }
+\BKM@entry{id=68,dest={73756273656374696F6E2E31302E33},srcline={291},srcfile={2E2F73656374696F6E732F31302D7375737461696E6162696C6974792E746578}}{5C3337365C3337375C303030315C303030305C3030302E5C303030335C3030305C3034305C303030525C3030306F5C303030615C303030645C3030306D5C303030615C30303070}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline OEM and hardware partnerships.}{56}{paragraph*.147}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Support tiers.}{56}{paragraph*.148}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Public funding and grants.}{56}{paragraph*.149}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Path to incorporation.}{56}{paragraph*.150}\protected@file@percent }
+\BKM@entry{id=69,dest={6269622E73656374696F6E},srcline={75},srcfile={2E2F6D61696E2E746578}}{5C3337365C3337375C303030525C303030655C303030665C303030655C303030725C303030655C3030306E5C303030635C303030655C30303073}
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.3}Roadmap}{57}{subsection.10.3}\protected@file@percent }
+\newlabel{sec:roadmap}{{10.3}{57}{Roadmap}{subsection.10.3}{}}
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Phase 0 - Foundation (current).}{57}{paragraph*.151}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\nonumberline Phase 1 and beyond.}{57}{paragraph*.152}\protected@file@percent }
+\newlabel{TotPages}{{57}{57}{}{page.57}{}}
 \abx@aux@read@bbl@mdfivesum{nobblfile}
-\gdef \@abspage@last{17}
+\gdef \@abspage@last{57}

@@ -1,1 +1,291 @@
-% TODO
+\section{AI Layer}
+\label{sec:ai}
+
+\subsection{Overview}
+\label{sec:ai-overview}
+
+The AI layer sits on top of the Knowledge Graph and provides both the user and
+the system with access to an AI model that has structured context about what is
+happening on the machine. It is not a chatbot grafted onto an existing OS; it
+is an interface that can query the graph, invoke application capabilities
+through a standardized protocol, and optionally act autonomously when the user
+explicitly enables that.
+
+The AI layer is not the primary reason this system exists. The desktop, the
+permission system, the profile isolation, and the store all stand on their own.
+AI is an enhancement that becomes more useful as the Knowledge Graph fills in
+over time, and users who want none of it can disable it completely without
+losing any other functionality.
+
+Three principles govern the design of this layer.
+
+\paragraph{Query-first.}
+The AI responds when asked. Nothing happens in the background without an
+explicit trigger. Autonomous features exist but are separate opt-ins, not
+defaults that the user has to find and disable.
+
+\paragraph{Provider-agnostic.}
+The system does not care whether the model runs locally or in the cloud.
+Every provider implements the same interface; the rest of the codebase never
+speaks to a specific backend. The user decides what runs where, including
+routing sensitive requests to a local model only.
+
+\paragraph{Opt-out at any point.}
+The entire layer can be disabled in Settings under AI. When disabled, no local
+model runs, no graph queries originate from the AI layer, Spotlight falls back
+to standard search, and no MCP servers are active. The setting is not hidden
+five menus deep.
+
+\subsection{Cold-Start Behavior}
+\label{sec:ai-coldstart}
+
+The Knowledge Graph is empty on a fresh install. An AI feature that promises
+contextual awareness but has nothing in the graph yet is worse than no feature
+at all: it creates an expectation and immediately fails to meet it. The system
+handles this with straightforward communication rather than by faking
+usefulness.
+
+During onboarding, AI features are presented with an honest explanation of
+what to expect: the assistant learns context gradually as the system is used,
+starts with nothing, and becomes more useful over days and weeks. There are no
+demo interactions, no placeholder context, and no fabricated examples of what
+it will eventually be able to do.
+
+At onboarding the user can optionally seed the graph with existing data from
+their current system: browser history, calendar events, and documents. This is
+presented as a trade-off, not a recommendation. Each source can be imported
+independently, so someone who is comfortable sharing their calendar but not
+their browsing history can import only the former. Importing gives the AI
+immediately useful context without a multi-week waiting period.
+
+The AI assistant does not surface proactively until a threshold is met: seven
+days of usage or a completed manual import. Before that threshold the feature
+is accessible but does not advertise itself. The non-AI parts of the system are
+functional and complete from the first boot, so there is no gap in usefulness
+during this period.
+
+\subsection{Provider Abstraction}
+\label{sec:ai-providers}
+
+Different AI providers have different APIs, different latency profiles, and
+significantly different privacy implications. Sending the contents of a private
+file to a cloud API is appropriate in some contexts and completely unacceptable
+in others. The system needs to handle both without the rest of the codebase
+caring which provider is active.
+
+The solution is a Rust trait that every AI backend implements. The AI layer
+constructs a \texttt{CompletionRequest}, passes it to whichever provider is
+configured, and receives a \texttt{CompletionResponse}. No provider-specific
+code is visible outside the provider module.
+
+\begin{lstlisting}[language=Rust, caption={AI provider trait}]
+#[async_trait]
+pub trait AiProvider: Send + Sync {
+    async fn complete(
+        &self,
+        request: CompletionRequest,
+    ) -> Result<CompletionResponse>;
+    async fn available(&self) -> bool;
+    fn name(&self) -> &str;
+}
+\end{lstlisting}
+
+Figure~\ref{fig:providers} shows how the AI layer relates to the available
+backends.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  box/.style={
+    draw, thick, rectangle, rounded corners=2pt,
+    minimum width=3.2cm, minimum height=0.8cm,
+    font=\small, align=center, inner sep=5pt
+  },
+  arr/.style={->, thick},
+]
+
+\node[box] (ail)   at (0, 3.2) {\textbf{AI Interface Layer}};
+\node[box] (trait) at (0, 2.0) {Provider Trait (Rust)};
+\node[box] (local) at (-2.4, 0.8) {Local Provider};
+\node[box] (cloud) at ( 2.4, 0.8) {Cloud Provider};
+\node[box, dashed] (lm)  at (-2.4, -0.4) {\footnotesize Ollama / llama.cpp};
+\node[box, dashed] (api) at ( 2.4, -0.4) {\footnotesize OpenAI / Anthropic / \ldots};
+
+\draw[arr] (ail)   -- (trait);
+\draw[arr] (trait) -- (local);
+\draw[arr] (trait) -- (cloud);
+\draw[arr] (local) -- (lm);
+\draw[arr] (cloud) -- (api);
+
+\end{tikzpicture}
+\caption{Provider abstraction. The AI layer speaks only to the trait; the
+concrete backend is a configuration choice. Local and cloud providers are
+interchangeable from the perspective of anything above the trait boundary.}
+\label{fig:providers}
+\end{figure}
+
+Multiple providers can be active simultaneously under a routing policy
+configured by the user: a local model as the default, with fallback to cloud
+if the local model is unavailable or too slow; specific task types such as code
+always routed to a designated provider; and sensitive contexts, such as
+requests involving personal file contents, explicitly prevented from leaving
+the machine.
+
+\subsection{MCP Integration}
+\label{sec:mcp}
+
+\emph{MCP} (Model Context Protocol) is an open protocol that standardizes how
+AI models interact with external tools and data sources. Before MCP, every AI
+integration was bespoke: one application called the OpenAI API directly,
+another used its own tool-calling format, and combining them required custom
+glue code on both ends. MCP standardizes this at the protocol level so that
+any MCP-compatible AI client can communicate with any MCP server without
+application-specific integration work.
+
+An MCP server is a small process that exposes a set of tools the AI can call
+and resources the AI can read. In this system, first-party applications expose
+MCP servers as part of their standard implementation: the file manager exposes
+\texttt{list\_directory}, \texttt{open\_file}, and \texttt{move\_file}; the
+terminal exposes \texttt{run\_command} and \texttt{get\_output}; the Knowledge
+Graph exposes a query interface. The AI can coordinate across multiple
+applications in a single interaction by calling their respective servers in
+sequence. Figure~\ref{fig:mcp} shows the topology.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  box/.style={
+    draw, thick, rectangle, rounded corners=2pt,
+    minimum width=2.8cm, minimum height=0.8cm,
+    font=\small, align=center, inner sep=5pt
+  },
+  srv/.style={
+    draw, thick, rectangle, rounded corners=2pt,
+    minimum width=2.8cm, minimum height=0.8cm,
+    font=\small, align=center, inner sep=5pt
+  },
+  arr/.style={->, thick},
+]
+
+\node[box] (model)  at (0, 0)   {\textbf{AI Model}};
+\node[box] (client) at (3.4, 0) {MCP Client};
+\node[srv] (fm)     at (6.8,  1.8) {MCP: File Manager};
+\node[srv] (term)   at (6.8,  0.6) {MCP: Terminal};
+\node[srv] (kg)     at (6.8, -0.6) {MCP: Knowledge Graph};
+\node[srv] (ext)    at (6.8, -1.8) {MCP: third-party};
+
+\draw[arr] (model)  -- (client);
+\draw[arr] (client) -- (fm);
+\draw[arr] (client) -- (term);
+\draw[arr] (client) -- (kg);
+\draw[arr] (client.east) -- (ext);
+
+\end{tikzpicture}
+\caption{MCP topology. The AI model communicates through a single MCP client
+that dispatches to individual application servers. Third-party applications
+from the Store can ship their own MCP servers, subject to the permission model
+described in Section~\ref{sec:mcp-permissions}.}
+\label{fig:mcp}
+\end{figure}
+
+CLI tools do not need MCP servers. If a tool has a \texttt{-{}-help} flag and
+produces sensible output, the AI can invoke it as a subprocess and read
+\texttt{stdout}. MCP is reserved for GUI applications and stateful interfaces
+where a subprocess call is insufficient.
+
+\subsection{Interaction Model}
+\label{sec:ai-interaction}
+
+\paragraph{Phase 1: Query-based (default).}
+The user asks a question, the AI responds. No background activity occurs
+without an explicit trigger. The AI has access to the Knowledge Graph and
+whatever MCP servers are permitted under the current configuration. Typical
+interactions include querying session history, finding files related to a
+project, correlating system events with observed behaviour, and composing
+multi-step actions across applications.
+
+When a question is asked, the AI layer translates the natural language input
+into a Cypher query, executes it against the Knowledge Graph via the Graph
+Daemon, and passes the structured results to the model as context. Relative
+time expressions are resolved to absolute UTC timestamps before the generation
+step, so the model always operates on concrete values rather than ambiguous
+phrases. The Cypher generation and the result formatting are two separate model
+calls, since combining them causes the model to bias the query toward a
+desired-sounding answer rather than accurately querying the schema.
+
+The query validator sits between generation and execution: it checks that the
+generated Cypher uses only known node types and relations, contains no write
+operations, and includes a \texttt{LIMIT} clause. If validation fails, the
+error is fed back for a retry; after two failed attempts the user is told the
+question could not be answered, with no silent fallback.
+
+\paragraph{Phase 2: Autonomous agent (explicit opt-in).}
+A background agent that observes the event stream and acts proactively is
+available as an opt-in capability. It is not enabled by default and each
+autonomous behaviour is a separate toggle: suggesting related files when a
+document is opened is independent of automatically tagging new files by
+project. The agent uses the same provider abstraction and MCP layer as the
+query interface; the difference is that it initiates actions rather than
+responding to them.
+
+\subsection{MCP Permission Model}
+\label{sec:mcp-permissions}
+
+MCP servers are the interface through which the AI acts on applications.
+The permission model distinguishes between reading information, which the AI
+can do by default within the user's configured AI permission level, and
+modifying state, which requires explicit per-session authorization.
+
+\begin{table}[htbp]
+\caption{Read-only MCP servers (permitted by default)}
+\label{tab:mcp-read}
+\begin{tabularx}{\linewidth}{lX}
+\toprule
+\textbf{Server} & \textbf{Exposes} \\
+\midrule
+File Manager   & Directory listings, file metadata \\
+Calendar       & Upcoming and past events \\
+Browser        & History and open tabs (no passwords, no form data) \\
+System Monitor & Process list and resource usage \\
+Notes          & Note titles and content \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Reading to answer a question is what the user expects when they ask the AI
+something. Answering "what meetings do I have today?" without a confirmation
+dialog is the correct behaviour. Reading does not change state, and the AI
+permission level configured in Settings still gates what data each server
+exposes regardless of this default.
+
+\begin{table}[htbp]
+\caption{Write and action MCP servers (per-session authorization required)}
+\label{tab:mcp-write}
+\begin{tabularx}{\linewidth}{lX}
+\toprule
+\textbf{Server} & \textbf{Can do} \\
+\midrule
+Terminal     & Execute shell commands \\
+File Manager & Create, move, rename, delete files \\
+Calendar     & Create and modify events \\
+Email        & Compose and send messages \\
+Store        & Install and remove packages \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Authorization is granted once per session and covers the scope the user
+specifies: approving file management does not imply approval for email. It
+expires at session end and is not persisted. Within an authorized scope, a
+separate hardcoded list of actions always requires explicit confirmation
+regardless of session permissions, because their consequences are irreversible
+or high-impact: permanent file deletion, sending any external message,
+installing or removing system packages, modifying system configuration outside
+\texttt{\textasciitilde/.config}, any network request to a host outside the
+application's declared permissions, and running commands with elevated
+privileges. This list is not configurable.
+
+Third-party MCP servers shipped by Store applications are always treated as
+action-requiring by default. A community server that claims to be read-only
+receives the same treatment until it carries a verified security audit covering
+its MCP implementation.

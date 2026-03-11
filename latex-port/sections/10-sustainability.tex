@@ -1,1 +1,313 @@
-% TODO
+\section{Developer Experience, Sustainability, and Roadmap}
+\label{sec:sustainability}
+
+\subsection{Developer Experience and Infrastructure}
+\label{sec:devex}
+
+The development infrastructure is designed around one constraint: a project of
+this scope spans many components with cross-cutting concerns, and the tooling
+must make that manageable without forcing artificial coupling between parts
+that should evolve independently.
+
+\paragraph{Repository structure.}
+The project uses a multi-repo layout under a single GitHub organization. Each
+component has its own repository, its own release cycle, and its own CI
+pipeline. Components can be updated independently as long as they do not
+introduce breaking changes to the interfaces they expose. A breaking interface
+change requires a coordinated update across all affected components, enforced
+by the versioning mechanism described below.
+
+\begin{lstlisting}[language=bash, caption={Repository structure}]
+org/
+  blueprint       <- architecture documents and this document
+  kernel-layer    <- eBPF programs, Event Bus daemon
+  knowledge       <- Kuzu integration, graph schema, Graph Daemon
+  ai-layer        <- provider abstraction, MCP client
+  compositor      <- Smithay-based Wayland compositor (Rust)
+  desktop-shell   <- taskbar, launcher, shell (Tauri + TypeScript)
+  ui-kit          <- shared component library (TypeScript + Tailwind)
+  os-sdk          <- shared Rust crate for system integration
+  app-files       <- File Manager
+  app-settings    <- Settings
+  app-terminal    <- Terminal
+  app-store       <- Store
+  module-sdk      <- SDK for shell module development
+  themes          <- GTK4, Wine .msstyles, token source
+  distro          <- build system, ISO generation, meta-packages
+\end{lstlisting}
+
+\paragraph{Build system.}
+\emph{mkosi}, maintained by the systemd team, is the target tool for image
+generation. It builds bootable OS images from a declarative configuration,
+specifying which packages to include, which files to add, and how to configure
+the system. It produces UEFI-bootable images directly and supports multiple
+output formats: ISO, disk image, and container. It integrates cleanly with the
+Open Build Service. Confirming that mkosi handles the full build pipeline in
+practice is an open item pending actual use.
+
+The \emph{Open Build Service} handles packaging for all custom components.
+OBS builds RPM packages across architectures for both candidate base
+distributions, signs packages with the project GPG key, and hosts the package
+repository that end-user systems pull from. Both Fedora and OpenSUSE targets
+can be built from the same spec files, which is one practical reason both
+remain viable candidates.
+
+\paragraph{Update system.}
+Updates arrive from two independent streams managed separately. The base
+system, meaning the kernel and base distribution packages, is handled by the
+native package manager (dnf or zypper depending on the chosen base), with
+Snapper automatically taking a Btrfs snapshot before every update. Project
+components, meaning the compositor, shell, event bus, graph daemon, AI layer,
+and first-party applications, are distributed via the project's own OBS
+repository as RPM packages managed as a coordinated meta-package.
+
+The update behavior is designed to be non-intrusive. Security updates for both
+streams are downloaded automatically in the background and applied at the next
+shutdown or reboot, never during an active session. No forced reboots, no
+countdown timers. All other updates are downloaded silently in the background;
+a single calm notification appears when they are ready. The user applies them
+when convenient. In managed environments, administrators can configure mandatory
+update windows; even then, no mid-session interruption occurs.
+
+Rollback is available for every update: Btrfs and Snapper record a snapshot
+before each change, and the user can boot into a previous snapshot from the
+boot menu and roll back the entire system without any additional tooling.
+
+Project components communicate over defined IPC interfaces. A breaking
+interface change increments the major version number and must be shipped as a
+coordinated meta-package update, so that incompatible component versions cannot
+coexist. Components verify interface compatibility at startup:
+
+\begin{lstlisting}[language=Rust, caption={Interface compatibility check at startup}]
+fn check_compatibility() -> Result<()> {
+    let daemon_version = get_graph_daemon_version()?;
+    if daemon_version.major != EXPECTED_MAJOR {
+        bail!("Graph Daemon interface version mismatch. Run system update.");
+    }
+    Ok(())
+}
+\end{lstlisting}
+
+A component that detects a version mismatch refuses to start and surfaces a
+clear message. The only resolution is applying the pending system update.
+
+\paragraph{CI/CD pipeline.}
+Tests run at three levels of integration. Table~\ref{tab:ci-triggers} shows
+when each level runs.
+
+\begin{table}[htbp]
+\caption{CI trigger summary}
+\label{tab:ci-triggers}
+\begin{tabularx}{\linewidth}{lX}
+\toprule
+\textbf{Trigger} & \textbf{What runs} \\
+\midrule
+Every push or pull request     & Unit tests for the affected repository \\
+Pull request merge to main     & Unit tests, lint, and build check \\
+Daily at 02:00                 & Cross-component integration tests against all main branches \\
+Release candidate              & Full VM tests and smoke tests \\
+\texttt{kernel-layer} push     & Unit tests plus VM-based eBPF tests \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Unit tests run per repository against mocks from \texttt{os-sdk}. Rust
+components use \texttt{cargo test}; TypeScript components use Vitest. No PR
+merges without green unit tests. The \texttt{kernel-layer} is a special case:
+eBPF logic that can be tested without a real kernel runs on the host as normal
+Rust unit tests, while eBPF programs themselves run in a minimal QEMU instance
+that CI spins up automatically.
+
+Cross-component integration tests verify that two or more components
+communicate correctly over their real IPC interfaces. They run on the host
+without a full system boot, starting only the directly involved daemons as real
+processes against real IPC sockets. A failing integration test with all unit
+tests passing means interface drift between repositories, which is the primary
+failure mode this level exists to catch. Examples: the Event Bus emits a
+\texttt{FileAccessEvent} and the Graph Daemon writes correctly to Kuzu; a theme
+token change in Settings propagates to all running Tauri processes; the shell
+sends a keybinding action and the Input Manager calls the correct handler.
+
+Full VM tests boot a complete system image in QEMU and run smoke tests: system
+boots without crash; Spotlight opens, finds an application, and launches it;
+eBPF events arrive and land in the Knowledge Graph; theme switch propagates
+correctly; module install and uninstall behave as expected. These tests are
+slow and run on release candidates only. The VM image is built by the same
+script used for real releases; no separate test image exists.
+
+\paragraph{Local development workflow.}
+Development happens at three levels of integration, each suited to a different
+class of work. The common case is developing a single component in isolation.
+Each repository has its own development setup with \texttt{cargo run},
+\texttt{tauri dev}, or hot-reload as appropriate. Components that use the mocks
+from \texttt{os-sdk} need no external dependencies running. Fast feedback loop,
+runs entirely on the developer's machine.
+
+For shell and compositor work, Smithay supports nested mode: the compositor
+runs as a regular Wayland window inside the developer's existing desktop. The
+full shell appears inside that window. No VM or extra hardware is needed. This
+covers the majority of shell and compositor development; eBPF and kernel-level
+components are not active in nested mode.
+
+Full system work requires QEMU. This covers eBPF development, the boot
+sequence, the update system, and anything that requires a real kernel or a
+complete system environment. The \texttt{distro} repository contains a script
+set for this workflow, including \texttt{build-image.sh} for a complete
+bootable image, \texttt{run-vm.sh} for an interactive session,
+\texttt{run-vm.sh --share \textasciitilde/projects/kernel-layer} to mount a
+host directory via virtiofs into the VM so that the developer can compile on
+the host and test in the VM without a full image rebuild, and snapshot
+management scripts for saving and restoring VM state.
+
+A strict rule applies to eBPF development: eBPF programs are developed and
+tested exclusively inside the VM, never directly on the development machine.
+A bad eBPF program can destabilize the kernel; the isolation of the VM is not
+optional.
+
+\paragraph{Mock strategy.}
+Every IPC interface in the system has an official mock implementation that
+lives in \texttt{os-sdk} directly alongside the interface definition. Mock and
+real implementation share the same type definitions. An outdated mock is a
+build error, not a runtime surprise: if an interface changes, the mock must be
+updated in the same pull request.
+
+\begin{lstlisting}[language=Rust, caption={Conditional mock usage in tests}]
+#[cfg(test)]
+use os_sdk::graph_daemon::mock::GraphDaemonMock as GraphDaemon;
+
+#[cfg(not(test))]
+use os_sdk::graph_daemon::client::GraphDaemonClient as GraphDaemon;
+\end{lstlisting}
+
+There are no per-repository custom stubs and no fixture files that can drift
+from the real schema. The mock is the contract.
+
+\paragraph{Documentation.}
+Two documentation sites are maintained, both self-hosted. The user-facing wiki
+at \texttt{wiki.[project].dev} is written by hand in the spirit of the Arch
+Wiki: prose that explains intent and reasoning, not only what a setting does.
+It covers concepts, how-tos, troubleshooting, and architecture explanations.
+Community contributions are accepted via pull requests reviewed by the core
+team. The wiki source lives in the \texttt{blueprint} repository alongside the
+architecture documents.
+
+The developer API reference at \texttt{api.[project].dev} is auto-generated
+from code comments: \texttt{rustdoc} for Rust components,
+\texttt{typedoc} for TypeScript components, aggregated and hosted under a single
+domain so there is one place to search across all components. Keeping it
+current is a CI gate: a pull request that removes or modifies a public API
+without updating its documentation comment does not merge.
+
+\subsection{Sustainability and Business Model}
+\label{sec:business}
+
+This is an open source project. The code is and remains open; that is a
+foundational commitment, not a marketing position. At the same time, building
+and maintaining a full operating system is a serious engineering effort that
+requires sustained funding. The goal is not to extract value from users but to
+find revenue streams that are structurally aligned with the project's values:
+user sovereignty, transparency, and European digital autonomy.
+
+\paragraph{Principles.}
+Four constraints rule out entire categories of business models upfront. Core
+OS functionality is not feature-gated behind a paywall; the desktop, the
+permission system, the Knowledge Graph, and the AI layer are open and available
+to everyone. There is no advertising, no telemetry sold to third parties, and
+no data brokering. Venture capital with growth-at-all-costs expectations is
+incompatible with a project built on user trust and is therefore excluded.
+Enterprise features are an acceptable source of revenue; making the core worse
+for non-paying users is not.
+
+\paragraph{Store revenue.}
+The Store's tiered commission model, described in Section~\ref{sec:store},
+generates revenue proportional to ecosystem health. The project earns
+meaningfully only if developers earn well first. At early stage this is
+negligible. At meaningful adoption it becomes a significant funding stream. The
+Store handles application sales, theme sales, module distribution, and profile
+package distribution under a single infrastructure.
+
+\paragraph{Enterprise services.}
+The Signed Profile Package system described in Section~\ref{sec:profiles} is
+already designed with organizations in mind. The \texttt{.lenv} format is open
+and documented; anyone can author packages. Organizations deploying managed
+environments at scale will often want professional help: authoring and
+maintaining custom packages, deployment tooling, update management, and support
+SLAs. This is a natural B2B offering that does not touch the open source core.
+The analogy is Red Hat selling support for software that anyone can download
+for free.
+
+\paragraph{OEM and hardware partnerships.}
+At sufficient maturity and hardware compatibility, small European laptop
+manufacturers may want to ship the system pre-installed. The structural
+alignment is good: the manufacturer gets a differentiated product, users get a
+well-tested hardware and software combination, and the project gets sustainable
+revenue from certification and validation work and an ongoing support
+relationship. This requires a stable release and a polished out-of-box
+experience first and is a longer-term play. Relevant candidates in the European
+market include Tuxedo Computers, the PINE64 ecosystem, and potential Framework
+partnerships.
+
+\paragraph{Support tiers.}
+A support subscription aimed at power users, small businesses, and developers
+who want guaranteed response times and direct access offers prioritized bug
+reports, LTS release guarantees with defined support windows, and a direct
+communication channel with the core team. No features are locked behind this;
+it is a service layer on top of the open product, priced modestly enough to be
+accessible to individual developers.
+
+\paragraph{Public funding and grants.}
+The European open source and digital sovereignty funding landscape is
+underutilized by most projects. The Sovereign Tech Fund in Germany funds open
+source infrastructure projects and explicitly values work that reduces
+dependency on US technology monopolies. The NLnet Foundation funds internet and
+open source projects with a privacy and user rights focus and has supported
+numerous small to medium projects. The NGI (Next Generation Internet) programme
+runs multiple EU funding calls per year for open source, privacy, and
+decentralization work.
+
+The European digital autonomy angle is not only a philosophical position; it is
+a genuine funding argument. A European open source operating system built on
+sovereignty principles is precisely what these programmes exist to support.
+Grants do not provide recurring revenue but they can fund specific development
+phases without creating investor obligations or governance compromises.
+
+\paragraph{Path to incorporation.}
+A company makes sense when there is external money to manage, not before.
+Premature incorporation adds administrative overhead with no corresponding
+benefit. A realistic sequence: the project gains traction and a community
+forms; grant applications are filed; Store revenue starts, providing the first
+external money flow; the first enterprise inquiry for deployment support
+arrives as the first B2B signal. At that point incorporation becomes
+appropriate, probably as a GmbH in Austria or Germany, or as a European
+cooperative structure if community governance is a priority.
+
+The company's role is to employ core contributors, manage the Store
+infrastructure, and sell enterprise and support services. The open source
+project remains governed independently of the company: contribution policy,
+release decisions, and core architecture are not dictated by commercial
+interests. This separation must be written down explicitly before the company
+is incorporated, not negotiated afterward under time pressure.
+
+\subsection{Roadmap}
+\label{sec:roadmap}
+
+The roadmap is intentionally sparse at this stage. Defining detailed phase
+scope before the foundational components are proven would produce a plan that
+reflects assumptions rather than reality. Phases 1 through the public release
+will be scoped as Phase 0 concludes and the first components are built and
+measured.
+
+\paragraph{Phase 0 - Foundation (current).}
+Architecture and design decisions are documented in this blueprint. The proof
+of concept consists of the Event Bus and Knowledge Graph running as a daemon
+and collecting basic system events. The base distribution decision between
+Fedora and OpenSUSE Slowroll is pending and will be made before Phase 1 begins.
+The Kuzu benchmark described in Section~\ref{sec:knowledge-graph} at 5,000
+events per second is a Phase 0 exit criterion.
+
+\paragraph{Phase 1 and beyond.}
+Phase scope will be defined once Phase 0 is complete. The ordering of
+subsequent phases follows the architectural dependency graph: kernel layer and
+event infrastructure before the graph, the graph before the AI layer, the
+compositor before the shell, the shell before Store and module infrastructure.
+Public release comes after a stable, tested combination of all layers exists.

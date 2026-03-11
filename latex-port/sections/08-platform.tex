@@ -1,1 +1,787 @@
-% TODO
+\section{Platform, Profiles, and Security}
+\label{sec:platform}
+
+\subsection{Account System}
+\label{sec:accounts}
+
+The Account System is the single place where the user manages all online
+accounts. Set up once, available everywhere, with full visibility into which
+application accesses what. The design principle is straightforward: no
+application ever directly handles OAuth flows, stores tokens, or manages
+credentials. All account logic lives in a dedicated \emph{Account Daemon}.
+
+\paragraph{Architecture.}
+Applications declare what they need; the daemon handles the rest. When an
+application needs access to a service, it sends a request to the Account
+Daemon, which checks the application's permission profile, retrieves or
+derives the appropriate token, logs the access in the Audit Log, and returns
+what the application needs. The application then communicates with the
+provider's API directly using that token. The daemon is the sole keeper of
+all credentials; tokens never live in application memory longer than
+necessary.
+
+\paragraph{Service-level permissions.}
+Applications request access at the service level, not the OAuth scope level.
+The user sees human-readable service names and never raw OAuth scope strings.
+When an application requests account access for the first time, the user sees
+exactly which service is being requested, grants or denies it, and the
+decision is stored in the application's unified permission profile as described
+in Section~\ref{sec:permissions}. Account permissions are part of the same
+system as filesystem, network, and graph permissions.
+
+\begin{lstlisting}[language=bash, caption={Service-level permission view (Settings)}]
+Google Account (personal@example.com)
+  Mail      -> allowed for: Thunderbird
+  Calendar  -> allowed for: Calendar App, AI Layer (read-only)
+  Drive     -> allowed for: File Manager
+  Contacts  -> not granted to anyone
+\end{lstlisting}
+
+\paragraph{Multiple accounts and resolution order.}
+When multiple accounts of the same type exist, the system resolves which to
+use via a three-tier model. The system default applies globally; an Isolated
+Desktop context can declare its own defaults, so that switching to the Work
+desktop automatically switches the active account context; and individual
+applications can be manually pointed at a specific account regardless of the
+desktop context. Resolution proceeds from most specific to least specific:
+per-app override, then desktop default, then system default.
+
+\begin{lstlisting}[language=bash, caption={Account resolution configuration}]
+# resolved in order: per-app override -> desktop default -> system default
+[defaults]
+google = "personal@example.com"
+
+[desktop.work.defaults]
+google = "work@example.com"
+
+[app."org.mozilla.thunderbird"]
+# always uses personal account regardless of active desktop
+google = "personal@example.com"
+\end{lstlisting}
+
+\paragraph{Token security.}
+Credentials never leave the Account Daemon as-is. Two paths are used
+depending on provider support. For providers that support OAuth scope
+restriction, the daemon issues a short-lived derived token scoped only to
+what the application declared, with a default lifetime of five minutes. The
+full OAuth token and refresh token never leave the daemon at all. For
+providers that do not support downscoping, the full token is handed to the
+application but with two compensating controls: every token handoff is logged
+in the Audit Log, and tokens are actively revoked when the application process
+exits. All credentials at rest are stored in the Kernel Keyring; the daemon
+loads them into memory only when actively needed and discards them immediately
+after.
+
+\paragraph{Offline behavior.}
+Two failure modes are handled distinctly. When the provider rejects the token
+because the user revoked access or the account password changed, the daemon
+emits a single system notification directing the user to Settings and does not
+repeat it; applications receive a clear \texttt{AccountAuthRequired} error
+code and surface a gentle in-app hint. When the network itself is unavailable,
+the daemon serves cached data from the last successful sync, clearly marked
+with the timestamp of the last update. A calendar application shows last-known
+events labeled with their age rather than an empty state. When connectivity
+is restored, the daemon refreshes silently in the background and notifies
+applications of updated data via the Event Bus.
+
+\paragraph{GNOME Online Accounts bridge.}
+Applications built for GNOME that use GNOME Online Accounts expect a D-Bus
+interface at \texttt{org.gnome.OnlineAccounts}. The system provides a
+GOA-compatible bridge that implements this interface exactly but sources all
+data from the Account Daemon internally. Evolution, GNOME Calendar, and other
+GOA-dependent applications work without modification. Internally every request
+goes through the Account Daemon, through the permission system, and through
+the Audit Log. The bridge translates; it does not add logic.
+
+\subsection{Profile System}
+\label{sec:profiles}
+
+A profile is a complete, isolated user environment backed by a separate Linux
+system user. Each profile has its own home directory, its own Knowledge Graph,
+its own account configuration, and its own set of running system daemons.
+Isolation is enforced at the kernel level, not by convention.
+
+The profile system replaces the concept of isolated desktops within a session.
+Rather than trying to isolate individual desktops within a single session, the
+entire session is the isolation boundary. Switching profiles is a session
+switch, not a window toggle.
+
+\paragraph{Personal profiles.}
+The primary profile, created at system setup, cannot be deleted. It has no
+restrictions: full access to all installed applications, all accounts, and all
+system features. This is the default context the user logs into.
+
+\paragraph{Work and custom profiles.}
+A user-created or organization-deployed profile for a specific context such as
+work, a project, or a secondary identity. Backed by a separate Linux user with
+its own encrypted home image via \texttt{systemd-homed}. Virtual desktops,
+accounts, Knowledge Graph, and application configurations are all independent
+from the Personal profile. Multiple custom profiles can coexist. Each is a
+full Linux user; switching to one is a standard session switch with saved and
+restored window state.
+
+\paragraph{Locked profiles.}
+A profile deployed by an institution for controlled sessions: exams, regulated
+work environments. Backed by a temporary Linux user created at session start
+and deleted when the session ends. The user cannot switch to another profile
+while a Locked session is active; this is enforced at the compositor level, not
+by UI alone. After the session ends, the Linux user and all associated data are
+removed. No data from the Locked session survives into the Personal profile.
+
+\paragraph{Guest mode.}
+A lightweight temporary context for short-term use by another person. Unlike
+other profile types, Guest does not create a second Linux user or a second
+compositor session. It runs as a sandboxed environment on top of the current
+session: a separate namespace, an empty home directory, no access to the host
+user's data. The host session is suspended in the background and resumed
+instantly when Guest ends. All Guest data is discarded on exit.
+
+\paragraph{Technical foundation.}
+Each non-Guest profile is a Linux system user. Profile creation is
+\texttt{useradd} plus \texttt{systemd-homed} home image setup; profile
+switching is a standard Linux user session switch; profile deletion is
+\texttt{userdel} plus home image removal. Isolation is kernel-enforced.
+\texttt{systemd-homed} provides per-profile LUKS-encrypted home images. When
+a profile is not active, its home image is unmounted and its encryption key
+is discarded from memory. Each profile runs its own instance of all system
+daemons: Graph Daemon, Account Daemon, Event Bus. There is no shared daemon
+state between profiles.
+
+\paragraph{Data transfer between profiles.}
+By default profiles are fully sealed from each other. Controlled data transfer
+is configured per profile pair in Settings, with independent directional
+control over clipboard, drag-and-drop, and a shared folder:
+
+\begin{lstlisting}[language=bash, caption={Cross-profile transfer configuration}]
+[profile.work.transfer]
+clipboard              = "in-only"    # "off" | "in-only" | "out-only" | "both"
+drag_drop              = "in-only"
+shared_folder          = "~/Transfer/Work"
+shared_folder_permission = "read-write"  # or "read-only" | "off"
+\end{lstlisting}
+
+A dedicated \emph{Transfer Daemon} is the only process with simultaneous
+access to both profile namespaces. All cross-profile data flow goes through
+it; nothing bypasses it. Whenever data flows out of a profile, a
+non-dismissable toast appears for three seconds identifying the source profile,
+destination, and file name, with an Undo option. The transfer proceeds but can
+be cancelled within the window. All transfers are recorded in the Audit Log
+with source, destination, transfer type, and data description.
+
+Locked profiles have transfer hardcoded to off in all directions. This cannot
+be overridden by the user or by an organization's configuration package; it is
+a system-level invariant with no configuration surface.
+
+\paragraph{Signed profile packages.}
+Profiles can be deployed via a \emph{Signed Profile Package}, a
+\texttt{.lenv} file created and signed by an organization. The user installs
+it themselves and retains full control over their device. The organization
+gets a tamper-evident, versioned configuration. This is the BYOD model: the
+organization controls their context, the user controls their device.
+
+\begin{lstlisting}[language=bash, caption={Signed profile package format}]
+[environment]
+id        = "com.acme.work-profile"
+name      = "Acme Work"
+version   = "2.1.0"
+publisher = "Acme GmbH"
+type      = "persistent"    # or "locked" for exam/controlled sessions
+
+[transfer]
+clipboard     = "in-only"
+drag_drop     = "in-only"
+shared_folder = "off"
+
+[network]
+require_vpn    = "acme-vpn"
+allow_outbound = ["*.acme.com", "*.office365.com"]
+block_outbound = ["*"]
+
+[apps]
+required = ["com.acme.timetracker", "org.mozilla.firefox"]
+blocked  = ["com.valve.steam"]
+
+[graph]
+ai_access = "off"
+export    = "off"
+\end{lstlisting}
+
+The package is signed by the organization's private key. Key distribution uses
+TOFU by default: on first install the user sees the publisher name and key
+fingerprint and confirms trust. For managed onboarding, IT can send an
+enrollment link so that the organization's key is imported before any package
+arrives, eliminating the TOFU prompt entirely.
+
+Before installation, a full summary of every policy and restriction is shown.
+Nothing is hidden. There are certain things an organization cannot do through
+a signed package, enforced technically rather than by policy: the organization
+cannot read the user's Personal profile or its Knowledge Graph, cannot access
+any data outside the profile's Linux user boundary, cannot monitor activity
+in other profiles, cannot remotely wipe or modify the device, and cannot
+prevent the user from uninstalling the package. If \texttt{notify\_on\_uninstall}
+was declared and accepted at install time, the organization receives a
+notification when the package is removed, but the removal proceeds regardless.
+
+\subsection{Gaming and Windows Compatibility}
+\label{sec:gaming}
+
+Gaming and Windows application compatibility are first-class features, not
+afterthoughts. The required components are pre-installed and pre-configured;
+no manual setup is required.
+
+\paragraph{Wine and Proton.}
+\emph{Wine} provides compatibility for Windows applications on Linux.
+\emph{Proton} is Valve's fork of Wine, optimized for gaming and maintained
+with extensive patches from Valve's Linux gaming team; for gaming specifically
+it is substantially better than vanilla Wine. Both are pre-installed alongside
+\emph{DXVK}, which translates Direct3D 9, 10, and 11 calls to Vulkan, and
+\emph{vkd3d-proton}, Valve's fork of vkd3d that translates Direct3D 12 calls
+to Vulkan. Winetricks is included for installing Windows runtime components
+into Wine prefixes.
+
+Steam is available in the Store and works out of the box with Proton enabled.
+Steam manages its own Proton version per game; the system does not interfere
+with Steam's internal Proton management.
+
+Non-Steam Windows games and applications use Wine directly, managed through
+the first-party \emph{Wine Manager} application. The underlying components are
+shared with Steam's installation rather than duplicated. Wine Manager is a thin
+UI over the existing tooling providing prefix creation and deletion, per-prefix
+Winetricks access, launch shortcuts, and per-prefix Proton and Wine version
+selection.
+
+DXVK and vkd3d-proton require Vulkan. Mesa provides Vulkan support for AMD
+and Intel GPUs by default. Nvidia requires the proprietary driver for Vulkan
+support; the Store provides explicit guidance for Nvidia users during setup.
+
+\paragraph{Wine theming.}
+By default Wine applications render with a Windows Classic or Windows 7-era
+appearance that is visually inconsistent with a modern desktop. A first-party
+Wine theme is maintained as part of this project, generated from the same
+design token system used for GTK and Qt theming. It updates automatically
+when the system theme changes. Wine applications do not look native, but they
+look consistent with the rest of the system. The Wine theme is applied
+automatically to all Wine prefixes managed by the system; users who prefer
+the default Windows appearance can opt out per prefix.
+
+\paragraph{Performance tooling.}
+\emph{Gamemode} by Feral Interactive is pre-installed and enabled by default.
+It applies system-level performance optimizations when a game is running: the
+CPU governor switches to performance mode, the I/O scheduler is tuned, and
+kernel scheduler hints are applied. Proton handles the Gamemode activation call
+automatically; no manual configuration is required.
+
+\emph{MangoHud} is pre-installed as an in-game overlay showing frames per
+second, GPU and CPU usage, temperatures, and frame timing. It is disabled by
+default and toggled via a keyboard shortcut.
+
+\paragraph{Knowledge Graph integration.}
+Gaming activity is tracked in the Knowledge Graph like any other activity:
+which games were played, when, and for how long; which Wine and Proton versions
+were used per game; and performance data from MangoHud when enabled, linked to
+sessions. This makes queries such as "how many hours did I play last week" or
+"which Proton version worked best for this game" available locally without
+relying on any external service.
+
+\subsection{Security and Privacy}
+\label{sec:security}
+
+Security is not a feature added on top of this system. It is a foundational
+design constraint that shapes every architectural decision.
+
+\paragraph{Core principles.}
+Five non-negotiables drive everything in this section. First, the Knowledge
+Graph, Audit Log, and AI context are local by default and never leave the
+machine without explicit user action; there is no opt-out dark pattern, the
+default is that nothing goes anywhere. Second, the system collects no usage
+data, crash reports, or any other information without explicit user consent.
+Third, the system works fully offline and without registration; cloud features
+are opt-in. Fourth, every component gets exactly the permissions it needs and
+nothing more, applying to filesystem access, network access, graph access, and
+syscalls alike. Fifth, security must not destroy usability: defaults are
+chosen to protect without requiring constant interaction, because a system so
+locked down that users disable its protections is less secure than a
+well-calibrated one.
+
+A sixth principle follows from the others: data minimization is itself a
+security property. Data that does not exist cannot be stolen. The retention
+policy defined in Section~\ref{sec:knowledge-graph} is not only a privacy
+decision but an active security measure. Every decision to extend retention
+windows is a deliberate expansion of attack surface and must be understood
+as such.
+
+\subsubsection{Full Disk Encryption}
+\label{sec:fde}
+
+Full Disk Encryption means that everything stored on disk is encrypted at
+rest. On Linux this is implemented via \emph{LUKS} on top of the
+\emph{dm-crypt} kernel module. The entire partition is encrypted and the OS
+decrypts it transparently at boot after credentials are provided.
+
+FDE is enabled by default. A stolen or lost device is a realistic threat for
+any user; without FDE, physical access means full access to all data. The
+performance concern that historically argued against FDE no longer applies:
+all modern x86 and ARM processors have hardware AES acceleration that makes
+encryption effectively free at current workloads.
+
+The primary unlock mechanism is a passphrase entered at boot. On systems with
+a \emph{TPM}, the FDE key can be sealed to the TPM and released automatically
+if the system boots in a known-good state. This allows passwordless boot on
+trusted hardware while still protecting the drive if it is physically removed.
+If the boot configuration changes due to tampering, the TPM refuses to release
+the key and falls back to the passphrase. TPM-based unlock is opt-in;
+passphrase is always the fallback.
+
+Hibernate requires additional care because the entire RAM contents are written
+to the swap partition. That swap partition must also be LUKS-encrypted, and
+key management must allow the system to resume without manual intervention.
+This is a known-solved problem on Linux but requires deliberate configuration
+during the installation process.
+
+\subsubsection{Secure Boot, Unified Kernel Images, and Measured Boot}
+\label{sec:secureboot}
+
+\emph{Secure Boot} is a UEFI firmware feature that verifies the cryptographic
+signature of every piece of code executed during the boot process. If any
+component is not signed by a trusted key, the firmware refuses to execute it.
+The practical effect is that an attacker who modifies the bootloader or kernel
+cannot boot the modified system without also possessing the signing key.
+
+Both candidate base distributions support Secure Boot via a Microsoft-signed
+shim bootloader. Custom kernel modules built for this project must be signed
+with a Machine Owner Key enrolled in the firmware.
+
+A traditional Linux boot chain consists of multiple separate files: the
+bootloader, the kernel image, and the initramfs. A \emph{Unified Kernel Image}
+packages all three into a single signed EFI binary, reducing the attack
+surface to a single component requiring verification. \texttt{systemd-boot}
+supports UKI natively and the broader Linux ecosystem is moving in this
+direction. This project targets UKI as the boot format.
+
+\emph{Measured Boot} goes further than Secure Boot: every boot component is
+cryptographically hashed and the hash is stored in the TPM's Platform
+Configuration Registers. This creates a tamper-evident record of exactly what
+ran during boot. If any component changes, even legitimately due to an update,
+the PCR values change. Locally, the TPM can be configured to release the FDE
+key only if the PCR values match an expected set, so that a modified bootloader
+causes the TPM to refuse key release. In managed environments, a remote server
+can request a signed attestation report from the TPM, and a device that fails
+attestation can be denied network access.
+
+\emph{Secure Boot} combined with \emph{Measured Boot} makes the Evil Maid
+Attack significantly harder. An Evil Maid Attack is the scenario where an
+attacker has brief physical access to a powered-off device and modifies the
+bootloader to capture the user's FDE passphrase on the next boot. Without
+the signing key, Secure Boot blocks the modified bootloader from executing
+entirely.
+
+\subsubsection{App Sandboxing}
+\label{sec:sandboxing}
+
+Every application runs in a restricted environment that limits what it can do
+even if fully compromised. Three mechanisms operate simultaneously and
+independently; bypassing one does not bypass the others.
+
+\begin{table}[htbp]
+\caption{Sandboxing mechanism layers}
+\label{tab:sandboxing}
+\begin{tabularx}{\linewidth}{lX}
+\toprule
+\textbf{Mechanism} & \textbf{Function} \\
+\midrule
+Linux Namespaces & Changes what the application can see \\
+AppArmor         & Blocks actions on resources the application can see \\
+seccomp          & Blocks specific syscalls regardless of resource visibility \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Linux Namespaces give each application its own restricted view of the system
+before any permission check occurs. A Mount Namespace means the application
+sees only its own data directory, explicitly granted paths, and a minimal set
+of system paths; other applications' data directories do not exist from its
+perspective. A Network Namespace means applications without declared network
+access see no network interface at all; applications with declared network
+access see only a filtered virtual interface. A PID Namespace means the
+application can only see its own process tree.
+
+AppArmor profiles are defined externally in the package and reviewed during
+Store submission; an application cannot define or modify its own profile. A
+text editor does not need \texttt{ptrace}, \texttt{mount}, or
+\texttt{kexec}; a seccomp profile that excludes these syscalls causes the
+kernel to kill the process immediately if a compromised application attempts
+them.
+
+IPC is restricted to the Event Bus, the Graph Daemon, and explicitly declared
+inter-application communication channels. An application cannot open a socket
+to another application without that channel being declared and approved.
+
+\subsubsection{Knowledge Graph Security}
+\label{sec:graph-security}
+
+The Knowledge Graph is the most sensitive component in the system. It
+accumulates a detailed record of everything the user does and its access
+control must be correspondingly rigorous.
+
+No application has direct access to the Kuzu database files. All graph access
+goes through the \emph{Graph Daemon}, a privileged system process that is the
+sole reader and writer of the graph. Every other component communicates only
+with the daemon over a defined IPC interface, and the daemon checks permissions
+before executing any query.
+
+\paragraph{Three axes of permission.}
+Graph permissions are defined along three independent axes. The first axis is
+node types: which categories of data the caller can read, such as
+\texttt{File}, \texttt{App}, \texttt{NetworkConnection}, or \texttt{Session}.
+A calendar application may read \texttt{Session} nodes but not
+\texttt{NetworkConnection} nodes. The second axis is relations: which
+connections between nodes the caller can traverse. An application permitted
+to read \texttt{File} nodes may still be blocked from traversing the
+\texttt{OPENED\_BY} relation that connects files to the applications that
+opened them. The third axis is instances: whether the caller can see only the
+nodes it generated itself or nodes generated by other applications as well.
+
+\begin{lstlisting}[language=bash, caption={Graph permission entry}]
+[app."com.example.notes"]
+allow_read       = ["File.path", "File.last_modified", "Session.started_at"]
+deny_read        = ["File.content_snippet", "NetworkConnection.*"]
+allow_relations  = ["PART_OF_SESSION"]
+instance_scope   = "self"   # only nodes this app generated
+\end{lstlisting}
+
+\paragraph{Two permission layers.}
+Permissions are assigned in two layers. At install time, the package declares
+the maximum graph permissions it can ever receive; the user reviews this
+declaration as part of installation. At runtime, the application can request
+permissions within its declared maximum, with a user prompt explaining what is
+requested and why. A runtime request that exceeds the install-time declaration
+is rejected outright. Some fields within permitted node types are additionally
+restricted regardless of node-level permissions: file content snippets, for
+example, require an explicit extra permission separate from general
+\texttt{File} node access.
+
+\paragraph{Kuzu file protection.}
+The Kuzu database files are protected by three independent layers. At the
+filesystem layer, the Graph Daemon runs as a dedicated system user
+\texttt{graph-daemon} and the database files are owned exclusively by this
+user with \texttt{600} permissions. A successful sandbox escape by an
+application process running as the logged-in user does not grant access to
+these files. At the AppArmor layer, a separate deny rule in every
+application's AppArmor profile prohibits access to the graph directory even
+if filesystem permissions were bypassed. At the encryption layer, the graph
+directory lives inside a LUKS-encrypted loopback image that the daemon mounts
+at startup using a key retrieved from the Kernel Keyring. When the daemon
+stops, cleanly or via crash, the image is unmounted and the key is discarded
+from memory. During any period when the Graph Daemon is not running, the Kuzu
+files are LUKS-encrypted ciphertext unreadable even to root.
+
+\paragraph{Cypher injection prevention.}
+The Graph Daemon never accepts query strings with embedded values. All queries
+must use named parameters, and the daemon runs a validator on every incoming
+query that detects embedded values before execution.
+
+\begin{lstlisting}[language=Rust, caption={Parameterized graph queries}]
+// Rejected - string interpolation
+let query = format!("MATCH (f:File {{name: '{}'}}) RETURN f", user_input);
+
+// Required - parameterized
+daemon.query(
+    "MATCH (f:File {name: $name}) RETURN f",
+    params!{ "name" => user_input }
+)
+\end{lstlisting}
+
+Applications without \texttt{arbitrary\_query} permission in their manifest
+cannot send free-form query strings at all; they select from pre-approved
+query templates and supply only the parameters. Only explicitly trusted
+components such as the AI layer and system daemons receive
+\texttt{arbitrary\_query} permission, and even they go through the
+parameterization validator.
+
+\paragraph{Capability tokens.}
+Instead of looking up permissions in an ACL table on every query, applications
+receive a cryptographically signed capability token at startup. The token
+encodes the application's allowed scopes directly, and the daemon verifies the
+HMAC signature on each query without a database lookup. This is faster at high
+query rates, more robust against a corrupted ACL table, and allows the AI layer
+to derive restricted sub-tokens for specific query scopes without involving the
+daemon. Token revocation when permissions change mid-session is handled via
+a small in-memory revocation list that is cleared on daemon restart.
+
+\paragraph{Graph Daemon hardening.}
+The daemon runs with the minimum privileges needed for its function, enforced
+by a \texttt{systemd} service unit with \texttt{PrivateNetwork=true},
+\texttt{MemoryDenyWriteExecute}, \texttt{PrivateTmp}, and a tightly scoped
+\texttt{SystemCallFilter}. \texttt{PrivateNetwork=true} means a compromised
+daemon cannot make outbound connections to exfiltrate data. If the daemon is
+compromised despite these controls, the blast radius is bounded to Kuzu data
+only, and a systemd watchdog restart closes the LUKS image cleanly and starts
+fresh.
+
+Clients verify that they are speaking to the legitimate Graph Daemon before
+sending queries. At startup, the daemon signs a challenge token with a private
+key that only it holds; clients verify the signature against the public key
+distributed with the system package. A connection that fails verification is
+dropped, preventing a trojanized replacement daemon from intercepting graph
+traffic.
+
+\paragraph{Rate limiting and query complexity.}
+Two attack vectors are addressed: denial of service via query flooding, and
+timing side-channels. Rate limiting is enforced per client identity using a
+token bucket: normal applications are limited to 100 queries per second with
+a burst limit of 200; the AI layer has a higher sustained limit appropriate
+to its workload; system daemons are unlimited. Exceeding the rate limit
+generates an event for the Anomaly Detector, and repeated violations trigger
+an alert.
+
+Query complexity limits prevent expensive traversals from being used as denial
+of service. Traversal depth is capped at 5 hops by default and never more than
+10. Every query must include a \texttt{LIMIT} clause; queries without one are
+rejected before execution. Queries are aborted after 500 milliseconds; the
+client receives \texttt{QueryTimeout}. Response times have a small random
+noise value added to make statistical timing attacks on the graph impractical.
+
+\subsubsection{AI Security}
+\label{sec:ai-security}
+
+The AI layer has broader graph access than most applications by necessity,
+making it a higher-risk component with its own security model.
+
+\paragraph{AI access levels.}
+The user configures a global AI access level as the primary control over how
+much the AI can see. Table~\ref{tab:ai-access} lists the five levels. Action
+permissions, meaning what the AI can do rather than what it can read, are
+configured separately. Reading data and taking actions are fundamentally
+different risk categories and are therefore independently controlled. Suggest
+only mode means the AI proposes actions and the user manually executes them.
+Supervised mode means the AI executes actions but shows a preview with a
+cancellation window before proceeding. Autonomous mode means the AI can act
+within specific applications without per-action confirmation, and each
+application must be individually enabled for this; autonomous mode is never a
+global setting.
+
+\begin{table}[htbp]
+\caption{AI read access levels}
+\label{tab:ai-access}
+\begin{tabularx}{\linewidth}{llX}
+\toprule
+\textbf{Level} & \textbf{Name} & \textbf{What the AI can access} \\
+\midrule
+0 & Minimal       & Nothing from the graph; only what the user explicitly pastes \\
+1 & Session-scoped & Only data from the current active session \\
+2 & Project-scoped & All data associated with a user-selected project \\
+3 & Time-scoped   & Historical data up to a configurable lookback window \\
+4 & Full read     & Everything the user has read access to \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Prompt injection.}
+Prompt injection is an attack where malicious instructions are embedded in
+content the AI processes with the intent of manipulating its behavior: a PDF
+might contain hidden text instructing the model to send files to an external
+server. Current language models cannot reliably distinguish between content
+they should process and instructions they should follow. This is a structural
+limitation, not a fixable bug. The defense is therefore architectural.
+
+Every piece of content the AI receives is tagged with its origin before
+entering the prompt, so the model sees explicit markers distinguishing user
+input, external content such as PDFs, and graph data. Before external content
+reaches the main model, it passes through a small local model whose sole
+function is to detect AI-directed instructions; this is a probabilistic first
+pass that catches obvious injection attempts cheaply and locally.
+
+As a hardcoded rule with no configuration surface, any action the AI wants to
+take that was triggered by external content requires explicit user confirmation
+regardless of the configured action permission level. An AI that read a
+malicious PDF cannot use that as a basis to execute commands without the user
+seeing exactly what it wants to do and why.
+
+Documents are parsed in an isolated subprocess before their text content is
+passed to the AI. The subprocess has no network access and no access to the
+graph; only the extracted text leaves the sandbox, with no embedded scripts,
+no active content, and no metadata that could carry instructions.
+
+\paragraph{AI network proxy.}
+The AI layer has no direct network access. All cloud API calls go through a
+dedicated system proxy daemon that is the only component allowed to make
+outbound connections to AI provider endpoints. The AI constructs a request,
+hands it to the proxy, and receives only the response. This prevents a
+compromised AI layer from independently exfiltrating data over arbitrary
+network connections, ensures all AI-related network traffic is logged and
+attributable, and allows the proxy to enforce that only approved provider
+endpoints are contacted.
+
+\subsubsection{Audit Log}
+\label{sec:audit-log}
+
+Every access to the Knowledge Graph, every AI action, and every permission
+grant or denial is recorded in the Audit Log. This serves two purposes:
+giving the user visibility into what is happening on their system, and
+providing the data needed for behavioral anomaly detection.
+
+The Audit Log is an append-only ledger. Entries cannot be modified or deleted;
+only new entries can be added. Each entry is cryptographically linked to the
+previous one via a hash chain, so tampering with any historical entry is
+detectable by any reader that verifies the chain.
+
+Two log tiers coexist. The Structural Log is always active and records
+interaction metadata without content: timestamp, application identity, which
+node types were queried, which relations traversed, result count, duration,
+and status. The query string itself, result contents, and concrete node IDs
+are never recorded in this tier. This is sufficient to detect suspicious
+behavior without being sufficient to reconstruct what data was accessed.
+
+The Forensic Log is opt-in and time-limited. When activated in Settings, it
+additionally records the full query string, query parameters (not result
+contents), and the calling process stack trace. Forensic Mode is always
+limited to a maximum of 24 hours and then automatically deactivates. It is
+shown prominently as active in Settings while enabled and cannot be activated
+remotely by any application or administrator; only the user, locally.
+
+A dedicated Audit Daemon is the sole writer to the log files. Other components
+send audit events over a restricted IPC channel and cannot write directly to
+the log. The Forensic Log is accessible exclusively to the user; no
+administrator, no daemon, and no application can read it. The Structural Log
+is readable by the user and by the Anomaly Detector for pattern analysis;
+in managed environments, administrators receive aggregated anomaly alerts only,
+never raw log contents.
+
+\subsubsection{Anomaly Detection}
+\label{sec:anomaly}
+
+The Anomaly Detector is a system daemon that reads the Audit Log and
+identifies unusual patterns. It is not a traditional antivirus and does not
+match file signatures or scan for known malware. It is a behavioral analysis
+tool that establishes a baseline of normal behavior on this specific machine
+and flags deviations.
+
+Signature-based detection requires a continuously updated database of known
+threats and cannot detect novel attacks. Because this system already maintains
+a rich picture of normal behavior via the Knowledge Graph and Audit Log,
+behavioral detection is the natural fit: the data needed to define normal
+behavior already exists.
+
+The Anomaly Detector watches for patterns including an application suddenly
+querying graph node types it has never queried before; query volume from an
+application spiking above its historical baseline; an AI action executed
+without a preceding user interaction in the same session; a network connection
+from a process that has never previously made network connections; a new eBPF
+program being loaded outside system update windows; and permission escalation
+requests at unusual times.
+
+Alerts are surfaced via the notification system with enough context for the
+user to make a decision: which application, what it did, why it is unusual,
+and options to investigate or dismiss. The detector does not automatically
+block anything; it informs. Automatic blocking based on anomaly scores is an
+opt-in feature for managed environments where an administrator configures the
+policy. The Anomaly Detector runs locally and alert data does not leave the
+machine unless the user or administrator explicitly configures remote alert
+forwarding.
+
+\subsubsection{Network Security}
+\label{sec:network-security}
+
+On a conventional Linux system, any process can open a network connection to
+anywhere by default. This is the wrong default. On this system, outbound
+network access is denied unless explicitly permitted. Every application that
+needs network access declares it in its package manifest by protocol,
+destination, and direction; connection attempts outside the declaration are
+blocked at the kernel level via eBPF-based network filtering and logged as
+security events.
+
+VPN enforcement can be configured in managed environments such that certain
+network destinations are reachable only when a VPN is active. WireGuard is
+the preferred VPN protocol given its in-kernel availability since Linux 5.6,
+clean key management, and performance characteristics. OpenVPN support is
+provided for compatibility with existing enterprise infrastructure.
+
+\subsubsection{Physical Security}
+\label{sec:physical}
+
+Full Disk Encryption handles the most common physical threat, but physical
+access threats go further.
+
+A Cold Boot Attack exploits the fact that DRAM does not lose its contents
+instantly when power is removed. At low temperatures, an attacker who obtains
+a running or recently suspended device could potentially read the FDE key from
+memory. Two mitigations apply: the kernel is configured to overwrite RAM
+contents before suspend-to-disk, and AMD SME and Intel TME are hardware
+features available on modern CPUs that encrypt the entire RAM contents with a
+key that lives inside the CPU die and never leaves it. Even if an attacker
+physically removes the RAM modules, they read only ciphertext. Both are
+enabled by default where hardware supports them.
+
+\emph{USBGuard} enforces a policy on USB device connections. When the screen
+is locked, no new USB devices are permitted to become active; only devices
+connected before the screen locked remain accessible. This blocks BadUSB
+attacks, where a specially crafted USB device presents itself as a keyboard
+and injects keystrokes. Enabled by default; specific devices such as hardware
+security keys can be whitelisted in Settings.
+
+\emph{IOMMU} restricts which memory regions each hardware device can access
+via Direct Memory Access. With IOMMU enabled, a malicious Thunderbolt or
+PCIe device can only access the memory regions the OS has explicitly mapped
+for it, not arbitrary system RAM. Enabled by default via kernel parameters.
+For Thunderbolt specifically, the default security level requires newly
+connected devices to be explicitly authorized by the user before they are
+activated; previously authorized devices are remembered.
+
+TPM Remote Attestation allows a device to cryptographically prove to a remote
+server that it booted in a known-good state by sending a signed report of its
+measured boot PCR values. In a managed deployment this can gate network access:
+a device that fails attestation is denied VPN access until an administrator
+investigates. This is inspired by the BeyondCorp model and represents a
+meaningful differentiator for enterprise deployments.
+
+\subsubsection{Memory Safety}
+\label{sec:memory-safety}
+
+Memory safety bugs are the most common source of exploitable vulnerabilities
+in system software and are structural problems with C and C++ that persist even
+with experienced developers. All system components developed for this project
+are written in Rust. The Rust compiler enforces memory safety at compile time
+through its ownership and borrow checker; an entire class of bugs that would
+be possible in C simply cannot compile in Rust. This is a compile-time
+guarantee, not a runtime check with overhead.
+
+Third-party applications cannot be rewritten. Sandboxing limits what a
+compromised application can do; hardware-level mitigations provide a further
+layer. Intel CET adds a hardware-enforced shadow stack, a separate protected
+copy of return addresses that the CPU verifies on every function return.
+Control-flow hijacking attacks that overwrite return addresses produce a
+mismatch that causes an immediate fault. This is supported by the Linux kernel
+since version 6.6 and is enabled by default for new processes on supported
+hardware with no application changes required. For any C or C++ components
+compiled as part of this project, Clang's CFI instrumentation is applied,
+validating at runtime that indirect calls and virtual dispatch target only
+legitimate destinations.
+
+\subsubsection{Multi-User Isolation}
+\label{sec:multiuser}
+
+When multiple users share a system, their isolation goes deeper than
+traditional Unix file permissions because the Knowledge Graph, AI
+configuration, and Audit Log introduce sensitive state beyond the home
+directory. Each user has a separate Kuzu instance, a separate Graph Daemon
+process running under their own system user, and a separate Audit Log. These
+are not shared resources with access control layered on top; they are
+separate instances that other users' processes cannot reach.
+
+Home directories are managed via \texttt{systemd-homed}: each user's home
+directory is stored as a LUKS-encrypted portable image. When a user logs out,
+their home image is unmounted and the encryption key is discarded from memory.
+No other user, including root, can access the home image without the user's
+credentials. The Knowledge Graph lives inside the home directory and is
+therefore protected by this encryption as a structural consequence rather than
+an additional policy.
+
+In a multi-user or managed environment, an administrator can install and remove
+system-wide software, configure network policies, set password and screen lock
+policies, view aggregated anomaly alerts, manage USBGuard whitelists, and
+manage Secure Boot keys. The administrator explicitly cannot read any user's
+Knowledge Graph, access any user's home directory contents, view any user's
+Audit Log, or intercept any user's AI sessions. These limitations are enforced
+by \texttt{systemd-homed} and the per-user Graph Daemon architecture, not by
+policy alone. The administrator sees that something unusual happened via
+anomaly alerts; they do not see what.
