@@ -30,7 +30,7 @@ Settings        & System-wide configuration: theming, permissions, AI level, acc
 Store           & App and module discovery, installation, and updates \\
 Text Editor     & Basic editor primarily for configuration files \\
 System Monitor  & Process list, resource usage, and Anomaly Detector alerts \\
-Wine Manager    & Prefix management and \emph{Winetricks}~\cite{winetricks} access. A Wine \emph{prefix} is an isolated directory tree containing a synthetic Windows file system and registry; separate prefixes let different applications use different Wine versions or installed Windows libraries. Winetricks is a helper script that automates installation of common Windows runtimes (DirectX, Visual C++ Redistributables, .NET) and popular applications into a prefix. \\
+Wine Manager    & Prefix management, Winetricks access, per-prefix version selection \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -119,20 +119,12 @@ Audit Log by sender and timestamp, never by content.}
 \label{fig:notifications}
 \end{figure}
 
-The daemon receives from two sources.
-
-The first is the standard \emph{Freedesktop Notifications}
-interface~\cite{fdo:notifications}: a D-Bus service registered at
-\texttt{org.freedesktop.Notifications} that any application can send a
-notification to by calling \texttt{Notify} with a summary, body, and urgency
-level. \emph{libnotify}~\cite{libnotify} is the C library that wraps this
-D-Bus call; \texttt{notify-send} is its command-line frontend. Because this
-interface has been the Linux notification standard since 2006, every third-party
-application that shows notifications already uses it and requires no changes.
-
-The second source is the Event Bus, through which native system components send
-richer notifications with priority metadata and graph context. Both sources are
-normalized to a common internal schema before any further processing.
+The daemon receives from two sources: the standard D-Bus interface at
+\texttt{org.freedesktop.Notifications}, which means every third-party
+application using \texttt{libnotify} or \texttt{notify-send} works without
+changes; and the Event Bus, through which native system components send richer
+notifications with priority metadata and graph context. Both are normalized to
+a common internal schema before any further processing.
 
 \begin{table}[htbp]
 \caption{Notification priority levels}
@@ -175,22 +167,8 @@ Each application has a TOML permission file at
 \texttt{\textasciitilde/.config/permissions/<app-id>.toml} that serves as the
 sole source of truth for what that application is allowed to do. The file is
 human-readable and user-editable; the Settings app provides a UI for those who
-prefer not to edit it directly.
-
-Permissions are enforced through three complementary Linux kernel
-mechanisms~\cite{archwiki:namespaces}. \emph{Linux namespaces} partition kernel
-resources: a process in its own mount namespace sees only the filesystem
-subtrees explicitly provided to it; a process in its own network namespace sees
-only the network interfaces and connections assigned to it. \emph{AppArmor}
-is a Linux Security Module that enforces mandatory access control (MAC) via
-profiles: the kernel checks every file open, network connect, and capability
-use against the AppArmor profile and blocks anything not listed~\cite{archwiki:apparmor}.
-\emph{seccomp} (secure computing mode) restricts which syscalls a process may
-invoke~\cite{archwiki:seccomp}; a process that calls a blocked syscall is
-terminated with \texttt{SIGSYS}. Together these three layers provide defense in
-depth: an application that escapes its AppArmor profile still faces namespace
-isolation; one that breaks out of the namespace still has a seccomp filter
-limiting what kernel interfaces it can reach.
+prefer not to edit it directly. Permissions are enforced via Linux namespaces,
+AppArmor, and seccomp, described in Section~\ref{sec:security}.
 
 \begin{lstlisting}[language=bash, caption={Example permission file}]
 # ~/.config/permissions/org.mozilla.firefox.toml
@@ -232,12 +210,12 @@ than what the Flatpak declared.
 \paragraph{First-run learning mode.}
 If no Store profile exists and the application is not a Flatpak, the first
 launch runs in learning mode: all accesses are permitted and logged, nothing is
-blocked. After the session ends, the user receives a summary of what the
+blocked. The learning window closes automatically ten minutes after first launch, or when the session ends, whichever comes first, the user receives a summary of what the
 application accessed, with options to review and confirm, edit first, or start
 with all permissions blocked. From the second launch onward, the confirmed
 profile is enforced. Learning mode applies to filesystem, network, and device
 access only; graph access is always denied until explicitly granted and cannot
-be learned.
+be learned. During the learning window, at most five new permission grants are recorded per minute; exceeding this rate suspends learning immediately and generates an anomaly alert. This limits the damage from a compromised application that attempts to accumulate permissions in bulk during its first session.
 
 \paragraph{Runtime behavior.}
 When an application attempts an access outside its profile, the access is
@@ -382,26 +360,19 @@ and no module can silently capture input outside its declared actions.
 
 \paragraph{Developer experience.}
 A CLI scaffolds a complete module project with one command:
-\texttt{npx create-os-module <n>}, producing a \emph{Vite}~\cite{vite},
-TypeScript, Tailwind, and module-sdk setup with a manifest template.
-Vite is a front-end build tool and development server; its key property is a
-near-instant dev server that uses the browser's native ES module support to
-serve individual files without bundling, making hot-reload on code changes
-nearly instantaneous regardless of project size.
-
-In dev mode, the module runs unsigned in a dedicated dev sandbox, all declared
-permissions are granted without Store review, WebView DevTools are accessible,
-and hot-reload via Vite is active. Dev mode is only available on developer
-builds; production builds reject unsigned modules.
+\texttt{npx create-os-module <name>}, producing a Vite, TypeScript, Tailwind,
+and module-sdk setup with a manifest template. In dev mode, the module runs
+unsigned in a dedicated dev sandbox, all declared permissions are granted
+without Store review, WebView DevTools are accessible, and hot-reload via Vite
+is active. Dev mode is only available on developer builds; production builds
+reject unsigned modules.
 
 For distributing a finished module outside the Store, a developer generates a
 self-signed key pair with the CLI, signs the module, and distributes it as an
-\texttt{.osmod} file. Installation uses \emph{TOFU} (Trust On First Use): no
-certificate authority pre-approves the key; the first install prompts the user
-to trust the key fingerprint explicitly, and all subsequent updates signed with
-the same key are accepted silently. This is the same model used by SSH host
-key verification. Sideloaded modules receive no expanded permissions and are
-marked ``Not from Store'' in Settings.
+\texttt{.osmod} file. Installation uses TOFU: the first install prompts the
+user to trust the key fingerprint; subsequent updates from the same key are
+silent. Sideloaded modules receive no expanded permissions and are marked
+"Not from Store" in Settings.
 
 \subsection{Store}
 \label{sec:store}

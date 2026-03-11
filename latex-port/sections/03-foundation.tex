@@ -390,8 +390,7 @@ GitHub) to be unambiguous and easy to edit without special tooling.
 The two most common alternatives are \emph{YAML} and \emph{JSON}. YAML is
 human-readable and widely used, but its indentation-sensitive syntax is a
 consistent source of subtle errors: a single misaligned space changes the meaning
-of the document, and certain values parse unexpectedly (bare \texttt{NO} is a
-boolean in YAML 1.1, not a string). JSON is unambiguous but has no comment
+of the document, and certain values parse unexpectedly (bare \texttt{NO} is a boolean in YAML~1.1, not a string; YAML~1.2 fixes this, but library support for 1.2 is inconsistent in practice). JSON is unambiguous but has no comment
 support and is more verbose than necessary for human-edited files.
 
 TOML has clear, explicit syntax with no indentation sensitivity, supports inline

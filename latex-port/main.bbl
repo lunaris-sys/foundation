@@ -494,6 +494,30 @@
     \endverb
   \endentry
 
+  \entry{qemu}{misc}{}{}
+    \true{moreauthor}
+    \true{morelabelname}
+    \name{author}{1}{}{%
+      {{hash=BF}{%
+         family={Bellard},
+         familyi={B\bibinitperiod},
+         given={Fabrice},
+         giveni={F\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{BF+1}
+    \strng{fullhash}{BF+1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{B}
+    \field{sortinithash}{B}
+    \field{title}{{QEMU}: A Generic and Open Source Machine Emulator and
+  Virtualizer}
+    \verb{url}
+    \verb https://www.qemu.org
+    \endverb
+  \endentry
+
   \entry{bsi2022sisyphus}{report}{}{}
     \name{author}{1}{}{%
       {{hash=B}{%
@@ -644,6 +668,25 @@
     \endverb
   \endentry
 
+  \entry{ngi}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=E}{%
+         family={{European Commission}},
+         familyi={E\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{E1}
+    \strng{fullhash}{E1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{E}
+    \field{sortinithash}{E}
+    \field{title}{Next Generation Internet ({NGI})}
+    \verb{url}
+    \verb https://ngi.eu
+    \endverb
+  \endentry
+
   \entry{fedora}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=F}{%
@@ -679,6 +722,44 @@
     \field{title}{GameMode}
     \verb{url}
     \verb https://github.com/FeralInteractive/gamemode
+    \endverb
+  \endentry
+
+  \entry{framework}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=F}{%
+         family={{Framework Computer Inc.}},
+         familyi={F\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{F3}
+    \strng{fullhash}{F3}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{F}
+    \field{sortinithash}{F}
+    \field{title}{Framework Computer}
+    \verb{url}
+    \verb https://frame.work
+    \endverb
+  \endentry
+
+  \entry{freedesktop:dbus}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=f}{%
+         family={{freedesktop.org}},
+         familyi={f\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{f1}
+    \strng{fullhash}{f1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{F}
+    \field{sortinithash}{F}
+    \field{title}{{D-Bus}}
+    \verb{url}
+    \verb https://www.freedesktop.org/wiki/Software/dbus/
     \endverb
   \endentry
 
@@ -816,6 +897,44 @@
     \field{title}{libnotify}
     \verb{url}
     \verb https://gitlab.gnome.org/GNOME/libnotify
+    \endverb
+  \endentry
+
+  \entry{gnupg}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=G}{%
+         family={{GnuPG Project}},
+         familyi={G\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{G2}
+    \strng{fullhash}{G2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{G}
+    \field{sortinithash}{G}
+    \field{title}{{GNU Privacy Guard (GnuPG)}}
+    \verb{url}
+    \verb https://gnupg.org
+    \endverb
+  \endentry
+
+  \entry{protobuf}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=G}{%
+         family={{Google}},
+         familyi={G\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{G3}
+    \strng{fullhash}{G3}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{G}
+    \field{sortinithash}{G}
+    \field{title}{Protocol Buffers}
+    \verb{url}
+    \verb https://protobuf.dev
     \endverb
   \endentry
 
@@ -1158,6 +1277,25 @@
     \field{year}{2005}
   \endentry
 
+  \entry{nlnet}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=N}{%
+         family={{NLnet Foundation}},
+         familyi={N\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{N1}
+    \strng{fullhash}{N1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{N}
+    \field{sortinithash}{N}
+    \field{title}{{NLnet Foundation}}
+    \verb{url}
+    \verb https://nlnet.nl
+    \endverb
+  \endentry
+
   \entry{ollama}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=O}{%
@@ -1291,6 +1429,25 @@
     \endverb
   \endentry
 
+  \entry{pine64}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=P}{%
+         family={{PINE64}},
+         familyi={P\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{P1}
+    \strng{fullhash}{P1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{P}
+    \field{sortinithash}{P}
+    \field{title}{{PINE64}}
+    \verb{url}
+    \verb https://www.pine64.org
+    \endverb
+  \endentry
+
   \entry{toml}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=PWT}{%
@@ -1415,10 +1572,10 @@
     \endverb
   \endentry
 
-  \entry{cosmic:comp}{misc}{}{}
+  \entry{stf}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=S}{%
-         family={{System76}},
+         family={{Sovereign Tech Fund}},
          familyi={S\bibinitperiod},
       }}%
     }
@@ -1428,9 +1585,47 @@
     \field{labeltitlesource}{title}
     \field{sortinit}{S}
     \field{sortinithash}{S}
+    \field{title}{Sovereign Tech Fund}
+    \verb{url}
+    \verb https://www.sovereigntechfund.de
+    \endverb
+  \endentry
+
+  \entry{cosmic:comp}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=S}{%
+         family={{System76}},
+         familyi={S\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{S4}
+    \strng{fullhash}{S4}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{S}
+    \field{sortinithash}{S}
     \field{title}{cosmic-comp: The {COSMIC} Wayland compositor}
     \verb{url}
     \verb https://github.com/pop-os/cosmic-comp
+    \endverb
+  \endentry
+
+  \entry{mkosi}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=s}{%
+         family={{systemd contributors}},
+         familyi={s\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{s1}
+    \strng{fullhash}{s1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{S}
+    \field{sortinithash}{S}
+    \field{title}{mkosi --- Build Bespoke {OS} Images}
+    \verb{url}
+    \verb https://github.com/systemd/mkosi
     \endverb
   \endentry
 
@@ -1453,10 +1648,10 @@
     \endverb
   \endentry
 
-  \entry{qt}{misc}{}{}
+  \entry{tauri}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=T}{%
-         family={{The Qt Company}},
+         family={{Tauri contributors}},
          familyi={T\bibinitperiod},
       }}%
     }
@@ -1466,9 +1661,66 @@
     \field{labeltitlesource}{title}
     \field{sortinit}{T}
     \field{sortinithash}{T}
+    \field{title}{Tauri}
+    \verb{url}
+    \verb https://tauri.app
+    \endverb
+  \endentry
+
+  \entry{qt}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=T}{%
+         family={{The Qt Company}},
+         familyi={T\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{T3}
+    \strng{fullhash}{T3}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{T}
+    \field{sortinithash}{T}
     \field{title}{{Qt} Framework}
     \verb{url}
     \verb https://www.qt.io
+    \endverb
+  \endentry
+
+  \entry{rust-lang}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=T}{%
+         family={{The Rust Project Developers}},
+         familyi={T\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{T4}
+    \strng{fullhash}{T4}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{T}
+    \field{sortinithash}{T}
+    \field{title}{The Rust Programming Language}
+    \verb{url}
+    \verb https://www.rust-lang.org
+    \endverb
+  \endentry
+
+  \entry{tuxedo}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=T}{%
+         family={{TUXEDO Computers GmbH}},
+         familyi={T\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{T5}
+    \strng{fullhash}{T5}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{T}
+    \field{sortinithash}{T}
+    \field{title}{{TUXEDO Computers}}
+    \verb{url}
+    \verb https://www.tuxedocomputers.com
     \endverb
   \endentry
 
@@ -1548,10 +1800,48 @@
     \endverb
   \endentry
 
+  \entry{virtiofs}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=v}{%
+         family={{virtio-fs contributors}},
+         familyi={v\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{v1}
+    \strng{fullhash}{v1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{V}
+    \field{sortinithash}{V}
+    \field{title}{virtiofs: A Shared File System for Virtual Machines}
+    \verb{url}
+    \verb https://virtio-fs.gitlab.io
+    \endverb
+  \endentry
+
   \entry{vite}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=V}{%
          family={{Vite contributors}},
+         familyi={V\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{V1}
+    \strng{fullhash}{V1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{V}
+    \field{sortinithash}{V}
+    \field{title}{Vite}
+    \verb{url}
+    \verb https://vite.dev
+    \endverb
+  \endentry
+
+  \entry{vitest}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=V}{%
+         family={{Vitest contributors}},
          familyi={V\bibinitperiod},
       }}%
     }
@@ -1561,9 +1851,9 @@
     \field{labeltitlesource}{title}
     \field{sortinit}{V}
     \field{sortinithash}{V}
-    \field{title}{Vite}
+    \field{title}{Vitest}
     \verb{url}
-    \verb https://vite.dev
+    \verb https://vitest.dev
     \endverb
   \endentry
 
@@ -1617,6 +1907,25 @@
     \field{year}{2014}
   \endentry
 
+  \entry{wayland}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=W}{%
+         family={{Wayland contributors}},
+         familyi={W\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{W2}
+    \strng{fullhash}{W2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{W}
+    \field{sortinithash}{W}
+    \field{title}{Wayland}
+    \verb{url}
+    \verb https://wayland.freedesktop.org
+    \endverb
+  \endentry
+
   \entry{wifidirect}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=W}{%
@@ -1624,8 +1933,8 @@
          familyi={W\bibinitperiod},
       }}%
     }
-    \strng{namehash}{W2}
-    \strng{fullhash}{W2}
+    \strng{namehash}{W3}
+    \strng{fullhash}{W3}
     \field{labelnamesource}{author}
     \field{labeltitlesource}{title}
     \field{sortinit}{W}

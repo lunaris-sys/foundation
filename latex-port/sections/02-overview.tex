@@ -4,14 +4,13 @@
 \subsection{Architecture at a Glance}
 \label{sec:arch-glance}
 
-The system is organized as a vertical stack of layers. Lower layers provide
-services to higher layers; no layer reaches past its immediate neighbor.
-A problem in one layer does not propagate downward, and upper layers can be
-developed, replaced, or disabled independently of the foundation beneath them.
-The AI layer, for example, sits at the top of the stack and can be removed
-entirely without affecting anything below it.
-
-Figure~\ref{fig:layers} shows the full layer structure.
+The system is organized as a layered stack. Lower layers provide services to
+higher layers; nothing reaches past its immediate neighbor. The bottom four
+layers are always present: the OS base, the desktop environment, the messaging
+and integration infrastructure, and the Knowledge Graph. Above those sit the
+system's consumers --- the applications, daemons, and optional AI daemon that
+read from and write to the graph. Figure~\ref{fig:layers} shows the full
+structure.
 
 \begin{figure}[htbp]
 \centering
@@ -21,27 +20,35 @@ Figure~\ref{fig:layers} shows the full layer structure.
     minimum width=8.4cm, minimum height=1.1cm,
     font=\small\bfseries, align=center, inner sep=5pt
   },
-  optbox/.style={
-    draw, thick, dashed, rectangle,
-    minimum width=8.4cm, minimum height=1.1cm,
-    font=\small\bfseries, align=center, inner sep=5pt
-  },
   splitbox/.style={
     draw, thick, rectangle,
     minimum width=4.2cm, text width=3.8cm, minimum height=1.1cm,
     font=\small\bfseries, align=center, inner sep=5pt
   },
+  tribox/.style={
+    draw, thick, rectangle,
+    minimum width=2.5cm, text width=2.3cm, minimum height=1.1cm,
+    font=\small\bfseries, align=center, inner sep=4pt
+  },
+  optbox/.style={
+    draw, thick, dashed, rectangle,
+    minimum width=2.5cm, text width=2.3cm, minimum height=1.1cm,
+    font=\small\bfseries, align=center, inner sep=4pt
+  },
+  arr/.style={->, thick, gray},
 ]
 
 \def\sep{1.2}
+\def\triw{2.8}
 
+% Bottom four layers
 \node[box] (os) at (0, 0) {
   OS Base\\[-2pt]
-  {\mdseries\footnotesize Fedora/OpenSUSE $\cdot$ systemd $\cdot$ Btrfs/Snapper $\cdot$ RPM/Flatpak}
+  {\mdseries\footnotesize Fedora/OpenSUSE $\cdot$ systemd $\cdot$ Btrfs $\cdot$ RPM/Flatpak}
 };
 \node[box] (de) at (0, \sep) {
   Desktop Environment\\[-2pt]
-  {\mdseries\footnotesize Wayland compositor (Smithay) $\cdot$ Shell $\cdot$ Tauri apps}
+  {\mdseries\footnotesize Wayland (Smithay) $\cdot$ Shell $\cdot$ Tauri $\cdot$ ui-kit $\cdot$ os-sdk}
 };
 \node[splitbox, anchor=east] (eb) at (0.0, 2*\sep) {
   Event Bus\\[-2pt]
@@ -49,23 +56,40 @@ Figure~\ref{fig:layers} shows the full layer structure.
 };
 \node[splitbox, anchor=west] (mcp) at (0.0, 2*\sep) {
   MCP Server Layer\\[-2pt]
-  {\mdseries\footnotesize Tool bridge for AI}
+  {\mdseries\footnotesize App capability bridge}
 };
 \node[box] (kg) at (0, 3*\sep) {
   Knowledge Graph\\[-2pt]
-  {\mdseries\footnotesize Kuzu $\cdot$ Graph Daemon $\cdot$ Cypher queries}
+  {\mdseries\footnotesize Graph Daemon $\cdot$ Kuzu $\cdot$ Cypher $\cdot$ capability tokens}
 };
-\node[optbox] (ai) at (0, 4*\sep) {
-  AI Interface Layer\\[-2pt]
-  {\mdseries\footnotesize Local + cloud providers $\cdot$ MCP tools $\cdot$ fully removable}
+
+% Top row: three consumer boxes
+\node[tribox] (apps) at (-\triw, 4*\sep) {
+  First-party\\Applications\\[-2pt]
+  {\mdseries\footnotesize via os-sdk}
 };
-\node[font=\footnotesize\itshape, gray, anchor=west]
-  at ([xshift=3pt] ai.east) {optional};
+\node[tribox] (daemons) at (0, 4*\sep) {
+  System\\Daemons\\[-2pt]
+  {\mdseries\footnotesize Account, Health \ldots}
+};
+\node[optbox] (ai) at (\triw, 4*\sep) {
+  AI Daemon\\[-2pt]
+  {\mdseries\footnotesize optional}
+};
+
+% Arrows from consumers down to Knowledge Graph
+\draw[arr] (apps)    -- (kg.north -| apps);
+\draw[arr] (daemons) -- (kg.north);
+\draw[arr] (ai)      -- (kg.north -| ai);
 
 \end{tikzpicture}
-\caption{System layer structure. Each layer depends only on the layer directly
-below it. The AI Interface Layer is dashed to indicate it is fully optional and
-can be disabled without affecting any other layer.}
+\caption{System layer structure. The bottom four layers are always present and
+initialize in order from bottom to top. The top row shows the three classes of
+graph consumer: first-party applications (connected via os-sdk), system daemons
+(Account, Health, Audit, and others), and the AI daemon (dashed, optional). All
+three connect to the Graph Daemon over a Unix socket with per-application
+capability tokens; none of them bypasses the daemon or accesses Kuzu directly.
+The AI daemon is not architecturally privileged over the others.}
 \label{fig:layers}
 \end{figure}
 
@@ -83,9 +107,9 @@ are covered in detail in Section~\ref{sec:foundation}.
 The Wayland compositor and the shell sit at this layer. This is what the user
 directly interacts with: windows, the taskbar, the Spotlight launcher,
 notifications, and the lock screen. All user-facing applications in this project
-are built with \emph{Tauri}, a framework described in
+are built with \emph{Tauri}~\cite{tauri}, a framework described in
 Section~\ref{sec:tauri-intro}. The compositor itself is built on
-\emph{Smithay}, described in Section~\ref{sec:smithay-intro}.
+\emph{Smithay}~\cite{smithay}, described in Section~\ref{sec:smithay-intro}.
 
 \paragraph{Event Bus.}
 The internal message bus handles all communication between custom system
@@ -97,35 +121,52 @@ Section~\ref{sec:protobuf}). Its role is purely to move and validate data; it
 does not interpret or store anything.
 
 \paragraph{MCP Server Layer.}
-The \emph{Model Context Protocol} (MCP) is an open standard published by
-Anthropic in 2024 for exposing application capabilities as callable tools that
-AI models can invoke. Before MCP, every AI integration was bespoke: one
-application called the OpenAI API in one format, another used a different
-tool-calling convention, and combining them required custom glue code on both
-ends. MCP standardizes this at the protocol level so that any MCP-compatible AI
-client can communicate with any MCP server without application-specific
-integration work. In this system, first-party applications expose MCP servers as
-part of their standard implementation, giving the AI layer a structured,
-permission-gated way to act on the system. The same interfaces are available to
-any MCP-compatible client, not only the built-in AI layer.
+The \emph{Model Context Protocol}~\cite{mcp:spec} (MCP) is an open standard
+published by Anthropic in 2024 for exposing application capabilities as callable
+tools that AI models can invoke. In this system first-party applications expose
+MCP servers as part of their standard implementation via os-sdk, giving any
+MCP-compatible client a structured, permission-gated way to act on the system.
+The MCP layer is not specific to the AI daemon; any client that implements the
+protocol can use it.
 
 \paragraph{Knowledge Graph.}
-The graph database is the system's long-term memory. It stores events arriving
-from the Event Bus as typed nodes and relationships, making it possible to query
-across time, application boundaries, and data types. The \emph{Graph Daemon} is
-the sole reader and writer of the underlying database; no other component
-accesses the database file directly. Why a graph database rather than a
-relational one, and why \emph{Kuzu} specifically, is explained in
+The graph database is the system's long-term memory: a structured record of
+everything that happens on the machine, queryable across time, application
+boundaries, and data types. The \emph{Graph Daemon} is the sole reader and
+writer of the underlying database; no other process opens the database files
+directly. Every component that needs graph data connects to the daemon over a
+Unix socket and presents a cryptographically signed capability token that encodes
+its permitted query scope. Why a graph database rather than a relational one,
+and why \emph{Kuzu}~\cite{kuzu} specifically, is explained in
 Section~\ref{sec:kg-rationale}.
 
-\paragraph{AI Interface Layer.}
-The top layer provides AI capabilities to the rest of the system. It queries the
-Knowledge Graph for context, exposes tools via the MCP layer, and mediates
-between user requests and AI model providers. All providers, whether a local
-model running on the device or a remote cloud API, are interchangeable behind a
-common interface defined as a \emph{Rust trait} (see
-Section~\ref{sec:rust-intro}). This layer is entirely optional: disabling it
-removes AI features and nothing else.
+\paragraph{First-party applications.}
+Every first-party application written for this system connects to the Graph
+Daemon via the typed client bundled in \emph{os-sdk}. Opening the File Manager,
+searching in Spotlight, or checking System Monitor all translate to parameterized
+Cypher queries over a Unix socket. The application receives structured results
+and renders them; it never touches the Kuzu files directly, and the capability
+token it presents limits which node types and relations it can read.
+
+\paragraph{System daemons.}
+Background daemons such as the Account Daemon, Health Daemon, and Audit Daemon
+are also graph clients. They write structured data into the graph (account
+events, health observations, audit records) and read from it when their function
+requires cross-domain context. Like applications, each daemon holds a
+capability token with the minimum scope it needs; graph access is not elevated
+for daemons by default.
+
+\paragraph{AI daemon (optional).}
+The AI daemon is a system daemon like the others. It connects to the Graph
+Daemon via the same Unix socket interface, presents the same style of capability
+token, and receives the same enforcement from the daemon. What distinguishes it
+is not a privileged protocol position but a broader read permission at higher
+user-configured access levels (see Section~\ref{sec:ai-security}). It
+additionally orchestrates tool calls via the MCP layer and mediates between user
+requests and model providers, local or cloud, behind a common Rust trait
+interface (see Section~\ref{sec:rust-intro}). Disabling the AI daemon removes
+AI features and nothing else; the graph, the applications, and the other daemons
+are unaffected.
 
 \subsection{Why Rust}
 \label{sec:rust-intro}
@@ -294,7 +335,7 @@ level.
 Event Bus       & Receives, validates, and routes internal events between components \\
 Graph Daemon    & Sole reader/writer of the Knowledge Graph database \\
 Account Daemon  & Credential management and login token handling \\
-AI Layer Daemon & Runs AI models, coordinates tools, queries the graph \\
+AI Daemon       & Model providers, MCP orchestration, graph queries (optional) \\
 Module Runtime  & Manages the lifecycle of shell extensions \\
 Transfer Daemon & Controls data movement between user profiles \\
 Audit Daemon    & Sole writer to the append-only audit log \\

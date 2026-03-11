@@ -43,7 +43,7 @@ system as filesystem, network, and graph permissions.
 \begin{lstlisting}[language=bash, caption={Service-level permission view (Settings)}]
 Google Account (personal@example.com)
   Mail      -> allowed for: Thunderbird
-  Calendar  -> allowed for: Calendar App, AI Layer (read-only)
+  Calendar  -> allowed for: Calendar App, AI daemon (read-only)
   Drive     -> allowed for: File Manager
   Contacts  -> not granted to anyone
 \end{lstlisting}
@@ -332,6 +332,51 @@ decision but an active security measure. Every decision to extend retention
 windows is a deliberate expansion of attack surface and must be understood
 as such.
 
+\subsubsection{Threat Model}
+\label{sec:threat-model}
+
+Security measures without a named adversary are hard to evaluate. This section
+states explicitly what this system is and is not designed to resist, so that
+the measures described in the sections that follow can be judged against a
+concrete baseline.
+
+\paragraph{In scope.}
+The primary adversary is a \emph{local attacker with user-level privileges}: a
+malicious or compromised application running as the logged-in user that attempts
+to exceed its declared permissions, exfiltrate graph data, escalate privileges,
+or persist across sessions. The secondary adversary is an \emph{opportunistic
+remote attacker} who exploits a network-reachable vulnerability in a running
+service or a browser-class application. The tertiary adversary is a
+\emph{physical attacker} with brief unsupervised access to a powered-off or
+locked device. Managed-environment scenarios add a fourth adversary: a
+\emph{malicious or over-reaching administrator} who attempts to access user
+data beyond the boundaries described in Section~\ref{sec:managed}.
+
+\paragraph{Out of scope.}
+This system does not attempt to resist a \emph{root-level attacker}: an
+adversary who already holds superuser privileges on the running system. Root
+can modify kernel modules, bypass all userspace controls, and read any
+unencrypted memory. Full Disk Encryption and TPM-sealed keys protect data at
+rest against root on a different boot, not against root in the current session.
+\emph{State-level adversaries} with hardware implant capabilities, supply-chain
+compromise of the base distribution, or CPU microcode vulnerabilities are
+similarly out of scope; no single OS can address these without hardware-level
+attestation infrastructure outside the scope of this project.
+
+\paragraph{Knowledge Graph as a high-value target.}
+The Knowledge Graph introduces a risk that does not exist on a conventional
+Linux system: a structured, queryable, cross-application timeline of user
+activity. On a conventional system, an attacker who gains access to a user's
+files reads unindexed data spread across many directories. An attacker who
+gains access to the running Graph Daemon gains a pre-indexed, graph-traversable
+record of everything the user has done. This is structurally more valuable than
+a raw filesystem breach, and the security model of this system must account for
+it explicitly.
+
+The measures described in Section~\ref{sec:graph-security} reduce the
+probability of such a breach. Section~\ref{sec:graph-daemon-compromise}
+addresses what happens when prevention fails.
+
 \subsubsection{Full Disk Encryption}
 \label{sec:fde}
 
@@ -519,7 +564,7 @@ daemon.query(
 Applications without \texttt{arbitrary\_query} permission in their manifest
 cannot send free-form query strings at all; they select from pre-approved
 query templates and supply only the parameters. Only explicitly trusted
-components such as the AI layer and system daemons receive
+components such as the AI daemon and system daemons receive
 \texttt{arbitrary\_query} permission, and even they go through the
 parameterization validator.
 
@@ -527,38 +572,114 @@ parameterization validator.
 Instead of looking up permissions in an ACL table on every query, applications
 receive a cryptographically signed capability token at startup. The token
 encodes the application's allowed scopes directly, and the daemon verifies the
-HMAC signature on each query without a database lookup. \emph{HMAC} (Hash-based Message
-Authentication Code) is a standard construction for verifying both the
-integrity and authenticity of a message using a shared secret key; the verifier
-recomputes the HMAC and checks it matches without needing to contact any
-authority. This is faster at high query rates, more robust against a corrupted
-ACL table, and allows the AI layer
-to derive restricted sub-tokens for specific query scopes without involving the
-daemon. Token revocation when permissions change mid-session is handled via
-a small in-memory revocation list that is cleared on daemon restart.
+\emph{HMAC} (Hash-based Message Authentication Code) signature on each query
+without a database lookup: the verifier recomputes the HMAC and checks it
+matches without needing to contact any authority. This is faster at high query
+rates and more robust against a corrupted ACL table. The AI daemon can derive
+restricted sub-tokens for specific query scopes without involving the daemon.
+Token revocation when permissions change mid-session is handled via a small
+in-memory revocation list that is cleared on daemon restart.
+
+\paragraph{Token issuance and the Policy Store.}
+Token issuance is separate from token verification and requires careful design:
+if the component that signs tokens can be influenced to grant excessive scopes,
+the entire permission model is undermined.
+
+Tokens are signed by the Account Daemon at application startup. The permitted
+scopes for each application are not decided by the Account Daemon itself;
+instead, the daemon reads them from a \emph{Policy Store}, a static TOML file
+owned by root with \texttt{644} permissions (world-readable, root-writeable
+only). The Policy Store maps application IDs to their maximum permitted graph
+scopes:
+
+\begin{lstlisting}[language=bash, caption={Policy Store entry (read-only by Account Daemon)}]
+[app."com.example.notes"]
+graph_read  = ["File.path", "File.last_modified", "Session.started_at"]
+graph_write = []
+instance_scope = "self"
+arbitrary_query = false
+\end{lstlisting}
+
+The Account Daemon can only issue a token whose scopes are a subset of what the
+Policy Store declares for that application ID. It cannot grant scopes that are
+absent from the Policy Store entry. A compromised Account Daemon can sign
+fraudulent tokens, but only within the ceilings the Policy Store enforces ---
+because the Graph Daemon independently reads the Policy Store and rejects any
+token whose scopes exceed the registered maximum for that application. Scope
+expansion requires a root-level file write, which is an observable, auditable
+action. New applications receive a restrictive default scope at install time;
+privilege elevation is explicit and logged.
 
 \paragraph{Graph Daemon hardening.}
 The daemon runs with the minimum privileges needed for its function, enforced
 by a \texttt{systemd} service unit with \texttt{PrivateNetwork=true},
-\texttt{MemoryDenyWriteExecute}, \texttt{PrivateTmp}, and a tightly scoped
-\texttt{SystemCallFilter}. \texttt{PrivateNetwork=true} means a compromised
-daemon cannot make outbound connections to exfiltrate data. If the daemon is
-compromised despite these controls, the blast radius is bounded to Kuzu data
-only, and a systemd watchdog restart closes the LUKS image cleanly and starts
-fresh.
+\texttt{MemoryDenyWriteExecute=true}, \texttt{PrivateTmp=true}, and a tightly
+scoped \texttt{SystemCallFilter}. \texttt{PrivateNetwork=true} prevents a
+compromised daemon from making outbound connections to exfiltrate data.
+A \texttt{systemd} watchdog monitors the daemon; an unresponsive or crashed
+daemon triggers a clean shutdown sequence that unmounts the LUKS image and
+discards the key before restarting.
 
 Clients verify that they are speaking to the legitimate Graph Daemon before
-sending queries. At startup, the daemon signs a challenge token with a private
-key that only it holds; clients verify the signature against the public key
+sending queries. At startup, the daemon signs a challenge with a private key
+that only it holds; clients verify the signature against the public key
 distributed with the system package. A connection that fails verification is
 dropped, preventing a trojanized replacement daemon from intercepting graph
 traffic.
+
+\paragraph{Read/write process split.}
+\label{sec:graph-daemon-split}
+A single daemon process that both writes graph data and answers queries is a
+larger attack surface than necessary. The Graph Daemon is therefore split into
+two cooperating processes: \texttt{graph-daemon-write} accepts events from the
+Event Bus and writes to Kuzu, and \texttt{graph-daemon-read} answers queries
+from applications and daemons.
+
+\texttt{graph-daemon-read} opens the Kuzu database in read-only mode. A
+compromised read process cannot modify graph data. \texttt{graph-daemon-write}
+does not expose a query interface to external callers; a compromised write
+process cannot be queried for data it has written. The two processes communicate
+only via a restricted internal channel to coordinate schema changes and to
+propagate index updates. Both remain subject to the full systemd sandboxing
+described above.
+
+This split does not eliminate the risk of a compromised read daemon leaking
+data it has legitimate access to. It does prevent an attacker who gains
+code execution in one path from trivially pivoting to the other.
+
+\paragraph{Compromise scenario and damage control.}
+\label{sec:graph-daemon-compromise}
+The measures above reduce the probability of a Graph Daemon compromise. They
+do not make it impossible. An attacker who successfully executes arbitrary code
+inside \texttt{graph-daemon-read} can issue arbitrary Cypher queries against
+the open database handle and receive responses over the Unix socket, regardless
+of the capability token the calling client presented. This is the honest
+consequence of any architecture where a process must be running and reachable to
+serve data: the running process is the trust boundary.
+
+Several controls bound what an attacker can do from this position.
+\texttt{PrivateNetwork=true} means the data cannot be sent over the network
+from the daemon process itself; exfiltration requires additional steps through
+another compromised component. The read-only Kuzu handle prevents writing or
+deleting data. The Anomaly Detector monitors the Audit Log for query volume
+spikes and unusual node-type access patterns; a compromised daemon issuing a
+full-graph dump will generate anomaly alerts unless the attacker also
+compromises the Audit Daemon, which is a separate process. The LUKS-encrypted
+graph image means the data is protected at rest the moment the daemon stops.
+
+What this system cannot offer is runtime confidentiality against a compromised
+read daemon with an open database handle. No local architecture that provides
+queryable history can offer this guarantee: it is a structural property of the
+threat model, not a gap specific to this design. The correct response is
+layered mitigation and honest disclosure to the user that the Knowledge Graph,
+while protected against external breach, relies on the integrity of the
+Graph Daemon process itself.
 
 \paragraph{Rate limiting and query complexity.}
 Two attack vectors are addressed: denial of service via query flooding, and
 timing side-channels. Rate limiting is enforced per client identity using a
 token bucket: normal applications are limited to 100 queries per second with
-a burst limit of 200; the AI layer has a higher sustained limit appropriate
+a burst limit of 200; the AI daemon has a higher sustained limit appropriate
 to its workload; system daemons are unlimited. Exceeding the rate limit
 generates an event for the Anomaly Detector, and repeated violations trigger
 an alert.
@@ -573,7 +694,7 @@ noise value added to make statistical timing attacks on the graph impractical.
 \subsubsection{AI Security}
 \label{sec:ai-security}
 
-The AI layer has broader graph access than most applications by necessity,
+The AI daemon has broader graph access than most applications by necessity,
 making it a higher-risk component with its own security model.
 
 \paragraph{AI access levels.}
@@ -631,12 +752,21 @@ passed to the AI. The subprocess has no network access and no access to the
 graph; only the extracted text leaves the sandbox, with no embedded scripts,
 no active content, and no metadata that could carry instructions.
 
+These layers substantially reduce the attack surface and raise the cost of a
+successful injection, but they do not solve the underlying problem. Prompt
+injection is an open, unsolved problem across the AI industry. No current
+system can guarantee that a sufficiently sophisticated injection embedded in
+external content will be detected or neutralized. This system's position is to
+minimize exposure, make AI-triggered actions visible and reversible, and be
+transparent about the remaining risk rather than to claim a solution that does
+not exist.
+
 \paragraph{AI network proxy.}
-The AI layer has no direct network access. All cloud API calls go through a
+The AI daemon has no direct network access. All cloud API calls go through a
 dedicated system proxy daemon that is the only component allowed to make
-outbound connections to AI provider endpoints. The AI constructs a request,
-hands it to the proxy, and receives only the response. This prevents a
-compromised AI layer from independently exfiltrating data over arbitrary
+outbound connections to AI provider endpoints. The AI daemon constructs a
+request, hands it to the proxy, and receives only the response. This prevents
+a compromised AI daemon from independently exfiltrating data over arbitrary
 network connections, ensures all AI-related network traffic is logged and
 attributable, and allows the proxy to enforce that only approved provider
 endpoints are contacted.
@@ -675,6 +805,29 @@ administrator, no daemon, and no application can read it. The Structural Log
 is readable by the user and by the Anomaly Detector for pattern analysis;
 in managed environments, administrators receive aggregated anomaly alerts only,
 never raw log contents.
+
+\paragraph{Hash chain integrity and TPM anchoring.}
+The hash chain makes retroactive tampering with individual log entries
+detectable by any reader that verifies the chain. It does not, however, prevent
+an attacker with early system access from deleting the log and constructing a
+new chain from scratch over fabricated entries, because without an external
+anchor the chain-start value is self-referential.
+
+To close this gap, the HMAC key used to sign Audit Log entries is derived from
+a secret sealed to the TPM against the measured boot state (TPM~2.0 PCR
+sealing). The TPM releases the key only when the system booted in the exact
+state recorded at seal time: the same bootloader, the same kernel, the same
+initramfs. An attacker who wants to forge a clean audit chain must reproduce the
+exact measured boot state that authorized the signing key, which requires the
+Secure Boot signing key. The TPM sealing described here uses the same PCR
+infrastructure already required for FDE key release in
+Section~\ref{sec:fde}; no additional hardware is needed.
+
+On systems without a TPM the HMAC key falls back to a software-derived secret
+stored in the Kernel Keyring. This preserves the chain-integrity guarantee
+against post-hoc entry modification but not against early-access forgery. The
+Security section of Settings indicates which protection level is active; this
+difference is disclosed to the user.
 
 \subsubsection{Anomaly Detection}
 \label{sec:anomaly}
