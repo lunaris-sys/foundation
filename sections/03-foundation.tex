@@ -298,6 +298,24 @@ passphrases or key files can unlock the same volume, and memory-hard key
 derivation functions that make offline brute-force attacks expensive. LUKS is
 what systemd-homed uses internally to encrypt each home image.
 
+\paragraph{Session manager and greeter.}
+User sessions are managed by \emph{greetd}~\cite{greetd}, a minimal login
+daemon that handles authentication and session startup. greetd is
+intentionally small: it authenticates the user via PAM, launches the
+configured session command on success, and exits. All policy decisions, visual
+presentation, and user-facing interaction are delegated to a separate
+\emph{greeter} process that communicates with greetd over a Unix socket using a
+simple JSON protocol.
+
+This clean separation between authentication daemon and login UI is why greetd
+was chosen over display managers such as GDM or SDDM, which bundle both
+concerns into a single process with their own GUI frameworks. The login screen
+in this project is a first-party Tauri application that implements the greetd
+IPC protocol: it presents the user interface, collects credentials, and passes
+them to greetd for PAM verification. The Tauri greeter has access to nothing
+other than the greetd socket; it runs before any user session is active, with
+no access to the graph, the event bus, or any user data.
+
 \paragraph{Package management.}
 At the base level, \texttt{dnf}~\cite{dnf} is
 used on Fedora and

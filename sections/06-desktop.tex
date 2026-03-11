@@ -287,6 +287,74 @@ Third-party modules can register as \texttt{spotlight.provider} to add result
 types or as \texttt{spotlight.action} to add commands, as described in
 Chapter~\ref{sec:modules}.
 
+\subsection{Notification System}
+\label{sec:notifications}
+
+Desktop notifications on Linux follow the \emph{freedesktop.org Desktop
+Notifications Specification}~\cite{fdo:notifications}, a D-Bus protocol that
+any application can use via \texttt{libnotify}~\cite{libnotify} without
+knowing anything about the specific notification implementation on the system.
+An application calls \texttt{notify\_send()} or the equivalent library function;
+the notification daemon receives it over D-Bus, decides how to present it, and
+handles persistence, grouping, and dismissal.
+
+This project ships a first-party notification daemon written in Rust. Its
+architecture follows the pattern established by
+\emph{swaync}~\cite{swaync} (SwayNotificationCenter), which demonstrated
+that the daemon logic and the visual presentation can be cleanly separated:
+the daemon handles the D-Bus interface, queuing, persistence, and routing
+policy, while the visual layer is a separate process that connects to the
+daemon. Rather than adopting swaync's GTK-based frontend, this project
+replaces the visual layer with Tauri components that integrate with the
+design language and the Event Bus.
+
+The notification system has two visual components. The \emph{Toast Renderer}
+is a \texttt{layer-shell} surface anchored to the top-right corner of each
+monitor; it displays transient notifications for a configurable duration and
+dismisses them automatically. The \emph{Notification Center} is a persistent
+panel surface that shows the full notification history, grouped by application,
+with actions and dismissal controls. Both are Tauri windows that receive
+notification data from the daemon over a Unix socket.
+
+Every notification that passes through the daemon is written to the Knowledge
+Graph as a \texttt{Notification} node with timestamp, source application,
+summary, and whether it was interacted with. This gives the AI layer visibility
+into what the user was interrupted by and when, and enables queries like "what
+notifications did I miss while in the meeting?" without any changes to the
+applications that sent them.
+
+\subsection{Screen Lock}
+\label{sec:screenlock}
+
+Screen locking on Wayland uses the
+\texttt{ext-session-lock-v1}~\cite{ext:session-lock}
+protocol, a standard Wayland extension that allows a client to take exclusive
+control of all outputs and receive input until it explicitly unlocks. Once the
+lock surface is committed, the compositor freezes all other clients' rendering
+and routes all keyboard and pointer input to the lock client only. No other
+application can render to the screen or receive input events; this is enforced
+by the compositor, not by the lock client.
+
+The lock screen is a first-party Tauri application that implements this
+protocol. On activation it acquires the session lock, renders its surface on
+every connected monitor, and communicates with PAM via a small Rust backend
+for credential verification. The visual design is part of the standard theme
+system and follows the same token architecture as the rest of the shell.
+
+Lock activation is triggered by three paths: an explicit keyboard shortcut,
+the power menu, and idle timeout. Idle detection uses the
+\texttt{ext-idle-notify-v1} Wayland protocol, which allows a client to
+register a timeout and receive a notification from the compositor when no
+input has been received for that duration. The idle-notify client is a minimal
+system daemon that triggers the lock screen on timeout and optionally suspends
+the system after a second, longer timeout.
+
+The lock screen has no access to the graph, the event bus, or any user data
+beyond what the compositor provides (monitor layout and scale factors). It
+authenticates via PAM only. A failed unlock attempt is logged to the Audit Log
+as a security event; the lock screen itself does not write to the Knowledge
+Graph.
+
 \subsection{Multi-Monitor and HiDPI}
 \label{sec:multimonitor}
 

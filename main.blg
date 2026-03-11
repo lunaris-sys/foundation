@@ -17,7 +17,7 @@ Reallocated singl_function (elt_size=8) to 100 items from 50.
 Reallocated singl_function (elt_size=8) to 100 items from 50.
 Reallocated singl_function (elt_size=8) to 100 items from 50.
 Reallocated singl_function (elt_size=8) to 100 items from 50.
-Reallocated field_info (elt_size=8) to 18720 items from 5000.
+Reallocated field_info (elt_size=8) to 17880 items from 5000.
 Database file #1: main-blx.bib
 Database file #2: references.bib
 Repeated entry---line 120 of file references.bib
@@ -27,45 +27,45 @@ I'm skipping whatever remains of this entry
 Biblatex version: 3.21
 Reallocated wiz_functions (elt_size=8) to 9000 items from 6000.
 Reallocated singl_function (elt_size=8) to 100 items from 50.
-You've used 98 entries,
+You've used 92 entries,
             6402 wiz_defined-function locations,
-            1574 strings with 17500 characters,
-and the built_in function-call counts, 385816 in all, are:
-= -- 22720
-> -- 8603
-< -- 2366
-+ -- 6594
-- -- 3063
-* -- 25465
-:= -- 34080
+            1553 strings with 17135 characters,
+and the built_in function-call counts, 362875 in all, are:
+= -- 21408
+> -- 8067
+< -- 2222
++ -- 6298
+- -- 2881
+* -- 23904
+:= -- 32178
 add.period$ -- 0
-call.type$ -- 98
-change.case$ -- 794
+call.type$ -- 92
+change.case$ -- 746
 chr.to.int$ -- 50
-cite$ -- 194
-duplicate$ -- 41329
-empty$ -- 39682
-format.name$ -- 4890
-if$ -- 83756
+cite$ -- 182
+duplicate$ -- 39007
+empty$ -- 37242
+format.name$ -- 4579
+if$ -- 78658
 int.to.chr$ -- 0
-int.to.str$ -- 299
+int.to.str$ -- 275
 missing$ -- 0
-newline$ -- 1978
-num.names$ -- 4295
-pop$ -- 32310
+newline$ -- 1861
+num.names$ -- 4013
+pop$ -- 30332
 preamble$ -- 1
-purify$ -- 1003
+purify$ -- 943
 quote$ -- 0
-skip$ -- 15841
+skip$ -- 14855
 stack$ -- 0
-substring$ -- 34644
-swap$ -- 10058
-text.length$ -- 2387
-text.prefix$ -- 97
+substring$ -- 32601
+swap$ -- 9446
+text.length$ -- 2243
+text.prefix$ -- 91
 top$ -- 1
-type$ -- 3319
+type$ -- 3115
 warning$ -- 0
-while$ -- 4018
+while$ -- 3814
 width$ -- 0
-write$ -- 1881
+write$ -- 1770
 (There was 1 error message)

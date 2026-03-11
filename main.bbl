@@ -114,26 +114,6 @@
     \endverb
   \endentry
 
-  \entry{archwiki:apparmor}{misc}{}{}
-    \name{author}{1}{}{%
-      {{hash=A}{%
-         family={{Arch Linux Wiki contributors}},
-         familyi={A\bibinitperiod},
-      }}%
-    }
-    \strng{namehash}{A3}
-    \strng{fullhash}{A3}
-    \field{labelnamesource}{author}
-    \field{labeltitlesource}{title}
-    \field{sortinit}{A}
-    \field{sortinithash}{A}
-    \field{howpublished}{Arch Linux Wiki}
-    \field{title}{{AppArmor}}
-    \verb{url}
-    \verb https://wiki.archlinux.org/title/AppArmor
-    \endverb
-  \endentry
-
   \entry{archwiki:bluetooth}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=A}{%
@@ -254,26 +234,6 @@
     \endverb
   \endentry
 
-  \entry{archwiki:namespaces}{misc}{}{}
-    \name{author}{1}{}{%
-      {{hash=A}{%
-         family={{Arch Linux Wiki contributors}},
-         familyi={A\bibinitperiod},
-      }}%
-    }
-    \strng{namehash}{A3}
-    \strng{fullhash}{A3}
-    \field{labelnamesource}{author}
-    \field{labeltitlesource}{title}
-    \field{sortinit}{A}
-    \field{sortinithash}{A}
-    \field{howpublished}{Arch Linux Wiki}
-    \field{title}{Linux namespaces}
-    \verb{url}
-    \verb https://wiki.archlinux.org/title/Linux_namespaces
-    \endverb
-  \endentry
-
   \entry{archwiki:iommu}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=A}{%
@@ -291,26 +251,6 @@
     \field{title}{{PCI} passthrough via {OVMF}}
     \verb{url}
     \verb https://wiki.archlinux.org/title/PCI_passthrough_via_OVMF
-    \endverb
-  \endentry
-
-  \entry{archwiki:seccomp}{misc}{}{}
-    \name{author}{1}{}{%
-      {{hash=A}{%
-         family={{Arch Linux Wiki contributors}},
-         familyi={A\bibinitperiod},
-      }}%
-    }
-    \strng{namehash}{A3}
-    \strng{fullhash}{A3}
-    \field{labelnamesource}{author}
-    \field{labeltitlesource}{title}
-    \field{sortinit}{A}
-    \field{sortinithash}{A}
-    \field{howpublished}{Arch Linux Wiki}
-    \field{title}{Seccomp}
-    \verb{url}
-    \verb https://wiki.archlinux.org/title/Seccomp
     \endverb
   \endentry
 
@@ -744,25 +684,6 @@
     \endverb
   \endentry
 
-  \entry{freedesktop:dbus}{misc}{}{}
-    \name{author}{1}{}{%
-      {{hash=f}{%
-         family={{freedesktop.org}},
-         familyi={f\bibinitperiod},
-      }}%
-    }
-    \strng{namehash}{f1}
-    \strng{fullhash}{f1}
-    \field{labelnamesource}{author}
-    \field{labeltitlesource}{title}
-    \field{sortinit}{F}
-    \field{sortinithash}{F}
-    \field{title}{{D-Bus}}
-    \verb{url}
-    \verb https://www.freedesktop.org/wiki/Software/dbus/
-    \endverb
-  \endentry
-
   \entry{fdo:notifications}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=f}{%
@@ -916,25 +837,6 @@
     \field{title}{{GNU Privacy Guard (GnuPG)}}
     \verb{url}
     \verb https://gnupg.org
-    \endverb
-  \endentry
-
-  \entry{protobuf}{misc}{}{}
-    \name{author}{1}{}{%
-      {{hash=G}{%
-         family={{Google}},
-         familyi={G\bibinitperiod},
-      }}%
-    }
-    \strng{namehash}{G3}
-    \strng{fullhash}{G3}
-    \field{labelnamesource}{author}
-    \field{labeltitlesource}{title}
-    \field{sortinit}{G}
-    \field{sortinithash}{G}
-    \field{title}{Protocol Buffers}
-    \verb{url}
-    \verb https://protobuf.dev
     \endverb
   \endentry
 
@@ -1113,6 +1015,27 @@
     \endverb
   \endentry
 
+  \entry{greetd}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=LK}{%
+         family={Levinsen},
+         familyi={L\bibinitperiod},
+         given={Kenny},
+         giveni={K\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{LK1}
+    \strng{fullhash}{LK1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{L}
+    \field{sortinithash}{L}
+    \field{title}{greetd}
+    \verb{url}
+    \verb https://git.sr.ht/~kennylevinsen/greetd
+    \endverb
+  \endentry
+
   \entry{libbpf}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=l}{%
@@ -1227,29 +1150,6 @@
     \verb secure-code/
     \endverb
     \field{year}{2019}
-  \endentry
-
-  \entry{winetricks}{misc}{}{}
-    \true{moreauthor}
-    \true{morelabelname}
-    \name{author}{1}{}{%
-      {{hash=MD}{%
-         family={Moody},
-         familyi={M\bibinitperiod},
-         given={Dan},
-         giveni={D\bibinitperiod},
-      }}%
-    }
-    \strng{namehash}{MD+1}
-    \strng{fullhash}{MD+1}
-    \field{labelnamesource}{author}
-    \field{labeltitlesource}{title}
-    \field{sortinit}{M}
-    \field{sortinithash}{M}
-    \field{title}{Winetricks}
-    \verb{url}
-    \verb https://github.com/Winetricks/winetricks
-    \endverb
   \endentry
 
   \entry{rfc4120}{misc}{}{}
@@ -1469,6 +1369,27 @@
     \endverb
   \endentry
 
+  \entry{swaync}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=RE}{%
+         family={Reider},
+         familyi={R\bibinitperiod},
+         given={Erik},
+         giveni={E\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{RE1}
+    \strng{fullhash}{RE1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{R}
+    \field{sortinithash}{R}
+    \field{title}{{SwayNotificationCenter}}
+    \verb{url}
+    \verb https://github.com/ErikReider/SwayNotificationCenter
+    \endverb
+  \endentry
+
   \entry{rfc8446}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=RE}{%
@@ -1478,8 +1399,8 @@
          giveni={E\bibinitperiod},
       }}%
     }
-    \strng{namehash}{RE1}
-    \strng{fullhash}{RE1}
+    \strng{namehash}{RE2}
+    \strng{fullhash}{RE2}
     \field{labelnamesource}{author}
     \field{labeltitlesource}{title}
     \field{sortinit}{R}
@@ -1686,25 +1607,6 @@
     \endverb
   \endentry
 
-  \entry{rust-lang}{misc}{}{}
-    \name{author}{1}{}{%
-      {{hash=T}{%
-         family={{The Rust Project Developers}},
-         familyi={T\bibinitperiod},
-      }}%
-    }
-    \strng{namehash}{T4}
-    \strng{fullhash}{T4}
-    \field{labelnamesource}{author}
-    \field{labeltitlesource}{title}
-    \field{sortinit}{T}
-    \field{sortinithash}{T}
-    \field{title}{The Rust Programming Language}
-    \verb{url}
-    \verb https://www.rust-lang.org
-    \endverb
-  \endentry
-
   \entry{tuxedo}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=T}{%
@@ -1712,8 +1614,8 @@
          familyi={T\bibinitperiod},
       }}%
     }
-    \strng{namehash}{T5}
-    \strng{fullhash}{T5}
+    \strng{namehash}{T4}
+    \strng{fullhash}{T4}
     \field{labelnamesource}{author}
     \field{labeltitlesource}{title}
     \field{sortinit}{T}
@@ -1819,25 +1721,6 @@
     \endverb
   \endentry
 
-  \entry{vite}{misc}{}{}
-    \name{author}{1}{}{%
-      {{hash=V}{%
-         family={{Vite contributors}},
-         familyi={V\bibinitperiod},
-      }}%
-    }
-    \strng{namehash}{V1}
-    \strng{fullhash}{V1}
-    \field{labelnamesource}{author}
-    \field{labeltitlesource}{title}
-    \field{sortinit}{V}
-    \field{sortinithash}{V}
-    \field{title}{Vite}
-    \verb{url}
-    \verb https://vite.dev
-    \endverb
-  \endentry
-
   \entry{vitest}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=V}{%
@@ -1845,8 +1728,8 @@
          familyi={V\bibinitperiod},
       }}%
     }
-    \strng{namehash}{V2}
-    \strng{fullhash}{V2}
+    \strng{namehash}{V1}
+    \strng{fullhash}{V1}
     \field{labelnamesource}{author}
     \field{labeltitlesource}{title}
     \field{sortinit}{V}
@@ -1907,10 +1790,10 @@
     \field{year}{2014}
   \endentry
 
-  \entry{wayland}{misc}{}{}
+  \entry{ext:session-lock}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=W}{%
-         family={{Wayland contributors}},
+         family={{Wayland protocols}},
          familyi={W\bibinitperiod},
       }}%
     }
@@ -1920,9 +1803,9 @@
     \field{labeltitlesource}{title}
     \field{sortinit}{W}
     \field{sortinithash}{W}
-    \field{title}{Wayland}
+    \field{title}{ext-session-lock-v1}
     \verb{url}
-    \verb https://wayland.freedesktop.org
+    \verb https://wayland.app/protocols/ext-session-lock-v1
     \endverb
   \endentry
 
