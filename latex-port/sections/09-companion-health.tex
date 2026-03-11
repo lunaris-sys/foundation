@@ -10,10 +10,15 @@ Tauri 2.0 using the same Rust backend, the same design token system, and the
 same UI component library as the desktop. The companion app looks and feels
 like the OS because it is built from the same parts.
 
-The protocol is custom. KDE Connect was evaluated and rejected: its protocol
-design would obstruct the deeper integration features planned for later tiers,
-and building on top of it would mean working around its assumptions rather than
-designing for the actual requirements.
+The protocol is custom. \emph{KDE Connect}~\cite{kdeconnect} is a widely
+used open-source protocol and application that links Linux desktops and Android
+phones: clipboard sync, notification mirroring, file transfer, and remote
+input. It was evaluated and rejected as the foundation for this project. Its
+protocol encodes assumptions appropriate for a bolt-on integration layer --
+such as per-feature capability negotiation at the session level rather than at
+pairing time -- that would obstruct the deeper integration features planned for
+later tiers. Building on top of it would mean working around its assumptions
+rather than designing for the actual requirements.
 
 \paragraph{Feature tiers.}
 Features are organized into three trust tiers established at pairing time.
@@ -46,9 +51,15 @@ only gets Tier 1.
 \end{table}
 
 \paragraph{Protocol and transport.}
-Discovery uses mDNS service advertisement on a shared WLAN. Without a shared
-network, the desktop and phone locate each other via BLE presence broadcast
-carrying the device ID. Transport is selected by availability at connection
+Discovery uses \emph{mDNS}~\cite{rfc6762} (Multicast DNS) service
+advertisement on a shared WLAN. mDNS is the same zero-configuration discovery
+protocol used by Apple's Bonjour and by Avahi on Linux; it allows devices to
+announce themselves by name on a local network segment without a central DNS
+server. Without a shared network, the desktop and phone locate each other via
+\emph{BLE} (Bluetooth Low Energy~\cite{archwiki:bluetooth}) presence broadcast
+carrying the device ID. BLE is a mode of Bluetooth designed for low-power
+periodic broadcasting; a device can transmit small advertisement packets
+continuously at minimal battery cost without maintaining a connection. Transport is selected by availability at connection
 time, shown in Table~\ref{tab:companion-transport}.
 
 \begin{table}[htbp]
@@ -59,24 +70,37 @@ time, shown in Table~\ref{tab:companion-transport}.
 \textbf{Transport} & \textbf{Use case} \\
 \midrule
 HTTPS over LAN  & Primary transport; full feature set \\
-WiFi Direct     & Large transfers without a shared router \\
+WiFi Direct~\cite{wifidirect} & Large transfers without a shared router.
+  WiFi Direct allows two devices to form a peer-to-peer 802.11 connection
+  without a router or access point, at full WiFi throughput. \\
 Bluetooth       & Small data only: clipboard, notifications, control commands \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-Pairing uses a Trust on First Use model. Both devices generate an Ed25519
-keypair on first launch. The first connection uses TLS with self-signed
-certificates plus a six-digit confirmation code displayed on the desktop and
-confirmed on the phone. After pairing, reconnection is automatic with no
+Pairing uses a Trust on First Use model. Both devices generate an
+\emph{Ed25519}~\cite{rfc8032} keypair on first launch. Ed25519 is an elliptic-curve
+digital signature scheme based on Curve25519; it produces 64-byte signatures, is
+fast to compute and verify, and has no known weaknesses from weak random number
+generation (a historical problem with earlier elliptic-curve schemes like
+ECDSA). The first connection uses \emph{TLS}~\cite{rfc8446} (Transport Layer
+Security, the protocol underlying HTTPS) with self-signed certificates rather
+than certificates issued by a certificate authority. Self-signed certificates
+cannot be validated by the standard CA chain, but here that is intentional: the
+validation happens out-of-band via a six-digit confirmation code displayed on
+the desktop and confirmed on the phone. This code is a hash of both devices'
+public keys; confirming it proves that the TLS session is between the two
+expected devices and not an attacker in the middle. After pairing, reconnection is automatic with no
 further confirmation. Unpair deletes the key on both sides with no trace.
 
 \paragraph{Auto-connect.}
 Paired devices broadcast BLE presence in the background. When a known device
 is detected, the system connects automatically using the best available
 transport. No user action is required after initial pairing. Android supports
-full background BLE advertising reliably. iOS imposes CoreBluetooth Background
-Mode restrictions: auto-connect works but is less reliable and carries a
+full background BLE advertising reliably. iOS imposes
+\emph{CoreBluetooth Background Mode}~\cite{apple:corebluetooth} restrictions:
+background BLE scanning is not permitted continuously, only in periodic
+system-managed windows. Auto-connect works but is less reliable and carries a
 marginally higher battery cost on the iPhone side.
 
 \paragraph{Theme synchronization.}
@@ -89,9 +113,12 @@ infrastructure, not a feature that was separately implemented.
 iOS imposes constraints that cannot be worked around. There is no persistent
 background BLE scanning, which makes auto-connect less reliable and requires
 more manual reconnects than on Android. WiFi Direct is not available to
-third-party iOS apps. USB-C is inaccessible to third-party apps without
-MFi certification. Health data forwarding via HealthKit is feasible with
-explicit user permission.
+third-party iOS apps. USB-C wired transport is inaccessible to third-party iOS apps without
+\emph{MFi} (Made for iPhone/iPad/iPod) certification~\cite{apple:mfi}, Apple's
+hardware licensing program. Apps without MFi certification cannot use the
+Lightning or USB-C accessory protocol for direct data transfer. Health data forwarding via \emph{HealthKit}~\cite{apple:healthkit}
+(Apple's on-device health data framework, accessible to third-party apps with
+explicit user consent) is feasible with explicit user permission.
 
 Tier 1 works well on iOS. Tier 2 is functional but degraded. iOS is explicitly
 a secondary platform and this limitation is communicated honestly in the app
@@ -110,10 +137,14 @@ platform.
 \paragraph{Data architecture.}
 Health data lives in a dedicated local store managed by a \emph{Health Daemon},
 separate from the Graph Daemon. Data never leaves the device without an
-explicit user action. Clinical data uses FHIR R4 (HL7 Fast Healthcare
-Interoperability Resources) where applicable, enabling import from hospital and
-clinic systems, which are increasingly FHIR-capable across the EU, and export
-to FHIR-compatible tools without conversion. Non-clinical data such as steps,
+explicit user action. Clinical data uses \emph{FHIR R4}~\cite{fhir:r4} (Fast Healthcare
+Interoperability Resources, the international standard for structured health
+data interchange maintained by HL7). FHIR represents health records as typed
+REST resources -- Observation, Condition, MedicationRequest, and others -- with
+a defined JSON and XML serialization. Hospital and clinic systems across the EU
+are increasingly FHIR-capable, particularly following regulatory pressure in
+Germany (MIO/DiGA) and the broader eHealth interoperability mandates; using
+FHIR natively enables direct import and export without format conversion. Non-clinical data such as steps,
 sleep stages, heart rate variability, and nutrition uses an open JSON schema
 with documented field definitions. There is no proprietary format; full export
 is always available.

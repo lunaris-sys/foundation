@@ -1,4 +1,4 @@
-This is LuaHBTeX, Version 1.24.0 (TeX Live 2026/Arch Linux)  (format=lualatex 2026.3.10)  11 MAR 2026 16:34
+This is LuaHBTeX, Version 1.24.0 (TeX Live 2026/Arch Linux)  (format=lualatex 2026.3.10)  11 MAR 2026 18:04
  restricted system commands enabled.
 **main.tex
 (./main.tex
@@ -3200,28 +3200,34 @@ LaTeX Font Info:    Font shape `MDB/mdbch/m/n' will be
 LaTeX Font Info:    Font shape `MDB/mdbch/m/n' will be
 (Font)              scaled to size 6.72005pt on input line 453.
  [11.11]) (./sections/03-foundation.tex [12.12]
-Underfull \hbox (badness 2529) in paragraph at lines 53--53
+Underfull \hbox (badness 2529) in paragraph at lines 75--75
 []|\TU/XCharter(0)/m/n/10.95 In-de-pen-dent gov-er-nance via Fe-dora
  []
 
-
-Underfull \hbox (badness 6758) in paragraph at lines 80--80
+[13.13]
+Underfull \hbox (badness 6758) in paragraph at lines 103--103
 []|\TU/XCharter(0)/m/n/10.95 EQT own-er-ship weak-ens Eu-ro-pean
  []
 
-[13.13] [14.14] [15.15] (/usr/share/texmf-dist/tex/latex/listings/lstlang1.sty
+[14.14] (/usr/share/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2025/11/14 1.11b listings language file
-) (/usr/share/texmf-dist/tex/latex/listings/lstlang1.sty
+)
+(/usr/share/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2025/11/14 1.11b listings language file
 )
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
+ [15.15] [16.16]
+[17.17] [18.18]
+
+Package fontspec Info: 
+(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
+
 LaTeX Font Info:    Font shape `TU/FiraSans(14)/b/n' will be
-(Font)              scaled to size 9.07547pt on input line 265.
-)
-(./sections/04-event-knowledge.tex [16.16]
+(Font)              scaled to size 9.07547pt on input line 411.
+) (./sections/04-event-knowledge.tex
 Underfull \hbox (badness 7963) in paragraph at lines 32--32
 []|\TU/XCharter(0)/m/n/10.95 Built-in (com-pos-i-tor is
  []
@@ -3246,10 +3252,9 @@ Underfull \hbox (badness 10000) in paragraph at lines 32--32
 []|\TU/XCharter(0)/m/n/10.95 Rich se-man-tic ac-tions:
  []
 
-[17.17] (/usr/share/texmf-dist/tex/latex/listings/lstlang1.sty
+[19.19] [20.20] [21.21] (/usr/share/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2025/11/14 1.11b listings language file
-)
-(/usr/share/texmf-dist/tex/latex/listings/lstmisc.sty
+) (/usr/share/texmf-dist/tex/latex/listings/lstmisc.sty
 File: lstmisc.sty 2025/11/14 1.11b (Carsten Heinz)
 )
 
@@ -3257,8 +3262,8 @@ Package fontspec Info:
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
 LaTeX Font Info:    Font shape `TU/FiraSans(14)/m/n' will be
-(Font)              scaled to size 9.99411pt on input line 159.
- [18.18] [19.19]
+(Font)              scaled to size 9.99411pt on input line 205.
+ [22.22]
 (/usr/share/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2025/11/14 1.11b listings language file
 )
@@ -3266,132 +3271,142 @@ File: lstlang1.sty 2025/11/14 1.11b listings language file
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [20.20])
-(./sections/05-ai.tex [21.21] [22.22]
+ [23.23] [24.24])
+(./sections/05-ai.tex [25.25]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [23.23] [24.24] [25.25])
+ [26.26] [27.27] [28.28] [29.29])
 (./sections/06-desktop.tex
 Overfull \hbox (6.85716pt too wide) in paragraph at lines 43--48
  [][] 
  []
 
-[26.26] [27.27]
+[30.30] [31.31]
+Underfull \hbox (badness 10000) in paragraph at lines 144--144
+[]|\TU/XCharter(0)/m/n/10.95 Ex-poses workspace state (cur-rent
+ []
+
+
+Underfull \hbox (badness 2277) in paragraph at lines 144--144
+\TU/XCharter(0)/m/n/10.95 workspace, window-to-workspace map-
+ []
+
+[32.32] [33.33] [34.34]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [28.28] [29.29] [30.30]) (./sections/07-apps-modules.tex
-[31.31]
-Underfull \hbox (badness 2698) in paragraph at lines 145--145
+ [35.35] [36.36]) (./sections/07-apps-modules.tex
+[37.37] [38.38]
+Underfull \hbox (badness 2698) in paragraph at lines 153--153
 []|\TU/XCharter(0)/m/n/10.95 Toast auto-closes af-ter ap-prox-i-
  []
 
 
-Underfull \hbox (badness 2698) in paragraph at lines 145--145
+Underfull \hbox (badness 2698) in paragraph at lines 153--153
 []|\TU/XCharter(0)/m/n/10.95 Toast auto-closes af-ter ap-prox-i-
  []
 
-[32.32]
+[39.39]
+Overfull \hbox (8.30751pt too wide) in paragraph at lines 180--194
+[]\TU/XCharter(0)/m/n/10.95 Per-mis-sions are en-forced through three com-ple-me
+n-tary Linux ker-nel mech-a-nisms [[]󰃞󰃠[]].
+ []
+
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [33.33] [34.34]
+[40.40] [41.41]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
 LaTeX Font Info:    Font shape `OT1/cmtt/m/n' will be
-(Font)              scaled to size 10.72006pt on input line 270.
+(Font)              scaled to size 10.72006pt on input line 292.
 Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `cmtt' (encoding: OT1).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
- [35.35]
+ [42.42]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [36.36] [37.37]) (./sections/08-platform.tex
-[38.38]
-
-Package fontspec Info: 
-(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
-
-
-Package fontspec Info: 
-(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
-
- [39.39] [40.40]
-
-Package fontspec Info: 
-(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
-
- [41.41]
+ [43.43] [44.44]) (./sections/08-platform.tex [45.45]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
 
-Overfull \hbox (7.39204pt too wide) in paragraph at lines 228--231
+[46.46]
+
+Package fontspec Info: 
+(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
+
+ [47.47] [48.48]
+
+Package fontspec Info: 
+(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
+
+
+Package fontspec Info: 
+(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
+
+ [49.49]
+Overfull \hbox (7.39204pt too wide) in paragraph at lines 245--248
 \TU/XCharter(0)/m/n/10.95 Gam-ing and Win-dows ap-pli-ca-tion com-pat-i-bil-ity are first-class fea-tures, not af-terthoughts.
  []
 
-[42.42] [43.43] [44.44] [45.45]
+[50.50] [51.51] [52.52] [53.53]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [46.46]
+ [54.54]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [47.47] [48.48] [49.49] [50.50]
-[51.51] [52.52]
-Overfull \hbox (5.6208pt too wide) in paragraph at lines 823--825
+ [55.55] [56.56] [57.57] [58.58]
+[59.59] [60.60]
+Overfull \hbox (5.6208pt too wide) in paragraph at lines 875--877
 []\TU/FiraSans(0)/b/n/10.95 Re-mote at-tes-ta-tion as net-work gate.[][] \TU/XC
 harter(0)/m/n/10.95 TPM Re-mote At-tes-ta-tion, de-scribed in Sec-tion []󰃥.
 󰃡.󰃦[],
  []
 
-) (./sections/09-companion-health.tex [53.53] [54.54] [55.55]
+[61.61]) (./sections/09-companion-health.tex [62.62] [63.63] [64.64]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [56.56])
-(./sections/10-sustainability.tex
+)
+(./sections/10-sustainability.tex [65.65]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [57.57]
+ [66.66]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [58.58] [59.59]
+ [67.67] [68.68]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [60.60] [61.61]
-[62.62])
-Overfull \hbox (0.10344pt too wide) in paragraph at lines 69--69
-\TU/FiraSans(0)/m/n/10.95 / / www . bsi . bund . de / EN / Service - Navi / Publ
-ikationen / Studien / SiSyPHuS _ Win10 / AP4 /
- []
-
+ [69.69]
+[70.70] [71.71]) [72.72] [73.73] [74.74] [75.75]
 (/usr/share/texmf-dist/tex/generic/stringenc/se-utf32be.def
 File: se-utf32be.def 2019/11/29 v1.12 stringenc: UTF-32BE
 )
 (/usr/share/texmf-dist/tex/generic/stringenc/se-pdfdoc.def
 File: se-pdfdoc.def 2019/11/29 v1.12 stringenc: PDFDocEncoding
-) [63.63] (./main.aux)
+) [76.76] (./main.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
@@ -3402,16 +3417,16 @@ Package logreq Info: Writing requests to 'main.run.xml'.
 )
 
 Here is how much of LuaTeX's memory you used:
- 58519 strings out of 476076
- 305216,2373549 words of node,token memory allocated
- 760 words of node memory still in use:
-   7 hlist, 2 vlist, 2 rule, 1 local_par, 4 glue, 4 kern, 1 penalty, 3 glyph, 25
- attribute, 84 glue_spec, 13 attribute_list, 3 write, 2 pdf_action nodes
-   avail lists: 1:16,2:7501,3:839,4:6916,5:6789,6:127,7:11315,8:103,9:14072,10:4
-0,11:917,12:4
- 78975 multiletter control sequences out of 65536+600000
- 246 fonts using 43268647 bytes
- 94i,21n,142p,11228b,1842s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 58961 strings out of 476076
+ 381565,2373549 words of node,token memory allocated
+ 1216 words of node memory still in use:
+   7 hlist, 2 vlist, 2 rule, 1 local_par, 4 glue, 4 kern, 1 penalty, 3 glyph, 10
+1 attribute, 84 glue_spec, 51 attribute_list, 3 write, 40 pdf_action nodes
+   avail lists: 1:12,2:9529,3:2095,4:9150,5:7900,6:114,7:12374,8:124,9:17316,10:
+40,11:959,12:4
+ 79306 multiletter control sequences out of 65536+600000
+ 246 fonts using 43269287 bytes
+ 94i,21n,142p,11228b,1869s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
 warning  (pdf backend): unreferenced destination with name 'P:authorinfo:Tim'
 </usr/share/texmf-dist/fonts/opentype/public/fira/FiraSans-Book.otf></usr/share/
@@ -3423,10 +3438,10 @@ xcharter/XCharter-Roman.otf></usr/share/texmf-dist/fonts/opentype/public/fira/Fi
 raSans-SemiBold.otf></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10
 .pfb></usr/share/texmf-dist/fonts/type1/public/mathdesign/mdbch/md-chr7y.pfb></u
 sr/share/texmf-dist/fonts/type1/public/mathdesign/mdbch/md-chrma.pfb>
-Output written on main.pdf (63 pages, 403826 bytes).
+Output written on main.pdf (76 pages, 473202 bytes).
 
-PDF statistics: 1154 PDF objects out of 1200 (max. 8388607)
- 1052 compressed objects within 11 object streams
- 492 named destinations out of 1000 (max. 1048576)
- 637 words of extra memory for PDF output out of 10000 (max. 100000000)
+PDF statistics: 1555 PDF objects out of 1728 (max. 8388607)
+ 1422 compressed objects within 15 object streams
+ 603 named destinations out of 1000 (max. 1048576)
+ 645 words of extra memory for PDF output out of 10000 (max. 100000000)
 

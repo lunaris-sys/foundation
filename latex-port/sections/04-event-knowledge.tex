@@ -40,25 +40,64 @@ raise the ceiling.
 \subsection{Kernel Monitoring with eBPF}
 \label{sec:ebpf}
 
-\emph{eBPF} (extended Berkeley Packet Filter) is a Linux kernel feature that
-allows small monitoring programs to run inside the kernel in a strictly
-sandboxed environment. These programs are verified for safety before loading
-and cannot crash the system, modify kernel memory, or access data outside their
-scope. The practical result is a read-only window into system activity at the
-lowest level, covering every process on the machine regardless of whether it
-was built for this platform.
+\emph{eBPF} (extended Berkeley Packet Filter) is a Linux kernel subsystem that
+allows small, sandboxed programs to run inside the kernel without modifying
+kernel source code or loading a kernel module~\cite{ebpf:io}. The name is
+historical: the original Berkeley Packet Filter from 1992 was a mechanism for
+filtering network packets; the \emph{extended} version, introduced in Linux
+3.18 (2014) and substantially expanded in subsequent releases, is a
+general-purpose in-kernel execution environment with applications far beyond
+networking.
 
-An eBPF program attaches to a specific kernel event, such as a file being
-opened or a process forking, and is called each time that event fires. The
-output is passed to a normalizer running in user space, which translates the
-raw syscall data into typed, schema-validated events that the rest of the
-system can consume. At this layer, the system knows \emph{that} a process
-opened a file but not \emph{why} or what it means to the user. That is
-intentional: eBPF is the baseline, and higher-level sources fill in the
-semantics where they are available.
+Before eBPF, the two main approaches to system monitoring were kernel modules
+and \texttt{ptrace}. A kernel module runs with full kernel privileges and no
+sandboxing; a bug in a module crashes the system. \texttt{ptrace} is a syscall
+that allows one process to intercept the syscalls of another, but it introduces
+substantial overhead and can only observe one process at a time. eBPF solves
+both problems: programs are verified by the kernel's eBPF verifier before
+loading (the verifier rejects any program that could loop infinitely, access
+out-of-bounds memory, or crash the kernel), run at near-native speed via JIT
+compilation, and can attach to hooks covering all processes on the system
+simultaneously.
 
-The eBPF implementation uses \texttt{aya}, a Rust-native eBPF library that
-requires no C code and integrates cleanly with the rest of the codebase.
+An eBPF program attaches to a specific kernel hook, called a \emph{tracepoint}
+or \emph{kprobe}, and is executed each time the corresponding event fires: a
+file being opened (\texttt{openat} syscall), a new process being created
+(\texttt{clone}/\texttt{execve}), a network connection being established, and
+so on. The program runs in kernel context, collects the relevant data (file
+path, process ID, return value), and passes it to a user-space daemon via a
+shared \emph{ring buffer} without the overhead of standard kernel I/O paths.
+The result is a read-only window into every process on the machine with overhead
+typically below 2\% of CPU time under normal desktop load.
+
+At this layer, the system knows \emph{that} a process opened a file but not
+\emph{why} or what it means to the user. That is intentional: eBPF provides the
+universal baseline, and higher-level sources fill in the semantics where they
+are available.
+
+\paragraph{Why aya.}
+Three libraries exist for writing eBPF programs from user space:
+\texttt{libbpf}~\cite{libbpf}, \texttt{BCC} (BPF Compiler Collection), and
+\texttt{aya}~\cite{aya}.
+
+\texttt{libbpf} is the reference C library maintained in the Linux kernel tree.
+It is stable and widely used, but integrating it into a Rust codebase requires
+C FFI (Foreign Function Interface) bindings. Every call across the Rust/C
+boundary requires \texttt{unsafe} blocks that the Rust compiler cannot verify,
+partially defeating the purpose of writing the daemon in Rust.
+
+\texttt{BCC} takes a different approach: eBPF programs are written as C strings
+embedded in Python or Lua and compiled at runtime by LLVM on the target machine.
+This makes BCC inappropriate for a production daemon: it requires LLVM to be
+present on the user's system, compilation adds startup latency of several
+seconds, and the Python runtime overhead is significant for a background service.
+
+\texttt{aya} is a Rust-native eBPF library~\cite{aya}. Both the eBPF programs
+(which run inside the kernel) and the user-space daemon are written in Rust.
+Programs are compiled to eBPF bytecode at build time using \texttt{cargo}, not
+at runtime, so no compiler is required on the end-user's machine. The result is
+a fully Rust codebase with no unsafe FFI boundaries, no runtime compilation, and
+no additional system dependencies beyond what the kernel already provides.
 
 \paragraph{Noise filtering.}
 eBPF can generate thousands of events per second under normal load, most of
@@ -141,8 +180,15 @@ Daemon.}
 \end{figure}
 
 \paragraph{Event schema.}
-Every event, regardless of source, shares a common envelope that carries a
-time-sortable UUID~v7 identifier, a type label, a microsecond timestamp, a
+Every event, regardless of source, shares a common envelope. The identifier
+uses \emph{UUID~v7}~\cite{rfc9562}, a variant of the universally unique
+identifier standard introduced in RFC~9562 (2024). Unlike UUID~v4, which is
+purely random, UUID~v7 embeds a millisecond-precision Unix timestamp in the
+most significant bits. This makes UUIDs generated close together sort together
+lexicographically, which matters for a time-series workload: inserting events
+into the graph in roughly time order avoids the random-access write pattern
+that UUID~v4 would produce and improves query performance for time-range
+lookups. The envelope also carries a microsecond timestamp, a type label, a
 source identifier, the originating process ID, and a session reference. The
 type-specific data travels as a protobuf payload inside the envelope.
 
@@ -222,12 +268,20 @@ projects span sessions, sessions overlap with other applications), a graph
 models the domain naturally.
 
 \paragraph{Kuzu.}
-The Knowledge Graph is implemented with \emph{Kuzu}, an embedded graph database
-written in C++ with Rust bindings, released under the MIT license. Embedded
-means it runs inside the Graph Daemon process with no separate server, no
-network socket, and no additional service to manage. Kuzu uses \emph{Cypher}
-as its query language, a declarative syntax that reads close to natural
-language and is already familiar to anyone who has worked with Neo4j.
+The Knowledge Graph is implemented with \emph{Kuzu}~\cite{kuzu}, an embedded
+graph database written in C++ with first-class Rust bindings, released under
+the MIT license. Embedded means it runs inside the Graph Daemon process with no
+separate server process, no network socket, and no additional service to manage.
+The database is a directory of files on disk that only the Graph Daemon process
+opens directly.
+
+Kuzu uses \emph{Cypher} as its query language~\cite{opencypher}. Cypher is a
+declarative graph query language originally developed by Neo4j and now
+maintained as an open standard under the openCypher project. It reads close to
+natural language: nodes are written as \texttt{(n:Label)}, relationships as
+\texttt{-[:TYPE]->}, and the query describes the pattern to match rather than
+the steps to execute. Anyone familiar with SQL can read Cypher within minutes;
+anyone who has used Neo4j will find it identical.
 
 \begin{lstlisting}[language=SQL, caption={Example Cypher query: files accessed last Tuesday}]
 MATCH (f:File)-[:OPENED_BY]->(a:App)

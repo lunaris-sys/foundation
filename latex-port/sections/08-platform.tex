@@ -10,6 +10,17 @@ application accesses what. The design principle is straightforward: no
 application ever directly handles OAuth flows, stores tokens, or manages
 credentials. All account logic lives in a dedicated \emph{Account Daemon}.
 
+\emph{OAuth~2.0}~\cite{rfc6749} is the standard authorization framework used
+by cloud services to grant third-party applications access to user data without
+sharing the user's password. The flow works by redirecting the user to the
+service's login page, where they authenticate and approve a specific set of
+\emph{scopes} (declared permissions such as ``read email'' or ``write
+calendar''), after which the service issues a short-lived \emph{access token}
+and a long-lived \emph{refresh token}. The access token is sent with each API
+request; the refresh token is used to obtain new access tokens when the current
+one expires. An application that holds both tokens has persistent access to the
+user's account; protecting them is therefore critical.
+
 \paragraph{Architecture.}
 Applications declare what they need; the daemon handles the rest. When an
 application needs access to a service, it sends a request to the Account
@@ -68,7 +79,10 @@ full OAuth token and refresh token never leave the daemon at all. For
 providers that do not support downscoping, the full token is handed to the
 application but with two compensating controls: every token handoff is logged
 in the Audit Log, and tokens are actively revoked when the application process
-exits. All credentials at rest are stored in the Kernel Keyring; the daemon
+exits. All credentials at rest are stored in the Linux Kernel Keyring~\cite{archwiki:keyring}: a kernel-managed storage
+area for cryptographic keys, tokens, and passwords that lives in kernel memory
+rather than userspace files, making it inaccessible to other processes and not
+visible in \texttt{/proc} or on disk. The daemon
 loads them into memory only when actively needed and discards them immediately
 after.
 
@@ -85,7 +99,10 @@ is restored, the daemon refreshes silently in the background and notifies
 applications of updated data via the Event Bus.
 
 \paragraph{GNOME Online Accounts bridge.}
-Applications built for GNOME that use GNOME Online Accounts expect a D-Bus
+\emph{GNOME Online Accounts}~\cite{gnome:goa} (GOA) is a GNOME framework
+that centralizes cloud service credentials (Google, Microsoft, Nextcloud, and
+others) and exposes them to applications via a D-Bus interface.
+Applications built for GNOME that use GOA expect a D-Bus
 interface at \texttt{org.gnome.OnlineAccounts}. The system provides a
 GOA-compatible bridge that implements this interface exactly but sources all
 data from the Account Daemon internally. Evolution, GNOME Calendar, and other
@@ -231,12 +248,17 @@ no manual setup is required.
 
 \paragraph{Wine and Proton.}
 \emph{Wine} provides compatibility for Windows applications on Linux.
-\emph{Proton} is Valve's fork of Wine, optimized for gaming and maintained
-with extensive patches from Valve's Linux gaming team; for gaming specifically
+\emph{Proton}~\cite{proton} is Valve's fork of Wine, optimized for gaming
+and maintained with extensive patches from Valve's Linux gaming team; for gaming specifically
 it is substantially better than vanilla Wine. Both are pre-installed alongside
-\emph{DXVK}, which translates Direct3D 9, 10, and 11 calls to Vulkan, and
-\emph{vkd3d-proton}, Valve's fork of vkd3d that translates Direct3D 12 calls
-to Vulkan. Winetricks is included for installing Windows runtime components
+\emph{DXVK}~\cite{dxvk}, which translates Direct3D 9, 10, and 11 API
+calls to Vulkan. Direct3D is the Windows graphics API; most games targeting
+Windows use it rather than Vulkan directly. By translating at the API boundary,
+DXVK allows these games to run on Linux via the Vulkan driver.
+\emph{vkd3d-proton}~\cite{vkd3d:proton} is Valve's fork of the Wine project's
+vkd3d library; it translates Direct3D 12 (the modern Windows GPU API) to
+Vulkan, with extensive optimizations for gaming workloads that upstream vkd3d
+does not include. Winetricks is included for installing Windows runtime components
 into Wine prefixes.
 
 Steam is available in the Store and works out of the box with Proton enabled.
@@ -265,15 +287,15 @@ automatically to all Wine prefixes managed by the system; users who prefer
 the default Windows appearance can opt out per prefix.
 
 \paragraph{Performance tooling.}
-\emph{Gamemode} by Feral Interactive is pre-installed and enabled by default.
-It applies system-level performance optimizations when a game is running: the
-CPU governor switches to performance mode, the I/O scheduler is tuned, and
-kernel scheduler hints are applied. Proton handles the Gamemode activation call
-automatically; no manual configuration is required.
+\emph{Gamemode}~\cite{gamemode} by Feral Interactive is pre-installed and
+enabled by default. It applies system-level performance optimizations when a
+game is running: the CPU governor switches to performance mode, the I/O
+scheduler is tuned, and kernel scheduler hints are applied. Proton handles the
+Gamemode activation call automatically; no manual configuration is required.
 
-\emph{MangoHud} is pre-installed as an in-game overlay showing frames per
-second, GPU and CPU usage, temperatures, and frame timing. It is disabled by
-default and toggled via a keyboard shortcut.
+\emph{MangoHud}~\cite{mangohud} is pre-installed as an in-game overlay showing
+frames per second, GPU and CPU usage, temperatures, and frame timing. It is
+disabled by default and toggled via a keyboard shortcut.
 
 \paragraph{Knowledge Graph integration.}
 Gaming activity is tracked in the Knowledge Graph like any other activity:
@@ -325,7 +347,10 @@ all modern x86 and ARM processors have hardware AES acceleration that makes
 encryption effectively free at current workloads.
 
 The primary unlock mechanism is a passphrase entered at boot. On systems with
-a \emph{TPM}, the FDE key can be sealed to the TPM and released automatically
+a \emph{TPM} (Trusted Platform Module)~\cite{archwiki:tpm}, a dedicated
+security chip on the motherboard (or firmware-emulated since TPM~2.0) that
+provides hardware-backed cryptographic operations, secure key storage, and
+tamper-evident measurements of the boot process. The FDE key can be sealed to the TPM and released automatically
 if the system boots in a known-good state. This allows passwordless boot on
 trusted hardware while still protecting the drive if it is physically removed.
 If the boot configuration changes due to tampering, the TPM refuses to release
@@ -341,7 +366,7 @@ during the installation process.
 \subsubsection{Secure Boot, Unified Kernel Images, and Measured Boot}
 \label{sec:secureboot}
 
-\emph{Secure Boot} is a UEFI firmware feature that verifies the cryptographic
+\emph{Secure Boot}~\cite{archwiki:secureboot} is a UEFI~\cite{uefi} firmware feature that verifies the cryptographic
 signature of every piece of code executed during the boot process. If any
 component is not signed by a trusted key, the firmware refuses to execute it.
 The practical effect is that an attacker who modifies the bootloader or kernel
@@ -352,7 +377,7 @@ shim bootloader. Custom kernel modules built for this project must be signed
 with a Machine Owner Key enrolled in the firmware.
 
 A traditional Linux boot chain consists of multiple separate files: the
-bootloader, the kernel image, and the initramfs. A \emph{Unified Kernel Image}
+bootloader, the kernel image, and the initramfs. A \emph{Unified Kernel Image}~\cite{archwiki:uki}
 packages all three into a single signed EFI binary, reducing the attack
 surface to a single component requiring verification. \texttt{systemd-boot}
 supports UKI natively and the broader Linux ecosystem is moving in this
@@ -502,8 +527,12 @@ parameterization validator.
 Instead of looking up permissions in an ACL table on every query, applications
 receive a cryptographically signed capability token at startup. The token
 encodes the application's allowed scopes directly, and the daemon verifies the
-HMAC signature on each query without a database lookup. This is faster at high
-query rates, more robust against a corrupted ACL table, and allows the AI layer
+HMAC signature on each query without a database lookup. \emph{HMAC} (Hash-based Message
+Authentication Code) is a standard construction for verifying both the
+integrity and authenticity of a message using a shared secret key; the verifier
+recomputes the HMAC and checks it matches without needing to contact any
+authority. This is faster at high query rates, more robust against a corrupted
+ACL table, and allows the AI layer
 to derive restricted sub-tokens for specific query scopes without involving the
 daemon. Token revocation when permissions change mid-session is handled via
 a small in-memory revocation list that is cleared on daemon restart.
@@ -691,10 +720,15 @@ blocked at the kernel level via eBPF-based network filtering and logged as
 security events.
 
 VPN enforcement can be configured in managed environments such that certain
-network destinations are reachable only when a VPN is active. WireGuard is
-the preferred VPN protocol given its in-kernel availability since Linux 5.6,
-clean key management, and performance characteristics. OpenVPN support is
-provided for compatibility with existing enterprise infrastructure.
+network destinations are reachable only when a VPN is active. \emph{WireGuard}~\cite{wireguard} is the preferred VPN protocol. WireGuard is
+a modern VPN implemented directly in the Linux kernel (merged in 5.6), using
+Curve25519 for key exchange and ChaCha20-Poly1305 for encryption. Its design
+is deliberately minimal: the entire implementation is under 5,000 lines of
+kernel code, compared to tens of thousands for OpenVPN, making it easier to
+audit and maintain. Key management is simpler than IPsec: each peer has a
+static key pair, and peers are added by exchanging public keys.
+\emph{OpenVPN}~\cite{openvpn} support is provided for compatibility with
+existing enterprise infrastructure.
 
 \subsubsection{Physical Security}
 \label{sec:physical}
@@ -712,15 +746,16 @@ key that lives inside the CPU die and never leaves it. Even if an attacker
 physically removes the RAM modules, they read only ciphertext. Both are
 enabled by default where hardware supports them.
 
-\emph{USBGuard} enforces a policy on USB device connections. When the screen
+\emph{USBGuard}~\cite{usbguard} enforces a policy on USB device connections. When the screen
 is locked, no new USB devices are permitted to become active; only devices
 connected before the screen locked remain accessible. This blocks BadUSB
 attacks, where a specially crafted USB device presents itself as a keyboard
 and injects keystrokes. Enabled by default; specific devices such as hardware
 security keys can be whitelisted in Settings.
 
-\emph{IOMMU} restricts which memory regions each hardware device can access
-via Direct Memory Access. With IOMMU enabled, a malicious Thunderbolt or
+\emph{IOMMU}~\cite{archwiki:iommu} (Input-Output Memory Management Unit)
+restricts which memory regions each hardware device can access via Direct
+Memory Access (DMA). With IOMMU enabled, a malicious Thunderbolt or
 PCIe device can only access the memory regions the OS has explicitly mapped
 for it, not arbitrary system RAM. Enabled by default via kernel parameters.
 For Thunderbolt specifically, the default security level requires newly
@@ -731,8 +766,10 @@ TPM Remote Attestation allows a device to cryptographically prove to a remote
 server that it booted in a known-good state by sending a signed report of its
 measured boot PCR values. In a managed deployment this can gate network access:
 a device that fails attestation is denied VPN access until an administrator
-investigates. This is inspired by the BeyondCorp model and represents a
-meaningful differentiator for enterprise deployments.
+investigates. This is inspired by the \emph{BeyondCorp}~\cite{beyondcorp} model
+(Google's zero-trust network architecture, where no device or user is trusted
+by default based on network location alone) and represents a meaningful
+differentiator for enterprise deployments.
 
 \subsubsection{Memory Safety}
 \label{sec:memory-safety}
@@ -747,15 +784,22 @@ guarantee, not a runtime check with overhead.
 
 Third-party applications cannot be rewritten. Sandboxing limits what a
 compromised application can do; hardware-level mitigations provide a further
-layer. Intel CET adds a hardware-enforced shadow stack, a separate protected
-copy of return addresses that the CPU verifies on every function return.
-Control-flow hijacking attacks that overwrite return addresses produce a
-mismatch that causes an immediate fault. This is supported by the Linux kernel
-since version 6.6 and is enabled by default for new processes on supported
-hardware with no application changes required. For any C or C++ components
-compiled as part of this project, Clang's CFI instrumentation is applied,
-validating at runtime that indirect calls and virtual dispatch target only
-legitimate destinations.
+layer. \emph{Intel CET}~\cite{intel:cet} (Control-flow Enforcement Technology)
+adds a hardware-enforced shadow stack: a second, protected copy of return
+addresses that the CPU maintains separately from the regular call stack. On
+every function return, the CPU compares the return address from the regular
+stack against the shadow stack; a mismatch causes an immediate fault. This
+defeats the most common class of control-flow hijacking, return-oriented
+programming (ROP), where an attacker overwrites saved return addresses to chain
+together existing code fragments. CET is supported by the Linux kernel since
+version 6.6 and is enabled by default for new processes on supported hardware
+with no application changes required. For any C or C++ components compiled as part of this project,
+Clang's \emph{CFI}~\cite{clang:cfi} (Control Flow Integrity) instrumentation
+is applied. CFI adds compile-time instrumentation that validates at runtime
+that every indirect function call and virtual method dispatch targets only a
+function with the expected type signature; an attacker who corrupts a function
+pointer to point to an arbitrary location will cause an immediate abort rather
+than code execution.
 
 \subsubsection{Multi-User Isolation}
 \label{sec:multiuser}
@@ -809,9 +853,17 @@ windows, and a minimum audit log retention period for compliance purposes.
 Most enterprises already have an identity management system, typically
 Microsoft Active Directory or an LDAP-compatible directory. Integration
 with these systems is a baseline requirement for enterprise adoption.
+\emph{LDAP} (Lightweight Directory Access Protocol~\cite{rfc4511}) is the
+standard protocol for querying and modifying directory services such as
+Microsoft Active Directory and OpenLDAP. It stores organizational information:
+users, groups, computers, and their attributes. \emph{Kerberos}~\cite{rfc4120}
+is the authentication protocol layered on top: it issues time-limited tickets
+that prove identity without sending passwords over the network; Active Directory
+uses Kerberos as its primary authentication mechanism.
+
 User authentication, group membership, and basic policy delivery are handled
-via standard LDAP and Kerberos protocols that existing enterprise infrastructure
-already supports, requiring no proprietary agents on the management server side.
+via these standard protocols, which existing enterprise infrastructure already
+supports without proprietary agents on the management server side.
 
 \paragraph{MDM-style management.}
 Beyond LDAP, a modern MDM-style management layer provides richer capabilities:
@@ -837,8 +889,8 @@ as a network access gate in managed deployments. The workflow is:
 
 This ensures that a device with a modified bootloader, disabled Secure Boot, or
 an outdated security policy cannot silently access company resources. It is
-inspired by the BeyondCorp model and is a meaningful differentiator for
-enterprise deployments.
+inspired by the BeyondCorp model~\cite{beyondcorp} and is a meaningful
+differentiator for enterprise deployments.
 
 \paragraph{GDPR and compliance tension.}
 In managed environments there is an inherent conflict between user privacy

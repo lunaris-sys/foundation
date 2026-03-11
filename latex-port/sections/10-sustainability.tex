@@ -37,20 +37,30 @@ org/
 \end{lstlisting}
 
 \paragraph{Build system.}
-\emph{mkosi}, maintained by the systemd team, is the target tool for image
-generation. It builds bootable OS images from a declarative configuration,
-specifying which packages to include, which files to add, and how to configure
-the system. It produces UEFI-bootable images directly and supports multiple
-output formats: ISO, disk image, and container. It integrates cleanly with the
-Open Build Service. Confirming that mkosi handles the full build pipeline in
-practice is an open item pending actual use.
+\emph{mkosi}~\cite{mkosi}, maintained by the systemd team, is the target
+tool for image generation. It builds bootable OS images from a declarative
+configuration file that specifies which packages to include, which overlay
+files to add, and how to configure the system. Unlike Kickstart or Kiwi, mkosi
+is designed around the systemd ecosystem: it integrates directly with
+\texttt{systemd-repart} for partition layout and produces well-formed UEFI
+images that support Secure Boot and Unified Kernel Images without custom glue
+scripts. It supports multiple output formats: ISO, raw disk image, and
+container. It integrates cleanly with the Open Build Service. Confirming that
+mkosi handles the full build pipeline in practice is an open item pending
+actual use.
 
-The \emph{Open Build Service} handles packaging for all custom components.
-OBS builds RPM packages across architectures for both candidate base
-distributions, signs packages with the project GPG key, and hosts the package
-repository that end-user systems pull from. Both Fedora and OpenSUSE targets
-can be built from the same spec files, which is one practical reason both
-remain viable candidates.
+The \emph{Open Build Service}~\cite{obs} (OBS) handles packaging for all
+custom components. OBS is an openSUSE-hosted build infrastructure that takes
+RPM spec files and produces binary packages for multiple distributions and
+architectures in parallel, without requiring the developer to provision
+build machines for each target. Packages are signed with the project GPG
+key -- \emph{GPG} (GNU Privacy Guard~\cite{gnupg}) is the standard
+open-source implementation of the OpenPGP signing and encryption standard;
+package signatures let end-user systems verify that a package was built and
+signed by this project and has not been tampered with. OBS hosts the resulting
+package repository that end-user systems pull from. Both Fedora and OpenSUSE
+targets can be built from the same spec files, which is one practical reason
+both remain viable candidates.
 
 \paragraph{Update system.}
 Updates arrive from two independent streams managed separately. The base
@@ -111,8 +121,9 @@ Release candidate              & Full VM tests and smoke tests \\
 \end{tabularx}
 \end{table}
 
-Unit tests run per repository against mocks from \texttt{os-sdk}. Rust
-components use \texttt{cargo test}; TypeScript components use Vitest. No PR
+Unit tests run per repository against mocks from \texttt{os-sdk}. Rust components use \texttt{cargo test}; TypeScript components use
+\emph{Vitest}~\cite{vitest}, a Vite-native unit test framework with
+Jest-compatible API and fast execution via native ES modules. No PR
 merges without green unit tests. The \texttt{kernel-layer} is a special case:
 eBPF logic that can be tested without a real kernel runs on the host as normal
 Rust unit tests, while eBPF programs themselves run in a minimal QEMU instance
@@ -149,14 +160,20 @@ full shell appears inside that window. No VM or extra hardware is needed. This
 covers the majority of shell and compositor development; eBPF and kernel-level
 components are not active in nested mode.
 
-Full system work requires QEMU. This covers eBPF development, the boot
-sequence, the update system, and anything that requires a real kernel or a
-complete system environment. The \texttt{distro} repository contains a script
+Full system work requires \emph{QEMU}~\cite{qemu}, a machine emulator and
+virtualizer. QEMU can emulate a complete x86-64 machine -- CPU, RAM, storage,
+network, and display -- entirely in software, or accelerate execution via KVM
+(the Linux kernel's hardware virtualization support) to near-native speed when
+running on matching hardware. This covers eBPF development, the boot sequence,
+the update system, and anything that requires a real kernel or a complete
+system environment. The \texttt{distro} repository contains a script
 set for this workflow, including \texttt{build-image.sh} for a complete
 bootable image, \texttt{run-vm.sh} for an interactive session,
 \texttt{run-vm.sh --share \textasciitilde/projects/kernel-layer} to mount a
-host directory via virtiofs into the VM so that the developer can compile on
-the host and test in the VM without a full image rebuild, and snapshot
+host directory into the VM via \emph{virtiofs}~\cite{virtiofs} (a shared
+filesystem protocol that exposes a host directory to a QEMU guest at
+near-native speed using the virtio transport), so that the developer can
+compile on the host and test in the VM without a full image rebuild, and snapshot
 management scripts for saving and restoring VM state.
 
 A strict rule applies to eBPF development: eBPF programs are developed and
@@ -276,9 +293,9 @@ alignment is good: the manufacturer gets a differentiated product, users get a
 well-tested hardware and software combination, and the project gets sustainable
 revenue from certification and validation work and an ongoing support
 relationship. This requires a stable release and a polished out-of-box
-experience first and is a longer-term play. Relevant candidates in the European
-market include Tuxedo Computers, the PINE64 ecosystem, and potential Framework
-partnerships.
+experience first and is a longer-term play. Relevant candidates in the European market include
+\emph{Tuxedo Computers}~\cite{tuxedo}, the \emph{PINE64}~\cite{pine64}
+ecosystem, and potential \emph{Framework}~\cite{framework} partnerships.
 
 \paragraph{Support tiers.}
 A support subscription aimed at power users, small businesses, and developers
@@ -290,12 +307,12 @@ accessible to individual developers.
 
 \paragraph{Public funding and grants.}
 The European open source and digital sovereignty funding landscape is
-underutilized by most projects. The Sovereign Tech Fund in Germany funds open
-source infrastructure projects and explicitly values work that reduces
-dependency on US technology monopolies. The NLnet Foundation funds internet and
-open source projects with a privacy and user rights focus and has supported
-numerous small to medium projects. The NGI (Next Generation Internet) programme
-runs multiple EU funding calls per year for open source, privacy, and
+underutilized by most projects. The \emph{Sovereign Tech Fund}~\cite{stf} in Germany funds open source
+infrastructure projects and explicitly values work that reduces dependency on
+US technology monopolies. The \emph{NLnet Foundation}~\cite{nlnet} funds internet and open source
+projects with a privacy and user rights focus and has supported numerous small
+to medium projects. The \emph{NGI} (Next Generation Internet~\cite{ngi}) programme runs
+multiple EU funding calls per year for open source, privacy, and
 decentralization work.
 
 The European digital autonomy angle is not only a philosophical position; it is

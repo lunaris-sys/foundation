@@ -76,7 +76,10 @@ caring which provider is active.
 The solution is a Rust trait that every AI backend implements. The AI layer
 constructs a \texttt{CompletionRequest}, passes it to whichever provider is
 configured, and receives a \texttt{CompletionResponse}. No provider-specific
-code is visible outside the provider module.
+code is visible outside the provider module. The \texttt{\#[async\_trait]}
+macro is a Rust community crate that enables async methods in traits, which
+the stable Rust compiler does not yet support natively; it desugars the async
+methods into an equivalent form that compiles correctly.
 
 \begin{lstlisting}[language=Rust, caption={AI provider trait}]
 #[async_trait]
@@ -124,32 +127,81 @@ interchangeable from the perspective of anything above the trait boundary.}
 \label{fig:providers}
 \end{figure}
 
-Multiple providers can be active simultaneously under a routing policy
-configured by the user: a local model as the default, with fallback to cloud
-if the local model is unavailable or too slow; specific task types such as code
-always routed to a designated provider; and sensitive contexts, such as
-requests involving personal file contents, explicitly prevented from leaving
-the machine.
+\paragraph{Local providers.}
+A local provider runs an AI model entirely on the user's machine. No data
+leaves the device. The two primary options are \emph{Ollama}~\cite{ollama}
+and \emph{llama.cpp}~\cite{llamacpp}.
+
+\emph{llama.cpp} is a C++ inference engine for running large language models
+on consumer hardware, originally developed by Georgi Gerganov in 2023. It
+achieves viability on consumer hardware through \emph{quantization}: a
+technique that reduces the numerical precision of a model's weight values
+(for example from 32-bit floats to 4-bit integers), shrinking both the memory
+footprint and computation cost at a modest quality trade-off. A 7-billion
+parameter model that would require roughly 28~GB of RAM at full 32-bit
+precision runs in approximately 4~GB after 4-bit quantization, which falls
+within the RAM budget of a typical consumer laptop. llama.cpp exposes an HTTP
+API compatible with the OpenAI request format, so any client written for the
+OpenAI API works against a local llama.cpp instance by changing the base URL.
+
+\emph{Ollama} wraps llama.cpp and other backends in a higher-level tool that
+adds model management (download, version tracking, storage), a simpler CLI,
+and a REST API. For most users, Ollama is the practical entry point. llama.cpp
+is available as a direct option for cases where fine-grained control over
+quantization levels and inference parameters is needed.
+
+Both are supported as local provider backends. The specific model is a user
+configuration choice. As of 2025, models in the 7B--13B parameter range with
+4-bit quantization offer the best balance of quality, memory footprint, and
+inference speed on consumer hardware without a dedicated GPU.
+
+\paragraph{Cloud providers.}
+Cloud providers send the request to a remote API over HTTPS and return the
+response. The system ships with built-in support for the
+OpenAI~\cite{openai:api} and Anthropic~\cite{anthropic:api} APIs, both of
+which follow similar request/response formats. Additional providers can be
+added by implementing the provider trait; the interface is intentionally
+minimal. API keys are stored in the system keyring (not in a config file) and
+are never written to the Knowledge Graph.
+
+\paragraph{Routing policy.}
+Multiple providers can be active simultaneously under a routing policy the
+user configures in TOML. The baseline: use the local provider if one is
+configured and available; fall back to cloud if the local model is unavailable
+or if the request exceeds the local model's context window. Additional rules
+can be layered on top: route all code-related requests to a specific provider;
+prevent any request that includes personal file contents or graph data from
+leaving the machine; route requests originating from a specific application to
+a designated provider. Rules are evaluated in order; the first match wins.
 
 \subsection{MCP Integration}
 \label{sec:mcp}
 
-\emph{MCP} (Model Context Protocol) is an open protocol that standardizes how
-AI models interact with external tools and data sources. Before MCP, every AI
-integration was bespoke: one application called the OpenAI API directly,
-another used its own tool-calling format, and combining them required custom
-glue code on both ends. MCP standardizes this at the protocol level so that
-any MCP-compatible AI client can communicate with any MCP server without
-application-specific integration work.
+\emph{MCP} (Model Context Protocol) is an open protocol published by Anthropic
+in November 2024 that standardizes how AI models interact with external tools
+and data sources~\cite{mcp:spec}. The core idea is a client/server split: the
+AI model talks to an \emph{MCP client}, which in turn dispatches to one or more
+\emph{MCP servers}. Each server exposes a list of \emph{tools} (functions the
+AI can call) and \emph{resources} (data the AI can read). The protocol runs
+over JSON-RPC~2.0, a lightweight remote procedure call format, typically over
+a Unix socket or stdio pipe for local servers and over HTTP/SSE for remote
+ones.
 
-An MCP server is a small process that exposes a set of tools the AI can call
-and resources the AI can read. In this system, first-party applications expose
-MCP servers as part of their standard implementation: the file manager exposes
-\texttt{list\_directory}, \texttt{open\_file}, and \texttt{move\_file}; the
-terminal exposes \texttt{run\_command} and \texttt{get\_output}; the Knowledge
-Graph exposes a query interface. The AI can coordinate across multiple
-applications in a single interaction by calling their respective servers in
-sequence. Figure~\ref{fig:mcp} shows the topology.
+The key property of MCP is that the AI model does not need to know anything
+about the application it is talking to. A model that has never seen this OS
+can still call \texttt{list\_directory} on the file manager MCP server,
+because the tool definition (name, parameters, description) is discovered at
+runtime. This makes MCP servers independently deployable and the AI layer
+application-agnostic.
+
+In this system, first-party applications expose MCP servers as part of their
+standard implementation via the \emph{os-sdk} boilerplate described in
+Section~\ref{sec:overview}: the file manager exposes \texttt{list\_directory},
+\texttt{open\_file}, and \texttt{move\_file}; the terminal exposes
+\texttt{run\_command} and \texttt{get\_output}; the Knowledge Graph exposes a
+query interface. The AI can coordinate across multiple applications in a single
+interaction by calling their respective servers in sequence.
+Figure~\ref{fig:mcp} shows the topology.
 
 \begin{figure}[htbp]
 \centering

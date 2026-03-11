@@ -17,10 +17,487 @@
 \endgroup
 
 \datalist[entry]{nty/global//global/global/global}
+  \entry{anthropic:api}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=A}{%
+         family={{Anthropic}},
+         familyi={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{A1}
+    \strng{fullhash}{A1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{title}{Anthropic {API} Reference}
+    \verb{url}
+    \verb https://docs.anthropic.com/en/api/getting-started
+    \endverb
+  \endentry
+
+  \entry{mcp:spec}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=A}{%
+         family={{Anthropic}},
+         familyi={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{A1}
+    \strng{fullhash}{A1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{title}{Model Context Protocol Specification}
+    \verb{url}
+    \verb https://spec.modelcontextprotocol.io
+    \endverb
+    \field{year}{2024}
+  \endentry
+
+  \entry{apple:corebluetooth}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=A}{%
+         family={{Apple Inc.}},
+         familyi={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{A2}
+    \strng{fullhash}{A2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{title}{{Core Bluetooth Background Execution Modes}}
+    \verb{url}
+    \verb https://developer.apple.com/documentation/corebluetooth/about-core-bl
+    \verb uetooth
+    \endverb
+  \endentry
+
+  \entry{apple:healthkit}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=A}{%
+         family={{Apple Inc.}},
+         familyi={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{A2}
+    \strng{fullhash}{A2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{title}{{HealthKit}}
+    \verb{url}
+    \verb https://developer.apple.com/documentation/healthkit
+    \endverb
+  \endentry
+
+  \entry{apple:mfi}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=A}{%
+         family={{Apple Inc.}},
+         familyi={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{A2}
+    \strng{fullhash}{A2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{title}{{MFi Program}}
+    \verb{url}
+    \verb https://developer.apple.com/programs/mfi/
+    \endverb
+  \endentry
+
+  \entry{archwiki:apparmor}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=A}{%
+         family={{Arch Linux Wiki contributors}},
+         familyi={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{A3}
+    \strng{fullhash}{A3}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{howpublished}{Arch Linux Wiki}
+    \field{title}{{AppArmor}}
+    \verb{url}
+    \verb https://wiki.archlinux.org/title/AppArmor
+    \endverb
+  \endentry
+
+  \entry{archwiki:bluetooth}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=A}{%
+         family={{Arch Linux Wiki contributors}},
+         familyi={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{A3}
+    \strng{fullhash}{A3}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{howpublished}{Arch Linux Wiki}
+    \field{title}{Bluetooth}
+    \verb{url}
+    \verb https://wiki.archlinux.org/title/Bluetooth
+    \endverb
+  \endentry
+
+  \entry{archwiki:btrfs}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=A}{%
+         family={{Arch Linux Wiki contributors}},
+         familyi={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{A3}
+    \strng{fullhash}{A3}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{howpublished}{Arch Linux Wiki}
+    \field{title}{Btrfs}
+    \verb{url}
+    \verb https://wiki.archlinux.org/title/Btrfs
+    \endverb
+  \endentry
+
+  \entry{archwiki:drm}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=A}{%
+         family={{Arch Linux Wiki contributors}},
+         familyi={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{A3}
+    \strng{fullhash}{A3}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{howpublished}{Arch Linux Wiki}
+    \field{title}{Direct Rendering Manager}
+    \verb{url}
+    \verb https://wiki.archlinux.org/title/Direct_Rendering_Manager
+    \endverb
+  \endentry
+
+  \entry{archwiki:luks}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=A}{%
+         family={{Arch Linux Wiki contributors}},
+         familyi={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{A3}
+    \strng{fullhash}{A3}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{howpublished}{Arch Linux Wiki}
+    \field{title}{dm-crypt}
+    \verb{url}
+    \verb https://wiki.archlinux.org/title/Dm-crypt
+    \endverb
+  \endentry
+
+  \entry{archwiki:flatpak}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=A}{%
+         family={{Arch Linux Wiki contributors}},
+         familyi={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{A3}
+    \strng{fullhash}{A3}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{howpublished}{Arch Linux Wiki}
+    \field{title}{Flatpak}
+    \verb{url}
+    \verb https://wiki.archlinux.org/title/Flatpak
+    \endverb
+  \endentry
+
+  \entry{archwiki:keyring}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=A}{%
+         family={{Arch Linux Wiki contributors}},
+         familyi={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{A3}
+    \strng{fullhash}{A3}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{howpublished}{Arch Linux Wiki}
+    \field{title}{Kernel keyring}
+    \verb{url}
+    \verb https://wiki.archlinux.org/title/Kernel_keyring
+    \endverb
+  \endentry
+
+  \entry{archwiki:namespaces}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=A}{%
+         family={{Arch Linux Wiki contributors}},
+         familyi={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{A3}
+    \strng{fullhash}{A3}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{howpublished}{Arch Linux Wiki}
+    \field{title}{Linux namespaces}
+    \verb{url}
+    \verb https://wiki.archlinux.org/title/Linux_namespaces
+    \endverb
+  \endentry
+
+  \entry{archwiki:iommu}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=A}{%
+         family={{Arch Linux Wiki contributors}},
+         familyi={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{A3}
+    \strng{fullhash}{A3}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{howpublished}{Arch Linux Wiki}
+    \field{title}{{PCI} passthrough via {OVMF}}
+    \verb{url}
+    \verb https://wiki.archlinux.org/title/PCI_passthrough_via_OVMF
+    \endverb
+  \endentry
+
+  \entry{archwiki:seccomp}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=A}{%
+         family={{Arch Linux Wiki contributors}},
+         familyi={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{A3}
+    \strng{fullhash}{A3}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{howpublished}{Arch Linux Wiki}
+    \field{title}{Seccomp}
+    \verb{url}
+    \verb https://wiki.archlinux.org/title/Seccomp
+    \endverb
+  \endentry
+
+  \entry{archwiki:snapper}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=A}{%
+         family={{Arch Linux Wiki contributors}},
+         familyi={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{A3}
+    \strng{fullhash}{A3}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{howpublished}{Arch Linux Wiki}
+    \field{title}{Snapper}
+    \verb{url}
+    \verb https://wiki.archlinux.org/title/Snapper
+    \endverb
+  \endentry
+
+  \entry{archwiki:systemd}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=A}{%
+         family={{Arch Linux Wiki contributors}},
+         familyi={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{A3}
+    \strng{fullhash}{A3}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{howpublished}{Arch Linux Wiki}
+    \field{title}{systemd}
+    \verb{url}
+    \verb https://wiki.archlinux.org/title/Systemd
+    \endverb
+  \endentry
+
+  \entry{archwiki:homed}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=A}{%
+         family={{Arch Linux Wiki contributors}},
+         familyi={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{A3}
+    \strng{fullhash}{A3}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{howpublished}{Arch Linux Wiki}
+    \field{title}{systemd-homed}
+    \verb{url}
+    \verb https://wiki.archlinux.org/title/Systemd-homed
+    \endverb
+  \endentry
+
+  \entry{archwiki:tpm}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=A}{%
+         family={{Arch Linux Wiki contributors}},
+         familyi={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{A3}
+    \strng{fullhash}{A3}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{howpublished}{Arch Linux Wiki}
+    \field{title}{{Trusted Platform Module}}
+    \verb{url}
+    \verb https://wiki.archlinux.org/title/Trusted_Platform_Module
+    \endverb
+  \endentry
+
+  \entry{archwiki:secureboot}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=A}{%
+         family={{Arch Linux Wiki contributors}},
+         familyi={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{A3}
+    \strng{fullhash}{A3}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{howpublished}{Arch Linux Wiki}
+    \field{title}{Unified Extensible Firmware Interface/Secure Boot}
+    \verb{url}
+    \verb https://wiki.archlinux.org/title/Unified_Extensible_Firmware_Interfac
+    \verb e/Secure_Boot
+    \endverb
+  \endentry
+
+  \entry{archwiki:uki}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=A}{%
+         family={{Arch Linux Wiki contributors}},
+         familyi={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{A3}
+    \strng{fullhash}{A3}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{howpublished}{Arch Linux Wiki}
+    \field{title}{Unified kernel image}
+    \verb{url}
+    \verb https://wiki.archlinux.org/title/Unified_kernel_image
+    \endverb
+  \endentry
+
+  \entry{archwiki:wine}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=A}{%
+         family={{Arch Linux Wiki contributors}},
+         familyi={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{A3}
+    \strng{fullhash}{A3}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{howpublished}{Arch Linux Wiki}
+    \field{title}{Wine}
+    \verb{url}
+    \verb https://wiki.archlinux.org/title/Wine
+    \endverb
+  \endentry
+
+  \entry{archwiki:xwayland}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=A}{%
+         family={{Arch Linux Wiki contributors}},
+         familyi={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{A3}
+    \strng{fullhash}{A3}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{howpublished}{Arch Linux Wiki}
+    \field{title}{{XWayland}}
+    \verb{url}
+    \verb https://wiki.archlinux.org/title/XWayland
+    \endverb
+  \endentry
+
+  \entry{aya}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=a}{%
+         family={{aya-rs contributors}},
+         familyi={a\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{a1}
+    \strng{fullhash}{a1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{title}{aya: {eBPF} library for {Rust}}
+    \verb{url}
+    \verb https://aya-rs.dev
+    \endverb
+  \endentry
+
   \entry{bsi2022sisyphus}{report}{}{}
     \name{author}{1}{}{%
       {{hash=B}{%
-         family={{Bundesamt f{\"u}r Sicherheit in der Informationstechnik}},
+         family={{Bundesamt für Sicherheit in der Informationstechnik}},
          familyi={B\bibinitperiod},
       }}%
     }
@@ -30,17 +507,446 @@
     \field{labeltitlesource}{title}
     \field{sortinit}{B}
     \field{sortinithash}{B}
-    \field{title}{{SiSyPHuS Win10}: Analyse der Telemetriekomponente in
-  {Windows} 10}
+    \field{title}{{SiSyPHuS Win10: Studie zu Systemdesign, Protokollierung,
+  Härtung und Sicherheitsfunktionen in Windows 10}}
     \verb{url}
-    \verb https://www.bsi.bund.de/EN/Service-Navi/Publikationen/Studien/SiSyPHu
-    \verb S_Win10/AP4/SiSyPHuS_AP4_node.html
+    \verb https://www.bsi.bund.de/sisyphus
     \endverb
     \list{institution}{1}{%
       {BSI}%
     }
     \field{type}{techreport}
     \field{year}{2022}
+  \endentry
+
+  \entry{rfc6762}{misc}{}{}
+    \name{author}{2}{}{%
+      {{hash=CS}{%
+         family={Cheshire},
+         familyi={C\bibinitperiod},
+         given={Stuart},
+         giveni={S\bibinitperiod},
+      }}%
+      {{hash=KM}{%
+         family={Krochmal},
+         familyi={K\bibinitperiod},
+         given={Marc},
+         giveni={M\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{CSKM1}
+    \strng{fullhash}{CSKM1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{C}
+    \field{sortinithash}{C}
+    \field{title}{{Multicast DNS (RFC 6762)}}
+    \verb{url}
+    \verb https://datatracker.ietf.org/doc/html/rfc6762
+    \endverb
+    \field{year}{2013}
+  \endentry
+
+  \entry{rfc9562}{misc}{}{}
+    \name{author}{3}{}{%
+      {{hash=DB}{%
+         family={Davis},
+         familyi={D\bibinitperiod},
+         given={Brad},
+         giveni={B\bibinitperiod},
+      }}%
+      {{hash=PB}{%
+         family={Peabody},
+         familyi={P\bibinitperiod},
+         given={Brad},
+         giveni={B\bibinitperiod},
+      }}%
+      {{hash=LP}{%
+         family={Leach},
+         familyi={L\bibinitperiod},
+         given={P.},
+         giveni={P\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{DBPBLP1}
+    \strng{fullhash}{DBPBLP1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{D}
+    \field{sortinithash}{D}
+    \field{title}{{RFC} 9562: Universally Unique {IDentifiers} ({UUIDs})}
+    \verb{url}
+    \verb https://www.rfc-editor.org/rfc/rfc9562
+    \endverb
+    \field{year}{2024}
+  \endentry
+
+  \entry{dxvk}{misc}{}{}
+    \true{moreauthor}
+    \true{morelabelname}
+    \name{author}{1}{}{%
+      {{hash=DP}{%
+         family={Doitsujin},
+         familyi={D\bibinitperiod},
+         given={Philip},
+         giveni={P\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{DP+1}
+    \strng{fullhash}{DP+1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{D}
+    \field{sortinithash}{D}
+    \field{title}{{DXVK}: A Vulkan-based translation layer for Direct3D}
+    \verb{url}
+    \verb https://github.com/doitsujin/dxvk
+    \endverb
+  \endentry
+
+  \entry{wireguard}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=DJA}{%
+         family={Donenfeld},
+         familyi={D\bibinitperiod},
+         given={Jason\bibnamedelima A.},
+         giveni={J\bibinitperiod\bibinitdelim A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{DJA1}
+    \strng{fullhash}{DJA1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{D}
+    \field{sortinithash}{D}
+    \field{title}{{WireGuard}: Fast, Modern, Secure {VPN} Tunnel}
+    \verb{url}
+    \verb https://www.wireguard.com
+    \endverb
+  \endentry
+
+  \entry{ebpf:io}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=e}{%
+         family={{eBPF Foundation}},
+         familyi={e\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{e1}
+    \strng{fullhash}{e1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{E}
+    \field{sortinithash}{E}
+    \field{title}{What is {eBPF}?}
+    \verb{url}
+    \verb https://ebpf.io/what-is-ebpf/
+    \endverb
+  \endentry
+
+  \entry{fedora}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=F}{%
+         family={{Fedora Project}},
+         familyi={F\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{F1}
+    \strng{fullhash}{F1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{F}
+    \field{sortinithash}{F}
+    \field{title}{Fedora Linux}
+    \verb{url}
+    \verb https://fedoraproject.org
+    \endverb
+  \endentry
+
+  \entry{gamemode}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=F}{%
+         family={{Feral Interactive}},
+         familyi={F\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{F2}
+    \strng{fullhash}{F2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{F}
+    \field{sortinithash}{F}
+    \field{title}{GameMode}
+    \verb{url}
+    \verb https://github.com/FeralInteractive/gamemode
+    \endverb
+  \endentry
+
+  \entry{fdo:notifications}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=f}{%
+         family={{freedesktop.org}},
+         familyi={f\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{f1}
+    \strng{fullhash}{f1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{F}
+    \field{sortinithash}{F}
+    \field{title}{Desktop Notifications Specification}
+    \verb{url}
+    \verb https://specifications.freedesktop.org/notification-spec/latest/
+    \endverb
+  \endentry
+
+  \entry{xdg:basedir}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=f}{%
+         family={{freedesktop.org}},
+         familyi={f\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{f1}
+    \strng{fullhash}{f1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{F}
+    \field{sortinithash}{F}
+    \field{title}{{XDG} Base Directory Specification}
+    \verb{url}
+    \verb https://specifications.freedesktop.org/basedir-spec/latest/
+    \endverb
+  \endentry
+
+  \entry{xdg:portal}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=f}{%
+         family={{freedesktop.org}},
+         familyi={f\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{f1}
+    \strng{fullhash}{f1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{F}
+    \field{sortinithash}{F}
+    \field{title}{{XDG} Desktop Portal}
+    \verb{url}
+    \verb https://flatpak.github.io/xdg-desktop-portal/
+    \endverb
+  \endentry
+
+  \entry{llamacpp}{misc}{}{}
+    \true{moreauthor}
+    \true{morelabelname}
+    \name{author}{1}{}{%
+      {{hash=GG}{%
+         family={Gerganov},
+         familyi={G\bibinitperiod},
+         given={Georgi},
+         giveni={G\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{GG+1}
+    \strng{fullhash}{GG+1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{G}
+    \field{sortinithash}{G}
+    \field{title}{llama.cpp}
+    \verb{url}
+    \verb https://github.com/ggml-org/llama.cpp
+    \endverb
+  \endentry
+
+  \entry{gnome:goa}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=G}{%
+         family={{GNOME Project}},
+         familyi={G\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{G1}
+    \strng{fullhash}{G1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{G}
+    \field{sortinithash}{G}
+    \field{title}{{GNOME Online Accounts}}
+    \verb{url}
+    \verb https://wiki.gnome.org/Projects/GnomeOnlineAccounts
+    \endverb
+  \endentry
+
+  \entry{gtk}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=G}{%
+         family={{GNOME Project}},
+         familyi={G\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{G1}
+    \strng{fullhash}{G1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{G}
+    \field{sortinithash}{G}
+    \field{title}{{GTK}: The {GIMP} Toolkit}
+    \verb{url}
+    \verb https://gtk.org
+    \endverb
+  \endentry
+
+  \entry{libnotify}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=G}{%
+         family={{GNOME Project}},
+         familyi={G\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{G1}
+    \strng{fullhash}{G1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{G}
+    \field{sortinithash}{G}
+    \field{title}{libnotify}
+    \verb{url}
+    \verb https://gitlab.gnome.org/GNOME/libnotify
+    \endverb
+  \endentry
+
+  \entry{rfc6749}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=HD}{%
+         family={Hardt},
+         familyi={H\bibinitperiod},
+         given={Dick},
+         giveni={D\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{HD1}
+    \strng{fullhash}{HD1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{H}
+    \field{sortinithash}{H}
+    \field{title}{{The OAuth 2.0 Authorization Framework (RFC 6749)}}
+    \verb{url}
+    \verb https://datatracker.ietf.org/doc/html/rfc6749
+    \endverb
+    \field{year}{2012}
+  \endentry
+
+  \entry{fhir:r4}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=H}{%
+         family={{HL7 International}},
+         familyi={H\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{H1}
+    \strng{fullhash}{H1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{H}
+    \field{sortinithash}{H}
+    \field{title}{{FHIR R4: Fast Healthcare Interoperability Resources, Release
+  4}}
+    \verb{url}
+    \verb https://hl7.org/fhir/R4/
+    \endverb
+    \field{year}{2019}
+  \endentry
+
+  \entry{intel:cet}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=I}{%
+         family={{Intel Corporation}},
+         familyi={I\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{I1}
+    \strng{fullhash}{I1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{I}
+    \field{sortinithash}{I}
+    \field{title}{Control-flow Enforcement Technology ({CET}) Preview}
+    \verb{url}
+    \verb https://www.intel.com/content/www/us/en/developer/articles/technical/
+    \verb technical-look-control-flow-enforcement-technology.html
+    \endverb
+  \endentry
+
+  \entry{rfc8032}{misc}{}{}
+    \name{author}{2}{}{%
+      {{hash=JS}{%
+         family={Josefsson},
+         familyi={J\bibinitperiod},
+         given={Simon},
+         giveni={S\bibinitperiod},
+      }}%
+      {{hash=LI}{%
+         family={Liusvaara},
+         familyi={L\bibinitperiod},
+         given={Ilari},
+         giveni={I\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{JSLI1}
+    \strng{fullhash}{JSLI1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{J}
+    \field{sortinithash}{J}
+    \field{title}{{Edwards-Curve Digital Signature Algorithm (EdDSA) (RFC
+  8032)}}
+    \verb{url}
+    \verb https://datatracker.ietf.org/doc/html/rfc8032
+    \endverb
+    \field{year}{2017}
+  \endentry
+
+  \entry{kdeconnect}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=K}{%
+         family={{KDE Community}},
+         familyi={K\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{K1}
+    \strng{fullhash}{K1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{K}
+    \field{sortinithash}{K}
+    \field{title}{{KDE Connect}}
+    \verb{url}
+    \verb https://kdeconnect.kde.org
+    \endverb
+  \endentry
+
+  \entry{vulkan}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=K}{%
+         family={{Khronos Group}},
+         familyi={K\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{K2}
+    \strng{fullhash}{K2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{K}
+    \field{sortinithash}{K}
+    \field{title}{Vulkan Overview}
+    \verb{url}
+    \verb https://www.vulkan.org
+    \endverb
   \endentry
 
   \entry{kollnig2024apple}{inproceedings}{}{}
@@ -69,10 +975,86 @@
     \field{year}{2024}
   \endentry
 
-  \entry{msrc2019memory}{misc}{}{}
+  \entry{kuzu}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=K}{%
+         family={{Kùzu Inc.}},
+         familyi={K\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{K3}
+    \strng{fullhash}{K3}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{K}
+    \field{sortinithash}{K}
+    \field{title}{Kùzu: Embeddable Graph Database}
+    \verb{url}
+    \verb https://kuzudb.com
+    \endverb
+  \endentry
+
+  \entry{libbpf}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=l}{%
+         family={{libbpf contributors}},
+         familyi={l\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{l1}
+    \strng{fullhash}{l1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{L}
+    \field{sortinithash}{L}
+    \field{title}{libbpf}
+    \verb{url}
+    \verb https://github.com/libbpf/libbpf
+    \endverb
+  \endentry
+
+  \entry{libinput}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=l}{%
+         family={{libinput contributors}},
+         familyi={l\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{l2}
+    \strng{fullhash}{l2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{L}
+    \field{sortinithash}{L}
+    \field{title}{libinput}
+    \verb{url}
+    \verb https://wayland.freedesktop.org/libinput/doc/latest/
+    \endverb
+  \endentry
+
+  \entry{clang:cfi}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=L}{%
+         family={{LLVM Project}},
+         familyi={L\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{L1}
+    \strng{fullhash}{L1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{L}
+    \field{sortinithash}{L}
+    \field{title}{Clang Control Flow Integrity}
+    \verb{url}
+    \verb https://clang.llvm.org/docs/ControlFlowIntegrity.html
+    \endverb
+  \endentry
+
+  \entry{mangohud}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=M}{%
-         family={{Microsoft Security Response Center}},
+         family={{MangoHud contributors}},
          familyi={M\bibinitperiod},
       }}%
     }
@@ -82,12 +1064,614 @@
     \field{labeltitlesource}{title}
     \field{sortinit}{M}
     \field{sortinithash}{M}
-    \field{title}{A proactive approach to more secure code}
+    \field{title}{{MangoHud}}
+    \verb{url}
+    \verb https://github.com/flightlessmango/MangoHud
+    \endverb
+  \endentry
+
+  \entry{mesa}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=M}{%
+         family={{Mesa3D contributors}},
+         familyi={M\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{M2}
+    \strng{fullhash}{M2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{M}
+    \field{sortinithash}{M}
+    \field{title}{The Mesa 3D Graphics Library}
+    \verb{url}
+    \verb https://www.mesa3d.org
+    \endverb
+  \endentry
+
+  \entry{msrc2019memory}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=M}{%
+         family={{Microsoft Security Response Center}},
+         familyi={M\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{M3}
+    \strng{fullhash}{M3}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{M}
+    \field{sortinithash}{M}
+    \field{title}{A Proactive Approach to More Secure Code}
     \verb{url}
     \verb https://msrc.microsoft.com/blog/2019/07/a-proactive-approach-to-more-
     \verb secure-code/
     \endverb
     \field{year}{2019}
+  \endentry
+
+  \entry{winetricks}{misc}{}{}
+    \true{moreauthor}
+    \true{morelabelname}
+    \name{author}{1}{}{%
+      {{hash=MD}{%
+         family={Moody},
+         familyi={M\bibinitperiod},
+         given={Dan},
+         giveni={D\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{MD+1}
+    \strng{fullhash}{MD+1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{M}
+    \field{sortinithash}{M}
+    \field{title}{Winetricks}
+    \verb{url}
+    \verb https://github.com/Winetricks/winetricks
+    \endverb
+  \endentry
+
+  \entry{rfc4120}{misc}{}{}
+    \true{moreauthor}
+    \true{morelabelname}
+    \name{author}{1}{}{%
+      {{hash=NC}{%
+         family={Neuman},
+         familyi={N\bibinitperiod},
+         given={Clifford},
+         giveni={C\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{NC+1}
+    \strng{fullhash}{NC+1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{N}
+    \field{sortinithash}{N}
+    \field{title}{{The Kerberos Network Authentication Service (V5) (RFC
+  4120)}}
+    \verb{url}
+    \verb https://datatracker.ietf.org/doc/html/rfc4120
+    \endverb
+    \field{year}{2005}
+  \endentry
+
+  \entry{ollama}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=O}{%
+         family={{Ollama contributors}},
+         familyi={O\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{O1}
+    \strng{fullhash}{O1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{O}
+    \field{sortinithash}{O}
+    \field{title}{Ollama}
+    \verb{url}
+    \verb https://ollama.com
+    \endverb
+  \endentry
+
+  \entry{obs}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=O}{%
+         family={{Open Build Service contributors}},
+         familyi={O\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{O2}
+    \strng{fullhash}{O2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{O}
+    \field{sortinithash}{O}
+    \field{title}{Open Build Service}
+    \verb{url}
+    \verb https://openbuildservice.org
+    \endverb
+  \endentry
+
+  \entry{openai:api}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=O}{%
+         family={{OpenAI}},
+         familyi={O\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{O3}
+    \strng{fullhash}{O3}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{O}
+    \field{sortinithash}{O}
+    \field{title}{{OpenAI} {API} Reference}
+    \verb{url}
+    \verb https://platform.openai.com/docs/api-reference
+    \endverb
+  \endentry
+
+  \entry{opencypher}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=o}{%
+         family={{openCypher contributors}},
+         familyi={o\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{o1}
+    \strng{fullhash}{o1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{O}
+    \field{sortinithash}{O}
+    \field{title}{The {Cypher} Query Language}
+    \verb{url}
+    \verb https://opencypher.org
+    \endverb
+  \endentry
+
+  \entry{opensuse}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=o}{%
+         family={{openSUSE Project}},
+         familyi={o\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{o2}
+    \strng{fullhash}{o2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{O}
+    \field{sortinithash}{O}
+    \field{title}{openSUSE Linux}
+    \verb{url}
+    \verb https://www.opensuse.org
+    \endverb
+  \endentry
+
+  \entry{zypper}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=o}{%
+         family={{openSUSE Project}},
+         familyi={o\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{o2}
+    \strng{fullhash}{o2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{O}
+    \field{sortinithash}{O}
+    \field{title}{SDB:Zypper usage}
+    \verb{url}
+    \verb https://en.opensuse.org/SDB:Zypper_usage
+    \endverb
+  \endentry
+
+  \entry{openvpn}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=O}{%
+         family={{OpenVPN Inc.}},
+         familyi={O\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{O1}
+    \strng{fullhash}{O1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{O}
+    \field{sortinithash}{O}
+    \field{title}{{OpenVPN}}
+    \verb{url}
+    \verb https://openvpn.net
+    \endverb
+  \endentry
+
+  \entry{toml}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=PWT}{%
+         family={Preston-Werner},
+         familyi={P\bibinithyphendelim W\bibinitperiod},
+         given={Tom},
+         giveni={T\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{PWT1}
+    \strng{fullhash}{PWT1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{P}
+    \field{sortinithash}{P}
+    \field{title}{{TOML}: Tom's Obvious Minimal Language}
+    \verb{url}
+    \verb https://toml.io
+    \endverb
+  \endentry
+
+  \entry{rfc8446}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=RE}{%
+         family={Rescorla},
+         familyi={R\bibinitperiod},
+         given={Eric},
+         giveni={E\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{RE1}
+    \strng{fullhash}{RE1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{R}
+    \field{sortinithash}{R}
+    \field{title}{{The Transport Layer Security (TLS) Protocol Version 1.3 (RFC
+  8446)}}
+    \verb{url}
+    \verb https://datatracker.ietf.org/doc/html/rfc8446
+    \endverb
+    \field{year}{2018}
+  \endentry
+
+  \entry{dnf}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=R}{%
+         family={{RPM Software Management}},
+         familyi={R\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{R1}
+    \strng{fullhash}{R1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{R}
+    \field{sortinithash}{R}
+    \field{title}{DNF, the next-generation replacement for YUM}
+    \verb{url}
+    \verb https://dnf.readthedocs.io
+    \endverb
+  \endentry
+
+  \entry{rfc4511}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=SJ}{%
+         family={Sermersheim},
+         familyi={S\bibinitperiod},
+         given={Jim},
+         giveni={J\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{SJ1}
+    \strng{fullhash}{SJ1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{S}
+    \field{sortinithash}{S}
+    \field{title}{{Lightweight Directory Access Protocol (LDAP): The Protocol
+  (RFC 4511)}}
+    \verb{url}
+    \verb https://datatracker.ietf.org/doc/html/rfc4511
+    \endverb
+    \field{year}{2006}
+  \endentry
+
+  \entry{shadcn}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=S}{%
+         family={Shadcn},
+         familyi={S\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{S1}
+    \strng{fullhash}{S1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{S}
+    \field{sortinithash}{S}
+    \field{title}{shadcn/ui}
+    \verb{url}
+    \verb https://ui.shadcn.com
+    \endverb
+  \endentry
+
+  \entry{smithay}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=S}{%
+         family={{Smithay contributors}},
+         familyi={S\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{S2}
+    \strng{fullhash}{S2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{S}
+    \field{sortinithash}{S}
+    \field{title}{Smithay: A Wayland compositor library in {Rust}}
+    \verb{url}
+    \verb https://smithay.github.io
+    \endverb
+  \endentry
+
+  \entry{cosmic:comp}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=S}{%
+         family={{System76}},
+         familyi={S\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{S3}
+    \strng{fullhash}{S3}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{S}
+    \field{sortinithash}{S}
+    \field{title}{cosmic-comp: The {COSMIC} Wayland compositor}
+    \verb{url}
+    \verb https://github.com/pop-os/cosmic-comp
+    \endverb
+  \endentry
+
+  \entry{tailwind}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=T}{%
+         family={{Tailwind Labs}},
+         familyi={T\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{T1}
+    \strng{fullhash}{T1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{T}
+    \field{sortinithash}{T}
+    \field{title}{Tailwind {CSS}}
+    \verb{url}
+    \verb https://tailwindcss.com
+    \endverb
+  \endentry
+
+  \entry{qt}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=T}{%
+         family={{The Qt Company}},
+         familyi={T\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{T2}
+    \strng{fullhash}{T2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{T}
+    \field{sortinithash}{T}
+    \field{title}{{Qt} Framework}
+    \verb{url}
+    \verb https://www.qt.io
+    \endverb
+  \endentry
+
+  \entry{uefi}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=U}{%
+         family={{UEFI Forum}},
+         familyi={U\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{U1}
+    \strng{fullhash}{U1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{U}
+    \field{sortinithash}{U}
+    \field{title}{{UEFI} Specification}
+    \verb{url}
+    \verb https://uefi.org/specifications
+    \endverb
+  \endentry
+
+  \entry{usbguard}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=U}{%
+         family={{USBGuard contributors}},
+         familyi={U\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{U2}
+    \strng{fullhash}{U2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{U}
+    \field{sortinithash}{U}
+    \field{title}{{USBGuard}}
+    \verb{url}
+    \verb https://usbguard.github.io
+    \endverb
+  \endentry
+
+  \entry{proton}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=V}{%
+         family={{Valve Corporation}},
+         familyi={V\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{V1}
+    \strng{fullhash}{V1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{V}
+    \field{sortinithash}{V}
+    \field{title}{Proton}
+    \verb{url}
+    \verb https://github.com/ValveSoftware/Proton
+    \endverb
+  \endentry
+
+  \entry{vkd3d:proton}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=V}{%
+         family={{Valve Corporation}},
+         familyi={V\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{V1}
+    \strng{fullhash}{V1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{V}
+    \field{sortinithash}{V}
+    \field{title}{vkd3d-proton}
+    \verb{url}
+    \verb https://github.com/HansKristian-Work/vkd3d-proton
+    \endverb
+  \endentry
+
+  \entry{vite}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=V}{%
+         family={{Vite contributors}},
+         familyi={V\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{V2}
+    \strng{fullhash}{V2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{V}
+    \field{sortinithash}{V}
+    \field{title}{Vite}
+    \verb{url}
+    \verb https://vite.dev
+    \endverb
+  \endentry
+
+  \entry{wcag}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=W}{%
+         family={{W3C Web Accessibility Initiative}},
+         familyi={W\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{W1}
+    \strng{fullhash}{W1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{W}
+    \field{sortinithash}{W}
+    \field{title}{Web Content Accessibility Guidelines ({WCAG}) 2.2}
+    \verb{url}
+    \verb https://www.w3.org/TR/WCAG22/
+    \endverb
+    \field{year}{2023}
+  \endentry
+
+  \entry{beyondcorp}{misc}{}{}
+    \name{author}{2}{}{%
+      {{hash=WR}{%
+         family={Ward},
+         familyi={W\bibinitperiod},
+         given={Rory},
+         giveni={R\bibinitperiod},
+      }}%
+      {{hash=BB}{%
+         family={Beyer},
+         familyi={B\bibinitperiod},
+         given={Betsy},
+         giveni={B\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{WRBB1}
+    \strng{fullhash}{WRBB1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{W}
+    \field{sortinithash}{W}
+    \field{title}{{BeyondCorp: A New Approach to Enterprise Security}}
+    \verb{url}
+    \verb https://research.google/pubs/beyondcorp-a-new-approach-to-enterprise-
+    \verb security/
+    \endverb
+    \field{journaltitle}{;login: The USENIX Magazine}
+    \field{year}{2014}
+  \endentry
+
+  \entry{wifidirect}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=W}{%
+         family={{Wi-Fi Alliance}},
+         familyi={W\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{W2}
+    \strng{fullhash}{W2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{W}
+    \field{sortinithash}{W}
+    \field{title}{{Wi-Fi Direct}}
+    \verb{url}
+    \verb https://www.wi-fi.org/discover-wi-fi/wi-fi-direct
+    \endverb
+  \endentry
+
+  \entry{wlr:protocols}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=w}{%
+         family={{wlroots contributors}},
+         familyi={w\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{w1}
+    \strng{fullhash}{w1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{W}
+    \field{sortinithash}{W}
+    \field{title}{wlr-protocols}
+    \verb{url}
+    \verb https://gitlab.freedesktop.org/wlroots/wlr-protocols
+    \endverb
+  \endentry
+
+  \entry{radix}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=W}{%
+         family={{WorkOS}},
+         familyi={W\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{W1}
+    \strng{fullhash}{W1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{W}
+    \field{sortinithash}{W}
+    \field{title}{Radix {UI}}
+    \verb{url}
+    \verb https://www.radix-ui.com
+    \endverb
   \endentry
 \enddatalist
 \endinput

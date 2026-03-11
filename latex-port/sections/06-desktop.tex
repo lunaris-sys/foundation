@@ -63,90 +63,194 @@ emitter. No ad-hoc serialization; the bridge handles it.
 \subsection{Compositor and Window Manager}
 \label{sec:compositor}
 
-The Wayland compositor is built on \emph{Smithay}, a Rust framework that
-provides the low-level plumbing for compositor development: Wayland protocol
-handling, DRM/KMS interfaces for direct display access, input processing via
-libinput, and buffer management. Compositor logic such as window placement,
-focus rules, and workspace behaviour is built on top of Smithay rather than
-dictated by it. Building a compositor without a framework is an undertaking
-that would dominate development for years; Smithay provides the foundation
-without constraining the design. The COSMIC desktop compositor from System76
-(cosmic-comp) is a useful reference for a Rust-first desktop project with
-comparable goals.
+The Wayland compositor is built on \emph{Smithay}~\cite{smithay} (introduced
+in Section~\ref{sec:smithay-intro}). Smithay handles three distinct layers of
+low-level plumbing that would otherwise require months of work per area.
+
+\emph{DRM/KMS} (Direct Rendering Manager / Kernel Mode Setting) is the Linux
+kernel subsystem responsible for talking directly to display hardware. DRM
+manages GPU memory and command submission; KMS handles setting display modes,
+resolutions, refresh rates, and which GPU output drives which physical
+connector. A compositor that wants to draw to the screen without going through
+another display server must use DRM/KMS directly. Smithay abstracts this into
+a safe Rust API~\cite{archwiki:drm}.
+
+\emph{libinput}~\cite{libinput} is the standard Linux input processing library.
+It reads raw events from kernel input devices (keyboards, mice, touchpads,
+touchscreens), applies device-specific quirks and acceleration curves, and
+emits normalized events. Using libinput means the compositor gets correct
+two-finger scrolling, palm rejection, and tap-to-click on every supported
+touchpad without implementing any of that per-device logic itself.
+
+\emph{Buffer management} in Wayland means handling \emph{wl\_buffer} objects:
+the shared memory regions or GPU buffers that applications render their window
+contents into. The compositor receives these buffers, composites them together
+(applying transforms, clipping, and blending), and presents the result to the
+display hardware via DRM/KMS. Smithay handles the buffer lifecycle including
+GPU-side zero-copy paths via \texttt{dmabuf}.
+
+Compositor logic built on top of Smithay: window placement, focus rules, and
+workspace behaviour are all written by this project. Smithay does not prescribe
+any of it. The \emph{COSMIC} desktop compositor from System76
+(\texttt{cosmic-comp}~\cite{cosmic:comp}) is a useful reference for a
+production Rust-first Smithay compositor with comparable goals.
 
 Window management supports both floating and tiling layouts, switchable per
-workspace. There is no forced paradigm: users who prefer floating windows on
-one workspace and a tiling layout on another can configure that independently
-per workspace.
+workspace independently.
 
-The compositor implements the Wayland protocol extensions listed in
-Table~\ref{tab:wayland-protocols}.
+\paragraph{Wayland protocol extensions.}
+The core Wayland protocol covers only the basics: surfaces (drawable regions),
+input routing, and output (monitor) management. Everything a desktop actually
+needs -- panels anchored to screen edges, a taskbar that knows about open
+windows, workspace switching -- requires \emph{protocol extensions}: additional
+interface definitions that the compositor implements and clients can use if
+present. Table~\ref{tab:wayland-protocols} lists the extensions this compositor
+implements and what each enables.
 
 \begin{table}[htbp]
 \caption{Implemented Wayland protocol extensions}
 \label{tab:wayland-protocols}
 \begin{tabularx}{\linewidth}{lX}
 \toprule
-\textbf{Protocol} & \textbf{Purpose} \\
+\textbf{Protocol} & \textbf{What it enables} \\
 \midrule
-\texttt{wlr-layer-shell}                  & Positions the taskbar and panels at screen edges, above application windows \\
-\texttt{wlr-foreign-toplevel-management}  & Exposes open windows (title, app ID, state) to the taskbar \\
-\texttt{wlr-workspace-management}         & Workspace state and control for the taskbar \\
-\texttt{xdg-shell}                        & Standard protocol for normal application windows \\
-\texttt{xdg-output}                       & Monitor metadata for multi-monitor configurations \\
-\texttt{xdg-desktop-portal}               & Screensharing, file picker, and OS-level dialogs for sandboxed apps \\
+\texttt{wlr-layer-shell}~\cite{wlr:protocols} &
+  Allows a client (the taskbar) to claim a fixed strip at a screen edge and
+  stay above all application windows. Without this, the taskbar would be
+  just another window the user could accidentally cover. \\
+\texttt{wlr-foreign-toplevel-management}~\cite{wlr:protocols} &
+  Lets a client outside the compositor query and control all open windows:
+  title, app ID, minimized/maximized state, and focus. This is what makes the
+  taskbar able to list running applications and switch to them. \\
+\texttt{wlr-workspace-management}~\cite{wlr:protocols} &
+  Exposes workspace state (current workspace, window-to-workspace mapping) to
+  clients. Enables the workspace switcher in the taskbar. \\
+\texttt{xdg-shell} &
+  The standard protocol for normal application windows: creation, resize,
+  maximize, fullscreen, and popup menus. Every Wayland application uses this. \\
+\texttt{xdg-output} &
+  Extends monitor information beyond the core protocol: logical position and
+  size for multi-monitor layouts, human-readable names. \\
+\texttt{xdg-desktop-portal}~\cite{xdg:portal} &
+  A D-Bus interface (not a Wayland protocol) that gives sandboxed applications
+  controlled access to OS capabilities: file pickers, screensharing, printing,
+  and camera access, each with a user-consent dialog. Flatpak applications use
+  this exclusively; they have no direct filesystem or device access. \\
+\texttt{wp-fractional-scale-v1} &
+  Allows the compositor to tell an application its exact fractional scale
+  factor (for example 1.5 on a 1440p display), so it can render at the correct
+  pixel density rather than relying on integer scaling with blurring. \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
+The \texttt{wlr-} prefixed protocols are part of the \emph{wlroots} protocol
+collection~\cite{wlr:protocols}, originally developed alongside the wlroots
+compositor library and now widely implemented across compositors including
+Sway, Hyprland, and KWin.
+
 \paragraph{XWayland.}
-X11 compatibility is provided via XWayland, an X11 server that runs as a
-Wayland client, making legacy X11 applications transparent to the user. It
-starts on demand when the first X11 application launches and shuts down when
-none are running. Users who do not need X11 compatibility can disable it in
-Settings to reduce the attack surface.
+X11 compatibility is provided via \emph{XWayland}~\cite{archwiki:xwayland},
+an X11 server that runs as a Wayland client. From the compositor's perspective
+it is just another Wayland client; from legacy X11 applications' perspective it
+is a regular X11 display. It starts on demand when the first X11 application
+launches and shuts down when none are running. Users who do not need X11
+compatibility can disable it in Settings.
 
 XWayland has structural limitations that cannot be solved at the compositor
-level and are documented rather than hidden. Copy-paste between X11 and
-Wayland applications requires a clipboard synchronization bridge. Drag and drop
-across protocol boundaries is unreliable. X11 applications cannot use
-\texttt{xdg-desktop-portal} for screensharing and see only the XWayland
-surface. Most significantly, X11 has no inter-application isolation: one X11
-application can read the input events of any other X11 application, which is a
-keylogger-class capability. This is recorded in the audit log whenever X11
-applications are active.
+level; they are documented rather than hidden. Copy-paste between X11 and
+Wayland applications requires a clipboard synchronization bridge.
+Drag-and-drop across protocol boundaries is unreliable. X11 applications cannot
+use \texttt{xdg-desktop-portal} for screensharing. Most significantly, X11 has
+no inter-application isolation: one X11 application can read the input events
+of any other X11 application within the XWayland session, which is a
+keylogger-class capability contained within the XWayland boundary. This is
+recorded in the audit log whenever X11 applications are active.
 
 \subsection{Shell and Application Framework}
 \label{sec:shell}
 
-The shell, comprising the taskbar, app launcher, notification center, quick
-settings panel, and lock screen, is built with Tauri using TypeScript and
-Tailwind CSS for the interface layer. Tauri renders the UI in a WebKitGTK
-WebView, which gives the shell access to the full set of modern web rendering
-capabilities without the memory cost of an Electron-style approach. The shell
-is a Wayland client that uses \texttt{wlr-layer-shell} to anchor its surfaces
-to screen edges.
+The shell -- taskbar, app launcher, notification center, quick settings panel,
+and lock screen -- is built with Tauri (introduced in
+Section~\ref{sec:tauri-intro}) using TypeScript and \emph{Tailwind CSS} for the
+interface layer. Tauri renders the UI in a \emph{WebKitGTK} WebView, which
+provides full modern web rendering capabilities without the memory cost of an
+Electron-style approach. The shell is a Wayland client that uses
+\texttt{wlr-layer-shell} to anchor its surfaces to screen edges.
+
+\paragraph{What GTK is.}
+\emph{GTK} (GIMP Toolkit, now branded simply as GTK) is the most widely used
+UI toolkit on Linux~\cite{gtk}. It provides the standard set of interface
+components -- buttons, text inputs, dialogs, menus, scrollable lists -- and is
+the foundation for applications such as GNOME, Nautilus, and most of the Linux
+application ecosystem. \emph{GTK4} is the current major version, a significant
+rewrite from GTK3 with a new rendering pipeline (using GPU shaders via
+OpenGL/Vulkan rather than Cairo), improved accessibility, and a better layout
+engine.
+
+\emph{Qt} is the main alternative to GTK and is used by the KDE ecosystem and
+many cross-platform applications~\cite{qt}. The first-party applications in
+this project do not use GTK or Qt directly; they use Tauri with WebKitGTK.
+However, GTK4 and Qt applications from the ecosystem still run on this desktop
+and receive theming coverage, which is why both frameworks appear in the theming
+section.
+
+\paragraph{Tailwind CSS.}
+\emph{Tailwind CSS}~\cite{tailwind} is a utility-first CSS framework. In
+conventional CSS, developers write named classes that each describe a component
+(\texttt{.notification-card \{ padding: 1rem; border-radius: 0.5rem; \}}). In
+Tailwind, styling is applied directly with utility classes in the HTML:
+\texttt{<div class="p-4 rounded-lg bg-surface">}. Each class does exactly one
+thing. The result is that the visual design and the structure live together in
+the component file; there is no separate stylesheet to maintain or keep in sync.
+
+For a project where multiple developers will build different applications, this
+matters: consistency comes from shared utility classes and design tokens, not
+from trusting that each developer remembers to use the right custom class name.
+A button looks the same across applications because it uses the same token
+values, not because two people independently wrote matching CSS.
+
+Tailwind is a build-time tool. Only the utility classes actually used in the
+project are included in the final CSS output; unused classes are removed.
 
 \paragraph{ui-kit.}
 A shared TypeScript package provides the visual foundation for every
-first-party application. It is based on \emph{shadcn/ui}, a set of
-Tailwind-based components that are copied into the project and fully owned
-rather than consumed as an npm dependency. The package is organized in three
-layers: design tokens as CSS custom properties that define the visual language
-and propagate everywhere when changed; base components such as Button, Input,
-Dialog, and Card built on shadcn/ui and styled with those tokens; and
-system-specific components such as \texttt{WindowChrome}, \texttt{AppShell},
-and \texttt{NotificationToast} that implement OS-level interaction patterns.
-Every first-party application imports from ui-kit and receives visual
-consistency without duplicating any of this infrastructure.
+first-party application. It is based on \emph{shadcn/ui}~\cite{shadcn},
+a collection of accessible, unstyled UI components built on
+\emph{Radix UI}~\cite{radix} primitives and styled with Tailwind.
+
+The key design decision behind shadcn/ui is its distribution model: components
+are not installed as an npm dependency. Instead, component source files are
+\emph{copied into the project} and become part of the codebase. This means
+there is no upstream version to break things silently, no peer-dependency
+conflicts, and full ownership of every component. When a component needs to
+deviate from the default (different animation, extra accessibility attribute),
+the source file is there to edit directly.
+
+ui-kit is organized in three layers. The first layer is the \emph{design token
+system}: values defined as CSS custom properties that establish the entire
+visual language. A \emph{CSS custom property} (also called a CSS variable) is
+a named value defined in a CSS rule and referenced throughout the stylesheet:
+\texttt{--color-accent: \#3b82f6} defined once and used as
+\texttt{color: var(--color-accent)} everywhere. When the accent color changes,
+one value changes and every element using it updates instantly, without
+reloading any component. This is the mechanism behind live theme switching.
+The second layer contains base components: Button, Input, Dialog, Card, and
+similar primitives built from shadcn/ui and styled with the token system.
+The third layer contains OS-specific components: \texttt{WindowChrome},
+\texttt{AppShell}, and \texttt{NotificationToast}, which implement patterns
+specific to this desktop environment.
 
 \paragraph{os-sdk.}
 A shared Rust crate provides system integration to every first-party
-application. It bundles a Graph Daemon client, an Event Bus client, MCP server
-boilerplate, and the TOML-based config system. A new first-party application
-starts with Tauri, ui-kit, and os-sdk and has graph access, event emission,
-an MCP server, config handling, and a consistent UI without writing any
-infrastructure code. The standard application layout reflects this:
+application. It bundles a typed Graph Daemon client (a Rust struct that opens
+the daemon's Unix socket and sends Cypher queries), an Event Bus client, MCP
+server boilerplate (the scaffolding to register tools and handle invocations),
+and the TOML-based config system with automatic schema validation. A new
+first-party application adds Tauri, ui-kit, and os-sdk and immediately has
+graph access, event emission, an MCP server, config handling, and a consistent
+UI without writing any infrastructure code. The standard application layout
+reflects this:
 
 \begin{lstlisting}[language=bash, caption={Standard first-party app structure}]
 app-files/
@@ -223,49 +327,71 @@ community themes work.
 \paragraph{Token system.}
 All themes are defined in TOML and compiled to platform-specific outputs by
 the build system. The TOML file is the single source of truth; no theme value
-exists anywhere else. From one \texttt{tokens.toml}, the build generates CSS
-custom properties for the Tauri shell and all first-party applications, a GTK4
-CSS theme, a Wine \texttt{.msstyles} file for Windows compatibility, and base
-dark/light palettes for GTK3 and Qt. Changing the accent color in the TOML
-propagates to every layer on the next build.
+exists anywhere else. From one \texttt{tokens.toml}, the build generates:
+
+\begin{itemize}
+  \item CSS custom properties for the Tauri shell and all first-party
+    applications, applied via a root stylesheet loaded at startup.
+  \item A GTK4 CSS theme, applied via \texttt{gtk-theme-name} in
+    \texttt{\textasciitilde/.config/gtk-4.0/settings.ini}.
+  \item A Wine \texttt{.msstyles} file. Wine~\cite{archwiki:wine} is the
+    compatibility layer that runs Windows applications on Linux; it has a
+    visual theme system based on Microsoft's \texttt{.msstyles} format, the
+    same format used for Windows XP visual styles. Generating one from tokens
+    means Windows applications running under Wine use the same accent color and
+    surface colors as the rest of the desktop.
+  \item Base dark and light palettes for GTK3 and Qt.
+\end{itemize}
+
+Changing the accent color in the TOML file propagates to every output on the
+next build; in a live switch (see below), the CSS custom property update is
+applied without a rebuild.
 
 \paragraph{Built-in themes.}
 Four themes ship with the system. Dark and Light are standard high-contrast
-variants. High Contrast targets WCAG AAA at a minimum 7:1 contrast ratio, with
-no transparency effects, no gradients, and no information conveyed through
-color alone; it is generated from the same token system as the others and has
-both a dark and light variant. Panda is the default and the most distinctive:
-a deliberate split-surface design where different UI regions are intentionally
-dark or light based on their function, creating a high-contrast frame around
-bright content. The exact palette values for all four themes are determined in
-the design phase; the token structure that generates them is fixed.
+variants. High Contrast targets
+\emph{WCAG~AAA}~\cite{wcag} accessibility compliance, which requires a minimum
+contrast ratio of 7:1 between text and its background. WCAG (Web Content
+Accessibility Guidelines) is the international standard for digital
+accessibility maintained by the W3C; AAA is the highest of three conformance
+levels. The High Contrast theme uses no transparency effects, no gradients,
+and conveys no information through color alone; it is generated from the same
+token system as the others and has both a dark and light variant.
+
+Panda is the default and the most distinctive: a deliberate split-surface
+design where different UI regions are intentionally dark or light based on
+their function, creating a high-contrast frame around bright content. The
+exact palette values for all four themes are determined in the design phase;
+the token structure is fixed.
 
 \paragraph{GTK and Qt coverage.}
-GTK4 receives a full custom theme generated from tokens, covering the standard
-set of interactive components with recognizably the same design language as the
-first-party applications, though not pixel-perfect parity. GTK3 and Qt receive
+GTK4 receives a full custom theme generated from tokens. GTK3 and Qt receive
 fixed base dark and light themes only; the split-surface Panda design requires
-component-level CSS control that neither framework provides cleanly, so they
-fall back to whichever base is closer to the active theme.
+component-level CSS control that neither framework exposes cleanly, so they
+fall back to whichever base variant is closer to the active theme.
 
 \paragraph{Store themes.}
 Community themes are distributed through the Store. A theme package declares
 which layers it covers in its manifest and can inherit from any built-in theme,
-overriding only the values it changes. The Store displays coverage clearly
-before installation so users know which layers remain at the base theme. Two
-authoring formats are supported: token overrides for authors who want to change
-colors and radius values without touching CSS, and full compiled CSS for themes
-that need structural changes beyond what the token system exposes. Both formats
-can coexist in one package.
+overriding only the values it changes. The Store displays coverage before
+installation so users know which layers remain at the base theme. Two authoring
+formats are supported: token overrides for authors who want to change colors and
+radius values without touching CSS, and full compiled CSS for themes that need
+structural changes beyond what the token system exposes.
 
 \paragraph{Live switching.}
 Figure~\ref{fig:theme-chain} shows the theme inheritance chain. When the user
 applies a theme, the Settings daemon loads the package, merges its token
-overrides with the base theme, broadcasts new CSS custom properties to all
-running Tauri processes (which update instantly without a reload), regenerates
-and applies the GTK4 theme if the package covers it, and updates Wine prefix
-themes if applicable. Token-based switches complete in under a second;
-GTK4 regeneration may take one to two seconds on slower hardware.
+overrides with the base theme, and broadcasts updated CSS custom property values
+to all running Tauri processes via a Unix socket message. Each Tauri WebView
+has a JavaScript bridge that receives the update and writes the new values to
+the document's \texttt{:root} CSS rule; all elements that reference those
+properties via \texttt{var()} update immediately without a component reload or
+page refresh. This is what makes theme switching feel instantaneous for the
+Tauri layer. The GTK4 theme is regenerated and re-applied (which requires
+relaunching affected GTK4 applications to pick up the change), and Wine prefix
+themes are updated if applicable. Token-based switches complete in under a
+second; GTK4 regeneration may take one to two seconds on slower hardware.
 
 \begin{figure}[htbp]
 \centering
