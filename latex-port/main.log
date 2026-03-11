@@ -1,4 +1,4 @@
-This is LuaHBTeX, Version 1.24.0 (TeX Live 2026/Arch Linux)  (format=lualatex 2026.3.10)  11 MAR 2026 11:41
+This is LuaHBTeX, Version 1.24.0 (TeX Live 2026/Arch Linux)  (format=lualatex 2026.3.10)  11 MAR 2026 15:59
  restricted system commands enabled.
 **main.tex
 (./main.tex
@@ -2539,10 +2539,20 @@ Package biblatex Info: ... file 'blx-compat.def' found.
 (/usr/share/texmf-dist/tex/latex/biblatex/blx-compat.def
 File: blx-compat.def 2025/07/10 v3.21 biblatex compatibility (PK/MW)
 )
+Package biblatex Info: Trying to load BibTeX backend compatibility...
+Package biblatex Info: ... file 'blx-bibtex.def' found.
+
+(/usr/share/texmf-dist/tex/latex/biblatex/blx-bibtex.def
+File: blx-bibtex.def 2025/07/10 v3.21 biblatex compatibility (PK/MW)
+
+
+Package biblatex Warning: Using fall-back bibtex backend:
+(biblatex)                functionality may be reduced/unavailable.
+
+)
 Package biblatex Info: Trying to load generic definitions...
 Package biblatex Info: ... file 'biblatex.def' found.
-
-(/usr/share/texmf-dist/tex/latex/biblatex/biblatex.def
+ (/usr/share/texmf-dist/tex/latex/biblatex/biblatex.def
 File: biblatex.def 2025/07/10 v3.21 biblatex compatibility (PK/MW)
 \c@textcitecount=\count492
 \c@textcitetotal=\count493
@@ -2640,9 +2650,9 @@ Package typearea Info: These are the values describing the layout:
 (typearea)              \topskip        = 11.0pt
 (typearea)              \footskip       = 47.60002pt
 (typearea)              \baselineskip   = 13.6pt
-(typearea)              on input line 50.
+(typearea)              on input line 48.
 Package typearea Info: Using dirty hack to recalculate internal output
-(typearea)             dimensions of LaTeX on input line 50.
+(typearea)             dimensions of LaTeX on input line 48.
 
 (/usr/share/texmf-dist/tex/latex/siunitx/siunitx.sty
 Rollback for package 'siunitx' requested -> version 'v2'.
@@ -2721,86 +2731,86 @@ File: csquotes.cfg
 )) (./main.aux)
 \openout1 = main.aux
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 50.
-LaTeX Font Info:    ... okay on input line 50.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 50.
-LaTeX Font Info:    ... okay on input line 50.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 50.
-LaTeX Font Info:    ... okay on input line 50.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 50.
-LaTeX Font Info:    ... okay on input line 50.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 50.
-LaTeX Font Info:    ... okay on input line 50.
-LaTeX Font Info:    Checking defaults for TU/lmr/m/n on input line 50.
-LaTeX Font Info:    ... okay on input line 50.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 50.
-LaTeX Font Info:    ... okay on input line 50.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 50.
-LaTeX Font Info:    ... okay on input line 50.
-LaTeX Font Info:    Checking defaults for LGR/cmr/m/n on input line 50.
-LaTeX Font Info:    Trying to load font information for LGR+cmr on input line 5
-0.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 48.
+LaTeX Font Info:    ... okay on input line 48.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 48.
+LaTeX Font Info:    ... okay on input line 48.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 48.
+LaTeX Font Info:    ... okay on input line 48.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 48.
+LaTeX Font Info:    ... okay on input line 48.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 48.
+LaTeX Font Info:    ... okay on input line 48.
+LaTeX Font Info:    Checking defaults for TU/lmr/m/n on input line 48.
+LaTeX Font Info:    ... okay on input line 48.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 48.
+LaTeX Font Info:    ... okay on input line 48.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 48.
+LaTeX Font Info:    ... okay on input line 48.
+LaTeX Font Info:    Checking defaults for LGR/cmr/m/n on input line 48.
+LaTeX Font Info:    Trying to load font information for LGR+cmr on input line 4
+8.
 
 (/usr/share/texmf-dist/tex/latex/cbfonts-fd/lgrcmr.fd
 File: lgrcmr.fd 2017/07/29 v1.2 Greek European Computer Regular
 )
-LaTeX Font Info:    ... okay on input line 50.
-LaTeX Font Info:    Checking defaults for LY1/ptm/m/n on input line 50.
-LaTeX Font Info:    Trying to load font information for LY1+ptm on input line 5
-0.
+LaTeX Font Info:    ... okay on input line 48.
+LaTeX Font Info:    Checking defaults for LY1/ptm/m/n on input line 48.
+LaTeX Font Info:    Trying to load font information for LY1+ptm on input line 4
+8.
 
 (/usr/share/texmf-dist/tex/latex/ly1/ly1ptm.fd
 File: ly1ptm.fd 2001/02/01 font definitions for LY1/ptm using Berry names.
 )
-LaTeX Font Info:    ... okay on input line 50.
-LaTeX Font Info:    Checking defaults for MDA/cmr/m/n on input line 50.
-LaTeX Font Info:    Trying to load font information for MDA+cmr on input line 5
-0.
+LaTeX Font Info:    ... okay on input line 48.
+LaTeX Font Info:    Checking defaults for MDA/cmr/m/n on input line 48.
+LaTeX Font Info:    Trying to load font information for MDA+cmr on input line 4
+8.
 
 (/usr/share/texmf-dist/tex/latex/mathdesign/mdacmr.fd
 File: mdacmr.fd 
 )
-LaTeX Font Info:    ... okay on input line 50.
-LaTeX Font Info:    Checking defaults for MDB/cmr/m/n on input line 50.
-LaTeX Font Info:    Trying to load font information for MDB+cmr on input line 5
-0.
+LaTeX Font Info:    ... okay on input line 48.
+LaTeX Font Info:    Checking defaults for MDB/cmr/m/n on input line 48.
+LaTeX Font Info:    Trying to load font information for MDB+cmr on input line 4
+8.
 
 (/usr/share/texmf-dist/tex/latex/mathdesign/mdbcmr.fd
 File: mdbcmr.fd 
 )
-LaTeX Font Info:    ... okay on input line 50.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 50.
-LaTeX Font Info:    ... okay on input line 50.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 50.
-LaTeX Font Info:    ... okay on input line 50.
-Package scrbase Info: activating english \abstractname on input line 50.
-Package scrbase Info: activating english \partname on input line 50.
-Package scrbase Info: activating english \figurename on input line 50.
-Package scrbase Info: activating english \tablename on input line 50.
-Package scrbase Info: activating english \contentsname on input line 50.
-Package scrbase Info: activating english \listfigurename on input line 50.
-Package scrbase Info: activating english \listtablename on input line 50.
-Package scrbase Info: activating english \refname on input line 50.
-Package scrbase Info: activating english \indexname on input line 50.
-Package scrbase Info: activating english \figureautorefname on input line 50.
-Package scrbase Info: activating english \tableautorefname on input line 50.
-Package scrbase Info: activating english \lstlistingautorefname on input line 5
-0.
-Package scrbase Info: activating english \lstnumberautorefname on input line 50
+LaTeX Font Info:    ... okay on input line 48.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 48.
+LaTeX Font Info:    ... okay on input line 48.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 48.
+LaTeX Font Info:    ... okay on input line 48.
+Package scrbase Info: activating english \abstractname on input line 48.
+Package scrbase Info: activating english \partname on input line 48.
+Package scrbase Info: activating english \figurename on input line 48.
+Package scrbase Info: activating english \tablename on input line 48.
+Package scrbase Info: activating english \contentsname on input line 48.
+Package scrbase Info: activating english \listfigurename on input line 48.
+Package scrbase Info: activating english \listtablename on input line 48.
+Package scrbase Info: activating english \refname on input line 48.
+Package scrbase Info: activating english \indexname on input line 48.
+Package scrbase Info: activating english \figureautorefname on input line 48.
+Package scrbase Info: activating english \tableautorefname on input line 48.
+Package scrbase Info: activating english \lstlistingautorefname on input line 4
+8.
+Package scrbase Info: activating english \lstnumberautorefname on input line 48
 .
-Package scrbase Info: activating english \subsectionautorefname on input line 5
-0.
+Package scrbase Info: activating english \subsectionautorefname on input line 4
+8.
 Package scrbase Info: activating english \subsubsectionautorefname on input lin
-e 50.
-Package scrbase Info: activating english \appendixautorefname on input line 50.
+e 48.
+Package scrbase Info: activating english \appendixautorefname on input line 48.
 
-LaTeX Info: Redefining \microtypecontext on input line 50.
-Package microtype Info: Applying patch `item' on input line 50.
-Package microtype Info: Applying patch `toc' on input line 50.
-Package microtype Info: Applying patch `eqnum' on input line 50.
-Package microtype Info: Applying patch `footnote' on input line 50.
-Package microtype Info: Applying patch `verbatim' on input line 50.
-LaTeX Info: Redefining \microtypesetup on input line 50.
+LaTeX Info: Redefining \microtypecontext on input line 48.
+Package microtype Info: Applying patch `item' on input line 48.
+Package microtype Info: Applying patch `toc' on input line 48.
+Package microtype Info: Applying patch `eqnum' on input line 48.
+Package microtype Info: Applying patch `footnote' on input line 48.
+Package microtype Info: Applying patch `verbatim' on input line 48.
+LaTeX Info: Redefining \microtypesetup on input line 48.
 Package microtype Info: Generating PDF output.
 Package microtype Info: Character protrusion enabled (level 2).
 Package microtype Info: Using default protrusion set `alltext'.
@@ -2815,7 +2825,7 @@ Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `XCharter' (encoding: TU).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
-Package hyperref Info: Link coloring OFF on input line 50.
+Package hyperref Info: Link coloring OFF on input line 48.
 
 (/usr/share/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
@@ -2848,7 +2858,7 @@ Package caption Info: hypcap package is loaded.
 Package caption Info: listings package is loaded.
 Package caption Info: End \AtBeginDocument code.
 \c@lstlisting=\count533
-Package tocbasic Info: setting babel extension for `lol' on input line 50.
+Package tocbasic Info: setting babel extension for `lol' on input line 48.
 \scr@dte@lstlisting@maxnumwidth=\skip112
 
 (/usr/share/texmf-dist/tex/latex/translations/translations-basic-dictionary-eng
@@ -2857,7 +2867,7 @@ File: translations-basic-dictionary-english.trsl (english translation file `tra
 nslations-basic-dictionary')
 )
 Package translations Info: loading dictionary `translations-basic-dictionary' f
-or `english'. on input line 50.
+or `english'. on input line 48.
 Package biblatex Info: Trying to load language 'english'...
 Package biblatex Info: ... file 'english.lbx' found.
  (/usr/share/texmf-dist/tex/latex/biblatex/lbx/english.lbx
@@ -2867,18 +2877,21 @@ Package biblatex Info: LuaTeX detected.
 (biblatex)             Assuming input encoding 'utf8'.
 Package biblatex Info: Automatic encoding selection.
 (biblatex)             Assuming data encoding 'utf8'.
+Package biblatex Info: LuaTeX detected.
+(biblatex)             Assuming input encoding 'utf8'.
+Package biblatex Info: Data encoding 'utf8' specified.
+(biblatex)             No need to reencode data.
 
-\openout5 = main.bcf
+\openout5 = main-blx.bib
 Package biblatex Info: Trying to load bibliographic data...
-Package biblatex Info: ... file 'main.bbl' not found.
+Package biblatex Info: ... file 'main.bbl' found.
 
-No file main.bbl.
-Package biblatex Info: Reference section=0 on input line 50.
-Package biblatex Info: Reference segment=0 on input line 50.
-(/usr/share/texmf-dist/tex/latex/siunitx/siunitx-abbreviations.cfg
+(./main.bbl)
+Package biblatex Info: Reference section=0 on input line 48.
+Package biblatex Info: Reference segment=0 on input line 48.
+ (/usr/share/texmf-dist/tex/latex/siunitx/siunitx-abbreviations.cfg
 File: siunitx-abbreviations.cfg 2021-04-17 v2.8e siunitx: Abbreviated units
-)
-(/usr/share/texmf-dist/tex/latex/siunitx/siunitx-binary.cfg
+) (/usr/share/texmf-dist/tex/latex/siunitx/siunitx-binary.cfg
 File: siunitx-binary.cfg 2021-04-17 v2.8e siunitx: Binary units
 )
 (/usr/share/texmf-dist/tex/latex/translator/translator-basic-dictionary-English
@@ -2887,89 +2900,89 @@ Dictionary: translator-basic-dictionary, Language: English
 )
 \g__cctab_next_cctab=\catcodetable21
 LaTeX Font Info:    Trying to load font information for OT1+mdbch on input line
- 50.
+ 48.
  (/usr/share/texmf-dist/tex/latex/mathdesign/mdbch/ot1mdbch.fd
 File: ot1mdbch.fd 2013/08/29 Fontinst v1.933 font definitions for OT1/mdbch.
 )
 LaTeX Font Info:    Font shape `OT1/mdbch/m/n' will be
-(Font)              scaled to size 10.51207pt on input line 50.
+(Font)              scaled to size 10.51207pt on input line 48.
 
 (/usr/share/texmf-dist/tex/latex/microtype/mt-bch.cfg
 File: mt-bch.cfg 2007/03/03 v1.5 microtype config. file: Bitstream Charter (RS)
 
 )
 LaTeX Font Info:    Font shape `OT1/mdbch/m/n' will be
-(Font)              scaled to size 7.68005pt on input line 50.
+(Font)              scaled to size 7.68005pt on input line 48.
 LaTeX Font Info:    Font shape `OT1/mdbch/m/n' will be
-(Font)              scaled to size 5.76004pt on input line 50.
+(Font)              scaled to size 5.76004pt on input line 48.
 LaTeX Font Info:    Trying to load font information for OML+mdbch on input line
- 50.
+ 48.
 
 (/usr/share/texmf-dist/tex/latex/mathdesign/mdbch/omlmdbch.fd
 File: omlmdbch.fd 2013/08/29 Fontinst v1.933 font definitions for OML/mdbch.
 )
 LaTeX Font Info:    Font shape `OML/mdbch/m/it' will be
-(Font)              scaled to size 10.51207pt on input line 50.
+(Font)              scaled to size 10.51207pt on input line 48.
 LaTeX Font Info:    Font shape `OML/mdbch/m/it' will be
-(Font)              scaled to size 7.68005pt on input line 50.
+(Font)              scaled to size 7.68005pt on input line 48.
 LaTeX Font Info:    Font shape `OML/mdbch/m/it' will be
-(Font)              scaled to size 5.76004pt on input line 50.
+(Font)              scaled to size 5.76004pt on input line 48.
 LaTeX Font Info:    Trying to load font information for OMS+mdbch on input line
- 50.
+ 48.
 
 (/usr/share/texmf-dist/tex/latex/mathdesign/mdbch/omsmdbch.fd
 File: omsmdbch.fd 2013/08/29 Fontinst v1.933 font definitions for OMS/mdbch.
 )
 LaTeX Font Info:    Font shape `OMS/mdbch/m/n' will be
-(Font)              scaled to size 10.51207pt on input line 50.
+(Font)              scaled to size 10.51207pt on input line 48.
 LaTeX Font Info:    Font shape `OMS/mdbch/m/n' will be
-(Font)              scaled to size 7.68005pt on input line 50.
+(Font)              scaled to size 7.68005pt on input line 48.
 LaTeX Font Info:    Font shape `OMS/mdbch/m/n' will be
-(Font)              scaled to size 5.76004pt on input line 50.
+(Font)              scaled to size 5.76004pt on input line 48.
 LaTeX Font Info:    Trying to load font information for OMX+mdbch on input line
- 50.
+ 48.
 
 (/usr/share/texmf-dist/tex/latex/mathdesign/mdbch/omxmdbch.fd
 File: omxmdbch.fd 2013/08/29 Fontinst v1.933 font definitions for OMX/mdbch.
 )
 LaTeX Font Info:    Font shape `OMX/mdbch/m/n' will be
-(Font)              scaled to size 10.51207pt on input line 50.
+(Font)              scaled to size 10.51207pt on input line 48.
 LaTeX Font Info:    Font shape `OMX/mdbch/m/n' will be
-(Font)              scaled to size 7.68005pt on input line 50.
+(Font)              scaled to size 7.68005pt on input line 48.
 LaTeX Font Info:    Font shape `OMX/mdbch/m/n' will be
-(Font)              scaled to size 5.76004pt on input line 50.
+(Font)              scaled to size 5.76004pt on input line 48.
 LaTeX Font Info:    Font shape `OML/mdbch/m/n' will be
-(Font)              scaled to size 10.51207pt on input line 50.
+(Font)              scaled to size 10.51207pt on input line 48.
 LaTeX Font Info:    Font shape `OML/mdbch/m/n' will be
-(Font)              scaled to size 7.68005pt on input line 50.
+(Font)              scaled to size 7.68005pt on input line 48.
 LaTeX Font Info:    Font shape `OML/mdbch/m/n' will be
-(Font)              scaled to size 5.76004pt on input line 50.
+(Font)              scaled to size 5.76004pt on input line 48.
 LaTeX Font Info:    Trying to load font information for MDA+mdbch on input line
- 50.
+ 48.
 
 (/usr/share/texmf-dist/tex/latex/mathdesign/mdbch/mdamdbch.fd
 File: mdamdbch.fd 2013/08/29 Fontinst v1.933 font definitions for MDA/mdbch.
 )
 LaTeX Font Info:    Font shape `MDA/mdbch/m/n' will be
-(Font)              scaled to size 10.51207pt on input line 50.
+(Font)              scaled to size 10.51207pt on input line 48.
 LaTeX Font Info:    Font shape `MDA/mdbch/m/n' will be
-(Font)              scaled to size 7.68005pt on input line 50.
+(Font)              scaled to size 7.68005pt on input line 48.
 LaTeX Font Info:    Font shape `MDA/mdbch/m/n' will be
-(Font)              scaled to size 5.76004pt on input line 50.
+(Font)              scaled to size 5.76004pt on input line 48.
 LaTeX Font Info:    Trying to load font information for MDB+mdbch on input line
- 50.
+ 48.
 
 (/usr/share/texmf-dist/tex/latex/mathdesign/mdbch/mdbmdbch.fd
 File: mdbmdbch.fd 2013/08/29 Fontinst v1.933 font definitions for MDB/mdbch.
 )
 LaTeX Font Info:    Font shape `MDB/mdbch/m/n' will be
-(Font)              scaled to size 10.51207pt on input line 50.
+(Font)              scaled to size 10.51207pt on input line 48.
 LaTeX Font Info:    Font shape `MDB/mdbch/m/n' will be
-(Font)              scaled to size 7.68005pt on input line 50.
+(Font)              scaled to size 7.68005pt on input line 48.
 LaTeX Font Info:    Font shape `MDB/mdbch/m/n' will be
-(Font)              scaled to size 5.76004pt on input line 50.
-LaTeX Font Info:    Trying to load font information for T1+lmss on input line 5
-0.
+(Font)              scaled to size 5.76004pt on input line 48.
+LaTeX Font Info:    Trying to load font information for T1+lmss on input line 4
+8.
 
 (/usr/share/texmf-dist/tex/latex/lm/t1lmss.fd
 File: t1lmss.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
@@ -2978,8 +2991,8 @@ Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `lmss' (encoding: T1).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
-LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 5
-0.
+LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 4
+8.
 
 (/usr/share/texmf-dist/tex/latex/lm/t1lmtt.fd
 File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
@@ -2989,41 +3002,41 @@ Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
 LaTeX Font Info:    Font shape `TU/FiraSans(0)/m/n' will be
-(Font)              scaled to size 9.99428pt on input line 53.
+(Font)              scaled to size 9.99428pt on input line 51.
 Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `FiraSans' (encoding: TU).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
 LaTeX Font Info:    Font shape `TU/FiraSans(0)/b/n' will be
-(Font)              scaled to size 9.93762pt on input line 53.
+(Font)              scaled to size 9.93762pt on input line 51.
 LaTeX Font Info:    Font shape `TU/FiraSans(0)/b/n' will be
-(Font)              scaled to size 13.06866pt on input line 53.
+(Font)              scaled to size 13.06866pt on input line 51.
 LaTeX Font Info:    Font shape `TU/FiraSans(0)/b/n' will be
-(Font)              scaled to size 10.89056pt on input line 53.
+(Font)              scaled to size 10.89056pt on input line 51.
 LaTeX Font Info:    Font shape `OT1/mdbch/m/n' will be
-(Font)              scaled to size 11.52008pt on input line 53.
+(Font)              scaled to size 11.52008pt on input line 51.
 LaTeX Font Info:    Font shape `OML/mdbch/m/it' will be
-(Font)              scaled to size 11.52008pt on input line 53.
+(Font)              scaled to size 11.52008pt on input line 51.
 LaTeX Font Info:    Font shape `OMS/mdbch/m/n' will be
-(Font)              scaled to size 11.52008pt on input line 53.
+(Font)              scaled to size 11.52008pt on input line 51.
 LaTeX Font Info:    Font shape `OMX/mdbch/m/n' will be
-(Font)              scaled to size 11.52008pt on input line 53.
+(Font)              scaled to size 11.52008pt on input line 51.
 LaTeX Font Info:    Font shape `OML/mdbch/m/n' will be
-(Font)              scaled to size 11.52008pt on input line 53.
+(Font)              scaled to size 11.52008pt on input line 51.
 LaTeX Font Info:    Font shape `MDA/mdbch/m/n' will be
-(Font)              scaled to size 11.52008pt on input line 53.
+(Font)              scaled to size 11.52008pt on input line 51.
 LaTeX Font Info:    Font shape `MDB/mdbch/m/n' will be
-(Font)              scaled to size 11.52008pt on input line 53.
+(Font)              scaled to size 11.52008pt on input line 51.
 LaTeX Font Info:    Font shape `TU/FiraSans(0)/m/n' will be
-(Font)              scaled to size 8.21448pt on input line 54.
+(Font)              scaled to size 8.21448pt on input line 52.
 LaTeX Font Info:    Font shape `TU/FiraSans(0)/b/n' will be
-(Font)              scaled to size 8.16792pt on input line 54.
+(Font)              scaled to size 8.16792pt on input line 52.
 LaTeX Font Info:    Font shape `TU/FiraSans(8)/m/n' will be
-(Font)              scaled to size 9.95634pt on input line 56.
+(Font)              scaled to size 9.95634pt on input line 54.
 <doclicense-CC-by-88x31.pdf, id=9, 90.3375pt x 31.61812pt>
 File: doclicense-CC-by-88x31.pdf Graphic file (type pdf)
 <use doclicense-CC-by-88x31.pdf>
-Package luatex.def Info: doclicense-CC-by-88x31.pdf  used on input line 56.
+Package luatex.def Info: doclicense-CC-by-88x31.pdf  used on input line 54.
 (luatex.def)             Requested size: 76.82234pt x 26.88805pt.
  [1.1
 
@@ -3033,13 +3046,13 @@ Package luatex.def Info: doclicense-CC-by-88x31.pdf  used on input line 56.
 tex/doclicense/images/doclicense-CC-by-88x31.pdf>] (./sections/01-introduction.
 tex [2.2
 
-] [3.3]
+]
 LaTeX Font Info:    Font shape `TU/FiraSans(0)/m/n' will be
-(Font)              scaled to size 9.1272pt on input line 156.
+(Font)              scaled to size 9.1272pt on input line 134.
 LaTeX Font Info:    Font shape `TU/FiraSans(0)/b/n' will be
-(Font)              scaled to size 9.07547pt on input line 156.
- [4.4])
-(./sections/02-overview.tex
+(Font)              scaled to size 9.07547pt on input line 134.
+ [3.3])
+(./sections/02-overview.tex [4.4]
 LaTeX Font Info:    Font shape `OT1/mdbch/m/n' will be
 (Font)              scaled to size 8.64006pt on input line 42.
 LaTeX Font Info:    Font shape `OT1/mdbch/m/n' will be
@@ -3068,7 +3081,8 @@ LaTeX Font Info:    Font shape `MDB/mdbch/m/n' will be
 (Font)              scaled to size 8.64006pt on input line 42.
 LaTeX Font Info:    Font shape `MDB/mdbch/m/n' will be
 (Font)              scaled to size 4.80003pt on input line 42.
- [5.5] [6.6] [7.7]) (./sections/03-foundation.tex
+ [5.5] [6.6]) (./sections/03-foundation.tex
+[7.7]
 Underfull \hbox (badness 2529) in paragraph at lines 53--53
 []|\TU/XCharter(0)/m/n/10.95 In-de-pen-dent gov-er-nance via Fe-dora
  []
@@ -3223,7 +3237,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 32--32
 []|\TU/XCharter(0)/m/n/10.95 Rich se-man-tic ac-tions:
  []
 
-[12.12] [13.13] (/usr/share/texmf-dist/tex/latex/listings/lstlang1.sty
+[12.12] (/usr/share/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2025/11/14 1.11b listings language file
 )
 (/usr/share/texmf-dist/tex/latex/listings/lstmisc.sty
@@ -3235,7 +3249,7 @@ Package fontspec Info:
 
 LaTeX Font Info:    Font shape `TU/FiraSans(14)/m/n' will be
 (Font)              scaled to size 9.99411pt on input line 159.
- [14.14] [15.15]
+ [13.13] [14.14]
 (/usr/share/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2025/11/14 1.11b listings language file
 )
@@ -3243,25 +3257,25 @@ File: lstlang1.sty 2025/11/14 1.11b listings language file
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [16.16])
-(./sections/05-ai.tex [17.17] [18.18]
+ [15.15] [16.16])
+(./sections/05-ai.tex [17.17]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [19.19] [20.20] [21.21])
+ [18.18] [19.19] [20.20])
 (./sections/06-desktop.tex
 Overfull \hbox (6.85716pt too wide) in paragraph at lines 43--48
  [][] 
  []
 
-[22.22] [23.23]
+[21.21] [22.22] [23.23]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [24.24] [25.25]) (./sections/07-apps-modules.tex [26.26]
-[27.27]
+ [24.24] [25.25]) (./sections/07-apps-modules.tex
+[26.26] [27.27]
 Underfull \hbox (badness 2698) in paragraph at lines 145--145
 []|\TU/XCharter(0)/m/n/10.95 Toast auto-closes af-ter ap-prox-i-
  []
@@ -3276,7 +3290,7 @@ Underfull \hbox (badness 2698) in paragraph at lines 145--145
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [29.29] [30.30]
+ [29.29]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
@@ -3287,17 +3301,18 @@ Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `cmtt' (encoding: OT1).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
- [31.31]
+ [30.30] [31.31]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
  [32.32] [33.33]) (./sections/08-platform.tex
-[34.34]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
+
+[34.34]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
@@ -3321,25 +3336,24 @@ Overfull \hbox (7.39204pt too wide) in paragraph at lines 228--231
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [42.42]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [43.43] [44.44] [45.45] [46.46]
-[47.47] [48.48]
+ [42.42] [43.43] [44.44] [45.45] [46.46]
+[47.47]
 Overfull \hbox (5.6208pt too wide) in paragraph at lines 823--825
 []\TU/FiraSans(0)/b/n/10.95 Re-mote at-tes-ta-tion as net-work gate.[][] \TU/XC
 harter(0)/m/n/10.95 TPM Re-mote At-tes-ta-tion, de-scribed in Sec-tion []󰃥.
 󰃡.󰃦[],
  []
 
-) (./sections/09-companion-health.tex [49.49] [50.50] [51.51]
+[48.48]) (./sections/09-companion-health.tex [49.49] [50.50]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
-)
+ [51.51])
 (./sections/10-sustainability.tex [52.52]
 
 Package fontspec Info: 
@@ -3350,16 +3364,17 @@ Package fontspec Info:
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [54.54] [55.55]
+ [54.54]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [56.56]
-[57.57] [58.58]) (./appendix/a-technical-schemas.tex)
-(./appendix/b-technology-decisions.tex)
-
-LaTeX Warning: Empty bibliography on input line 75.
+ [55.55] [56.56]
+[57.57]) [58.58]
+Overfull \hbox (0.10344pt too wide) in paragraph at lines 69--69
+\TU/FiraSans(0)/m/n/10.95 / / www . bsi . bund . de / EN / Service - Navi / Publ
+ikationen / Studien / SiSyPHuS _ Win10 / AP4 /
+ []
 
 (/usr/share/texmf-dist/tex/generic/stringenc/se-utf32be.def
 File: se-utf32be.def 2019/11/29 v1.12 stringenc: UTF-32BE
@@ -3377,15 +3392,15 @@ Package logreq Info: Writing requests to 'main.run.xml'.
 )
 
 Here is how much of LuaTeX's memory you used:
- 58215 strings out of 476076
- 305240,2373549 words of node,token memory allocated
- 726 words of node memory still in use:
-   7 hlist, 2 vlist, 2 rule, 1 local_par, 4 glue, 4 kern, 1 penalty, 3 glyph, 21
- attribute, 82 glue_spec, 11 attribute_list, 3 write nodes
-   avail lists: 1:17,2:7504,3:852,4:6922,5:6710,6:131,7:11003,8:6,9:14068,10:40,
-11:896,12:2
- 78677 multiletter control sequences out of 65536+600000
- 245 fonts using 43047359 bytes
+ 58481 strings out of 476076
+ 381534,2373549 words of node,token memory allocated
+ 748 words of node memory still in use:
+   7 hlist, 2 vlist, 2 rule, 1 local_par, 4 glue, 4 kern, 1 penalty, 3 glyph, 23
+ attribute, 84 glue_spec, 12 attribute_list, 3 write, 1 pdf_action nodes
+   avail lists: 1:14,2:9076,3:820,4:8286,5:7242,6:118,7:12105,8:103,9:15700,10:4
+0,11:991,12:4
+ 78954 multiletter control sequences out of 65536+600000
+ 246 fonts using 43268007 bytes
  94i,21n,142p,11228b,1842s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
 warning  (pdf backend): unreferenced destination with name 'P:authorinfo:Tim'
@@ -3398,10 +3413,10 @@ xcharter/XCharter-Roman.otf></usr/share/texmf-dist/fonts/opentype/public/fira/Fi
 raSans-SemiBold.otf></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10
 .pfb></usr/share/texmf-dist/fonts/type1/public/mathdesign/mdbch/md-chr7y.pfb></u
 sr/share/texmf-dist/fonts/type1/public/mathdesign/mdbch/md-chrma.pfb>
-Output written on main.pdf (59 pages, 379339 bytes).
+Output written on main.pdf (59 pages, 381948 bytes).
 
-PDF statistics: 1090 PDF objects out of 1200 (max. 8388607)
- 993 compressed objects within 10 object streams
- 484 named destinations out of 1000 (max. 1048576)
+PDF statistics: 1086 PDF objects out of 1200 (max. 8388607)
+ 989 compressed objects within 10 object streams
+ 475 named destinations out of 1000 (max. 1048576)
  581 words of extra memory for PDF output out of 10000 (max. 100000000)
 

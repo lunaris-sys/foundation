@@ -9,12 +9,20 @@ highly opinionated tools for a specific niche. Neither describes this project.
 
 The dominant desktop operating systems have a structural problem. Windows works
 against its own users: forced updates, advertisements in the start menu, and
-background telemetry (automatic reporting of usage data to the vendor) that
-nobody enabled. macOS is polished but locks users into an ecosystem designed to
-keep them paying and dependent. Every Linux distribution, however technically
-excellent, has failed to make the jump to people who simply want to use a
-computer without becoming a system administrator. The gap between ``technically
-capable'' and ``actually usable'' has not closed in thirty years.
+background telemetry that nobody enabled and cannot be fully disabled. The German
+Federal Office for Information Security (BSI) has studied this directly: as part
+of the SiSyPHuS research programme, the BSI found that required diagnostic data
+collection in Windows~10 and~11 runs continuously and cannot be turned off by
+the user~\cite{bsi2022sisyphus}. macOS presents a different trade-off: its
+privacy posture is meaningfully better than Windows, but the ecosystem is
+deliberately constructed to keep users paying and dependent. A 2024 study
+published at CHI found that even opting out of Apple's analytics during device
+setup does not prevent data collection by individual system applications, and
+that the setup process itself involves at least eight distinct data-sharing
+decisions presented in ways that are not straightforward to review~\cite{kollnig2024apple}.
+Every Linux distribution, however technically sound, has failed to reach people
+who simply want to use a computer without becoming a system administrator. The
+gap between technically capable and actually usable has not closed in thirty years.
 
 This project exists to close that gap. It is a Linux-based operating system
 built from scratch with a different set of priorities: one that integrates a
@@ -45,115 +53,85 @@ will never come at the expense of user rights.
 \label{sec:principles}
 
 The following principles govern every design decision in this project. They are
-not aspirational marketing language; they are constraints that break ties and
-override convenience.
+not aspirational language; they are constraints that break ties and override
+convenience.
 
-\paragraph{For the user, not for the platform.}
-No advertisements, no tracking, no dark patterns, no telemetry without explicit
-consent. When a conflict arises between the user's interest and anything
-else, the user wins. This applies to business deployments as well: admin
-policies configure the environment, they do not strip users of their data or
-autonomy.
+The user's interests come first. No advertisements, no tracking, no dark patterns,
+no telemetry without explicit consent. This applies in managed environments too:
+an organization can configure and restrict, but cannot surveil. All system
+intelligence runs locally. The knowledge graph, AI context, and activity history
+do not leave the machine without an explicit user action. The system works fully
+offline, without registration, and without depending on services controlled by
+companies in other jurisdictions. Cloud features are opt-in extensions, not
+prerequisites. This is a technical commitment. It means the architecture enforces
+it, not just the privacy policy.
 
-\paragraph{Independence by default.}
-No mandatory cloud accounts. No dependency on services that can be switched
-off by a company in another jurisdiction. The system works fully offline,
-self-hosted, and without phoning home. Cloud features are opt-in extensions,
-not prerequisites. This is a technical commitment, not a marketing label.
+The system has to be genuinely good to use. Everything works on first boot. No
+hunting for drivers, no reading wiki pages to get audio working. The interface
+must look better than what users are coming from, because a poor interface is a
+barrier to entry regardless of what is underneath it. Small things matter more
+than large ones: a system that remembers what you were working on, or switches
+themes everywhere in one action, earns trust faster than an impressive feature
+nobody uses. Coherence matters too: shared configuration, shared theming, shared
+interfaces across all components. No part of the system should look like it was
+designed in a different decade by a different team.
 
-\paragraph{The knowledge graph belongs to you.}
-All system intelligence runs locally by default. The knowledge graph, AI
-context, and activity history do not leave the machine without an explicit user
-action. Cloud AI providers are opt-in, configured by the user, and can be
-removed entirely.
-
-\paragraph{Quality of life over feature count.}
-Small things matter. A system that warns you when something is quietly invading
-your privacy, that remembers what you were working on, that switches themes
-system-wide in one action: these are not large features. They are the difference
-between a system that feels alive and one that feels like infrastructure.
-Thoughtful small features beat impressive large ones that nobody uses.
-
-\paragraph{Out of the box, not out of patience.}
-Everything works on first boot. No hunting for drivers, no configuring package
-managers, no reading wiki pages to get audio working. The standard use case
-requires zero setup. Advanced configuration is always available, never required.
-
-\paragraph{Future-oriented, not hype-driven.}
 New technology gets used when it makes sense, not because it is trending. AI
-integration and the knowledge graph are here because they genuinely change what
-a personal computer can do. If a system is being built from scratch, there is no
-excuse for dragging along outdated patterns because everyone else does.
-
-\paragraph{Good-looking is not optional.}
-A poor interface is a barrier to entry. The system must look better than what
-users are coming from, on first boot. Visual quality is not vanity; it is
-respect for the user's time and trust.
-
-\paragraph{Coherent, not cobbled together.}
-Shared configuration standards, shared theming, shared interfaces across all
-system components. Change the accent color once and it propagates everywhere.
-No component that looks like it was designed in a different decade by a different
-team.
-
-\paragraph{Pragmatic, not ideological.}
-No purity tests. The goal is a useful, trustworthy system. That said: no
-advertisements, no tracking, no dark patterns. Not because of ideology, but
-because that is bad product design.
-
-\paragraph{Bridges, not walls.}
-Where established standards and existing implementations exist, compatibility
-bridges are built rather than replacements. Apps built for other Linux desktops
-run here. Standard Linux tools and hardware interfaces are supported. Nothing is
-deliberately broken for the sake of purity.
-
-\paragraph{Transparent by default.}
-The system can explain what it is doing and why, in plain language. Not buried
-in logs, but surfaced where the user can see and act on it. A system legible to
-its user is a system the user can trust.
+and the knowledge graph are here because they genuinely change what a personal
+computer can do for the user. The goal is a useful, trustworthy system, not a
+clean architecture. Where established standards exist, this project builds
+compatibility bridges rather than replacements. Apps built for other Linux
+desktops run here; standard hardware interfaces work; nothing is deliberately
+broken for the sake of purity. The system can explain what it is doing, in
+plain language, in a place the user can see and act on it.
 
 \subsection{Positioning}
 \label{sec:positioning}
 
-Figure~\ref{fig:positioning} illustrates the design space this project occupies
-relative to existing systems. The goal is the upper-right quadrant: high
-usability \emph{and} high user sovereignty. This combination does not currently
-exist in any mainstream desktop operating system.
+Figure~\ref{fig:positioning} maps the design space along two axes: how easy
+the system is to use for a non-technical user, and how much sovereignty the
+user has over their own data and software environment. These two properties
+have historically traded off against each other. Mainstream commercial systems
+prioritize usability but compromise on sovereignty, typically through telemetry,
+ecosystem lock-in, or both. The more privacy-conscious Linux distributions give
+users genuine control but impose a real usability cost. The upper-right
+quadrant, high usability \emph{and} high user sovereignty, is where this
+project aims to land. No mainstream system currently occupies it.
 
 \begin{figure}[htbp]
 \centering
-\begin{tikzpicture}[
-  dot/.style={circle, fill, inner sep=2.5pt},
-  label/.style={font=\small},
-]
+\begin{tikzpicture}
   % Axes
-  \draw[->] (-0.3,0) -- (6.5,0) node[right, font=\small] {Ease of use};
-  \draw[->] (0,-0.3) -- (0,6.5) node[above, font=\small] {User sovereignty};
+  \draw[->] (-0.3,0) -- (6.5,0)
+    node[right, font=\small] {Ease of use};
+  \draw[->] (0,-0.3) -- (0,6.5)
+    node[above, font=\small] {User sovereignty};
 
-  % Quadrant shading
-  \fill[gray!10] (3,3) rectangle (6.4,6.4);
+  % Quadrant dividers
+  \draw[gray!35, dashed] (3,0) -- (3,6.4);
+  \draw[gray!35, dashed] (0,3) -- (6.4,3);
 
-  % Gridlines
-  \draw[gray!30] (3,0) -- (3,6.4);
-  \draw[gray!30] (0,3) -- (6.4,3);
+  % Target quadrant highlight
+  \fill[gray!12] (3,3) rectangle (6.4,6.4);
 
-  % Existing systems
-  \node[dot, label=below right:{Windows}]   at (5.0, 1.2) {};
-  \node[dot, label=below right:{macOS}]     at (4.8, 2.5) {};
-  \node[dot, label=above left:{\parbox{2.2cm}{\centering Typical\\[-2pt]Linux distro}}]
-                                            at (2.0, 4.8) {};
+  % Quadrant labels
+  \node[gray, font=\footnotesize\itshape, align=center]
+    at (1.5, 5.5) {sovereign\\inaccessible};
+  \node[gray, font=\footnotesize\itshape, align=center]
+    at (4.8, 1.5) {usable\\extractive};
+  \node[gray, font=\footnotesize\itshape, align=center]
+    at (1.5, 1.5) {neither};
 
-  % This project
-  \node[dot, fill=black, label=above right:{\textbf{[Project]}}]
-                                            at (5.2, 5.5) {};
-
-  % Quadrant label
-  \node[gray, font=\footnotesize\itshape] at (4.8, 6.0) {target space};
+  % Project target
+  \node[font=\small\bfseries, align=center]
+    at (4.8, 5.5) {[Project]\\target};
 
 \end{tikzpicture}
-\caption{Design space: ease of use versus user sovereignty. Existing mainstream
-systems occupy either the lower-right (usable but extractive) or upper-left
-(sovereign but inaccessible) quadrants. This project targets the upper-right.}
+\caption{Design space: ease of use versus user sovereignty. The shaded quadrant
+is the project target. Mainstream commercial systems land in the lower-right
+(usable but extractive); privacy-oriented Linux distributions in the upper-left
+(sovereign but inaccessible). No mainstream system currently occupies the
+upper-right.}
 \label{fig:positioning}
 \end{figure}
 
