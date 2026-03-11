@@ -785,3 +785,76 @@ Audit Log, or intercept any user's AI sessions. These limitations are enforced
 by \texttt{systemd-homed} and the per-user Graph Daemon architecture, not by
 policy alone. The administrator sees that something unusual happened via
 anomaly alerts; they do not see what.
+
+\subsection{Managed Environments}
+\label{sec:managed}
+
+For enterprise deployments where this system runs on many machines administered
+centrally, additional infrastructure is required beyond what individual Signed
+Profile Packages provide. This section describes the managed environment
+architecture for organizations that need fleet-level control.
+
+\paragraph{Policy Engine.}
+A system daemon receives signed policy packages from a central management
+server and applies them locally. The daemon verifies the cryptographic
+signature of every package before applying any policy; unsigned or incorrectly
+signed packages are rejected outright. Policies can control permitted and
+blocked applications, network access rules beyond per-app declarations, AI
+provider restrictions including complete disabling of cloud AI, the USBGuard
+device whitelist, screen lock timeout and password complexity requirements,
+update scheduling so that updates are applied only during configured maintenance
+windows, and a minimum audit log retention period for compliance purposes.
+
+\paragraph{LDAP and Active Directory.}
+Most enterprises already have an identity management system, typically
+Microsoft Active Directory or an LDAP-compatible directory. Integration
+with these systems is a baseline requirement for enterprise adoption.
+User authentication, group membership, and basic policy delivery are handled
+via standard LDAP and Kerberos protocols that existing enterprise infrastructure
+already supports, requiring no proprietary agents on the management server side.
+
+\paragraph{MDM-style management.}
+Beyond LDAP, a modern MDM-style management layer provides richer capabilities:
+device enrollment, remote policy push, health status reporting, and remote
+wipe. This is a longer-term goal; LDAP compatibility is the foundation and
+MDM-style management is built on top of it once the base is stable.
+
+\paragraph{Remote attestation as network gate.}
+TPM Remote Attestation, described in Section~\ref{sec:physical}, can be used
+as a network access gate in managed deployments. The workflow is:
+
+\begin{enumerate}
+\item The device boots and generates a TPM attestation report containing signed
+  PCR values.
+\item The device connects to the management server's attestation endpoint.
+\item The server verifies the report against the expected baseline for that
+  device's configuration.
+\item If verification passes, the device receives its VPN credentials and
+  network access.
+\item If verification fails, the device is quarantined pending administrator
+  review.
+\end{enumerate}
+
+This ensures that a device with a modified bootloader, disabled Secure Boot, or
+an outdated security policy cannot silently access company resources. It is
+inspired by the BeyondCorp model and is a meaningful differentiator for
+enterprise deployments.
+
+\paragraph{GDPR and compliance tension.}
+In managed environments there is an inherent conflict between user privacy
+rights and organizational compliance requirements. GDPR grants users rights
+over their personal data; many compliance frameworks in financial services,
+healthcare, and legal contexts require organizations to retain logs and audit
+trails. This system does not resolve the conflict, because it is a legal and
+organizational question rather than a technical one.
+
+What the system does is make both sides technically possible. Users retain
+full visibility into and control over their own Knowledge Graph and personal
+Audit Log. Organizations can configure a minimum retention period for
+compliance-relevant audit events, which do not include Knowledge Graph
+contents. The separation between personal graph data, which is private to
+the user, and system audit events, which may be subject to organizational
+retention requirements, is maintained architecturally rather than by policy.
+Organizations deploying this system should seek legal counsel to define
+appropriate policies. The system provides the technical primitives; the
+legal framework is out of scope.

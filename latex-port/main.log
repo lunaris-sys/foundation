@@ -1,4 +1,4 @@
-This is LuaHBTeX, Version 1.24.0 (TeX Live 2026/Arch Linux)  (format=lualatex 2026.3.10)  11 MAR 2026 11:35
+This is LuaHBTeX, Version 1.24.0 (TeX Live 2026/Arch Linux)  (format=lualatex 2026.3.10)  11 MAR 2026 11:41
  restricted system commands enabled.
 **main.tex
 (./main.tex
@@ -3327,18 +3327,20 @@ Package fontspec Info:
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
  [43.43] [44.44] [45.45] [46.46]
-[47.47]) (./sections/09-companion-health.tex [48.48] [49.49]
+[47.47] [48.48]
+Overfull \hbox (5.6208pt too wide) in paragraph at lines 823--825
+[]\TU/FiraSans(0)/b/n/10.95 Re-mote at-tes-ta-tion as net-work gate.[][] \TU/XC
+harter(0)/m/n/10.95 TPM Re-mote At-tes-ta-tion, de-scribed in Sec-tion []󰃥.
+󰃡.󰃦[],
+ []
+
+) (./sections/09-companion-health.tex [49.49] [50.50] [51.51]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [50.50])
-(./sections/10-sustainability.tex [51.51]
-
-Package fontspec Info: 
-(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
-
- [52.52]
+)
+(./sections/10-sustainability.tex [52.52]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
@@ -3349,7 +3351,12 @@ Package fontspec Info:
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
  [54.54] [55.55]
-[56.56]) (./appendix/a-technical-schemas.tex)
+
+Package fontspec Info: 
+(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
+
+ [56.56]
+[57.57] [58.58]) (./appendix/a-technical-schemas.tex)
 (./appendix/b-technology-decisions.tex)
 
 LaTeX Warning: Empty bibliography on input line 75.
@@ -3359,7 +3366,7 @@ File: se-utf32be.def 2019/11/29 v1.12 stringenc: UTF-32BE
 )
 (/usr/share/texmf-dist/tex/generic/stringenc/se-pdfdoc.def
 File: se-pdfdoc.def 2019/11/29 v1.12 stringenc: PDFDocEncoding
-) [57.57] (./main.aux)
+) [59.59] (./main.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
@@ -3370,14 +3377,14 @@ Package logreq Info: Writing requests to 'main.run.xml'.
 )
 
 Here is how much of LuaTeX's memory you used:
- 58197 strings out of 476076
+ 58215 strings out of 476076
  305240,2373549 words of node,token memory allocated
- 748 words of node memory still in use:
-   7 hlist, 2 vlist, 2 rule, 1 local_par, 4 glue, 6 kern, 1 penalty, 3 glyph, 25
- attribute, 82 glue_spec, 13 attribute_list, 3 write nodes
-   avail lists: 1:17,2:7390,3:852,4:6916,5:6838,6:131,7:12146,8:6,9:14053,10:40,
-11:999,12:2
- 78673 multiletter control sequences out of 65536+600000
+ 726 words of node memory still in use:
+   7 hlist, 2 vlist, 2 rule, 1 local_par, 4 glue, 4 kern, 1 penalty, 3 glyph, 21
+ attribute, 82 glue_spec, 11 attribute_list, 3 write nodes
+   avail lists: 1:17,2:7504,3:852,4:6922,5:6710,6:131,7:11003,8:6,9:14068,10:40,
+11:896,12:2
+ 78677 multiletter control sequences out of 65536+600000
  245 fonts using 43047359 bytes
  94i,21n,142p,11228b,1842s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
@@ -3391,10 +3398,10 @@ xcharter/XCharter-Roman.otf></usr/share/texmf-dist/fonts/opentype/public/fira/Fi
 raSans-SemiBold.otf></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10
 .pfb></usr/share/texmf-dist/fonts/type1/public/mathdesign/mdbch/md-chr7y.pfb></u
 sr/share/texmf-dist/fonts/type1/public/mathdesign/mdbch/md-chrma.pfb>
-Output written on main.pdf (57 pages, 371087 bytes).
+Output written on main.pdf (59 pages, 379339 bytes).
 
-PDF statistics: 1060 PDF objects out of 1200 (max. 8388607)
- 965 compressed objects within 10 object streams
- 470 named destinations out of 1000 (max. 1048576)
- 573 words of extra memory for PDF output out of 10000 (max. 100000000)
+PDF statistics: 1090 PDF objects out of 1200 (max. 8388607)
+ 993 compressed objects within 10 object streams
+ 484 named destinations out of 1000 (max. 1048576)
+ 581 words of extra memory for PDF output out of 10000 (max. 100000000)
 
