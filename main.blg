@@ -17,7 +17,7 @@ Reallocated singl_function (elt_size=8) to 100 items from 50.
 Reallocated singl_function (elt_size=8) to 100 items from 50.
 Reallocated singl_function (elt_size=8) to 100 items from 50.
 Reallocated singl_function (elt_size=8) to 100 items from 50.
-Reallocated field_info (elt_size=8) to 19280 items from 5000.
+Reallocated field_info (elt_size=8) to 19420 items from 5000.
 Database file #1: main-blx.bib
 Database file #2: references.bib
 Warning--I didn't find a database entry for "swaync"
@@ -25,45 +25,45 @@ Warning--I didn't find a database entry for "ext:session-lock"
 Biblatex version: 3.21
 Reallocated wiz_functions (elt_size=8) to 9000 items from 6000.
 Reallocated singl_function (elt_size=8) to 100 items from 50.
-You've used 100 entries,
+You've used 101 entries,
             6402 wiz_defined-function locations,
-            1609 strings with 17966 characters,
-and the built_in function-call counts, 544818 in all, are:
-= -- 25245
-> -- 35268
-< -- 3899
-+ -- 30605
-- -- 26174
-* -- 29678
-:= -- 61969
+            1613 strings with 18018 characters,
+and the built_in function-call counts, 549806 in all, are:
+= -- 25446
+> -- 35626
+< -- 3937
++ -- 30904
+- -- 26436
+* -- 29923
+:= -- 62528
 add.period$ -- 0
-call.type$ -- 100
-change.case$ -- 810
-chr.to.int$ -- 2426
-cite$ -- 198
-duplicate$ -- 50204
-empty$ -- 45504
-format.name$ -- 4965
-if$ -- 96411
+call.type$ -- 101
+change.case$ -- 818
+chr.to.int$ -- 2450
+cite$ -- 200
+duplicate$ -- 50685
+empty$ -- 45915
+format.name$ -- 5017
+if$ -- 97286
 int.to.chr$ -- 0
-int.to.str$ -- 297
+int.to.str$ -- 301
 missing$ -- 0
-newline$ -- 2310
-num.names$ -- 4359
-pop$ -- 32681
+newline$ -- 2332
+num.names$ -- 4406
+pop$ -- 33010
 preamble$ -- 1
-purify$ -- 1023
+purify$ -- 1033
 quote$ -- 0
-skip$ -- 18221
+skip$ -- 18410
 stack$ -- 0
-substring$ -- 43564
-swap$ -- 13901
-text.length$ -- 3425
-text.prefix$ -- 99
+substring$ -- 43856
+swap$ -- 14036
+text.length$ -- 3458
+text.prefix$ -- 100
 top$ -- 1
-type$ -- 3387
+type$ -- 3421
 warning$ -- 0
-while$ -- 5882
+while$ -- 5937
 width$ -- 0
-write$ -- 2211
+write$ -- 2232
 (There were 2 warnings)

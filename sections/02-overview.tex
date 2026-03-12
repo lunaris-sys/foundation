@@ -1,20 +1,19 @@
 \section{System Overview}
 \label{sec:overview}
 
-\subsection{Architecture Summarized}
+\subsection{Architecture at a Glance}
 \label{sec:arch-glance}
 
 The system is organized as a layered stack. Lower layers provide services to
 higher layers; nothing reaches past its immediate neighbor. The bottom four
 layers are always present: the OS base, the desktop environment, the messaging
 and integration infrastructure, and the Knowledge Graph. Above those sit the
-system's consumers --- the applications, daemons, and optional AI daemon that
+system's consumers: the applications, daemons, and optional AI daemon that
 read from and write to the graph. Figure~\ref{fig:layers} shows the full
 structure.
 
 \begin{figure}[htbp]
 \centering
-
 \begin{tikzpicture}[
 	box/.style={
 		draw, thick, rectangle,
@@ -102,7 +101,7 @@ are covered in detail in Section~\ref{sec:foundation}.
 
 \paragraph{Desktop Environment.}
 The Wayland compositor and the shell sit at this layer. This is what the user
-directly interacts with: windows, the taskbar, the Spotlight launcher,
+directly interacts with: windows, the taskbar, the Waypoint launcher,
 notifications, and the lock screen. All user-facing applications in this project
 are built with \emph{Tauri}~\cite{tauri}, a framework described in
 Section~\ref{sec:tauri-intro}. The compositor itself is built on
@@ -127,8 +126,8 @@ The MCP layer is not specific to the AI daemon; any client that implements the
 protocol can use it.
 
 \paragraph{Knowledge Graph.}
-The graph database is the system's long-term memory: a structured record of
-everything that happens on the machine, queryable across time, application
+The graph database is the system's long-term memory: a local, structured index
+of activity and context, queryable across time, application
 boundaries, and data types. The \emph{Graph Daemon} is the sole reader and
 writer of the underlying database; no other process opens the database files
 directly. Every component that needs graph data connects to the daemon over a
@@ -140,7 +139,7 @@ Section~\ref{sec:kg-rationale}.
 \paragraph{First-party applications.}
 Every first-party application written for this system connects to the Graph
 Daemon via the typed client bundled in \emph{os-sdk}. Opening the File Manager,
-searching in Spotlight, or checking System Monitor all translate to parameterized
+searching in Waypoint, or checking System Monitor all translate to parameterized
 Cypher queries over a Unix socket. The application receives structured results
 and renders them; it never touches the Kuzu files directly, and the capability
 token it presents limits which node types and relations it can read.
@@ -167,6 +166,7 @@ are unaffected.
 
 \subsection{Why Rust}
 \label{sec:rust-intro}
+
 All system daemons and Tauri application backends in this project are written in
 \emph{Rust}, a systems programming language developed by Mozilla Research with
 its 1.0 release in 2015. Understanding why requires a brief look at what systems
@@ -301,8 +301,13 @@ of the codebase without unsafe boundaries.
 
 The \emph{COSMIC} desktop from System76 is a production Rust-first Linux desktop
 with comparable technical goals and uses Smithay as its compositor foundation.
-It serves as a useful reference for what a Smithay-based desktop looks like in
-practice.
+Forking COSMIC was considered and rejected: it ships as an integrated product
+with System76's own design language, release schedule, and branding decisions,
+and the architectural overlap is not deep enough to justify the coupling that a
+fork would introduce. This project's UI model, shell design, and integration
+architecture diverge enough that a fork would need to undo as much as it
+inherits. \emph{cosmic-comp}~\cite{cosmic:comp} serves as an implementation
+reference for Smithay usage in a production compositor; it is not a base.
 
 \subsection{Component Boundaries}
 \label{sec:component-boundaries}
@@ -341,19 +346,8 @@ Compositor      & Draws windows and manages the display (Wayland compositor) \\
 \end{tabularx}
 \end{table}
 
-User-facing applications are built with Tauri. Every first-party application
-is built on two shared libraries. \emph{ui-kit} is a TypeScript component
-library based on \emph{shadcn/ui} (a set of accessible, unstyled components
-built on Radix UI primitives) styled with the project's shared design token
-system using \emph{Tailwind CSS}. Tailwind is a utility-first CSS framework
-where styles are applied via class names rather than separate stylesheets;
-combined with CSS custom properties for design tokens, a theme change propagates
-to all running applications without a reload. \emph{os-sdk} is a Rust crate that
-provides ready-made clients for the Graph Daemon and Event Bus, MCP server
-boilerplate, and the shared TOML configuration system. A new first-party
-application starts with these two libraries and has graph access, event
-emission, an MCP server, and a consistent UI without writing any infrastructure
-code.
+User-facing applications are built with Tauri and share two common libraries,
+described below; Table~\ref{tab:apps} lists them.
 
 \begin{table}[htbp]
 \caption{User-facing applications}
@@ -362,7 +356,7 @@ code.
 \toprule
 \textbf{Application} & \textbf{Notes} \\
 \midrule
-Shell        & Taskbar, Spotlight launcher, notification center, lock screen \\
+Shell        & Taskbar, Waypoint launcher, notification center, lock screen \\
 Settings     & System-wide configuration: theming, permissions, AI level, accounts \\
 File Manager & First-party file browser with graph-aware features \\
 Store        & App and module discovery, installation, and updates \\
@@ -371,6 +365,19 @@ Wine Manager & Windows compatibility management UI \\
 \bottomrule
 \end{tabularx}
 \end{table}
+
+Every first-party application is built on two shared libraries. \emph{ui-kit}
+is a TypeScript component library based on \emph{shadcn/ui} (a set of
+accessible, unstyled components built on Radix UI primitives) styled with the
+project's shared design token system using \emph{Tailwind CSS}. Tailwind is a
+utility-first CSS framework where styles are applied via class names rather
+than separate stylesheets; combined with CSS custom properties for design
+tokens, a theme change propagates to all running applications without a
+reload. \emph{os-sdk} is a Rust crate that provides ready-made clients for
+the Graph Daemon and Event Bus, MCP server boilerplate, and the shared TOML
+configuration system. A new first-party application starts with these two
+libraries and has graph access, event emission, an MCP server, and a
+consistent UI without writing any infrastructure code.
 
 \subsection{Communication Model}
 \label{sec:communication}
@@ -398,7 +405,7 @@ reachable by any process on the machine.
 \label{sec:protobuf}
 
 Data transmitted over the internal sockets is serialized with \emph{Protocol
-Buffers} (protobuf), a binary serialization format developed and open-sourced by
+Buffers} (protobuf)~\cite{protobuf}, a binary serialization format developed and open-sourced by
 Google. Serialization is the process of converting a data structure in memory
 into a byte sequence for transmission, and deserialization is the reverse.
 
@@ -464,9 +471,9 @@ last Tuesday, via which applications, and are any of those applications still
 running?" is a single graph traversal. In SQL it requires at minimum three joins,
 a time-range filter, and a correlated subquery for the running-process check.
 
-For an operating system where everything is connected --- processes open files,
+For an operating system where everything is connected (processes open files,
 files belong to projects, projects span sessions, sessions involve multiple
-applications --- a graph is the natural data model.
+applications), a graph is the natural data model.
 
 \emph{Kuzu} is the specific graph database used here. It is an embedded graph
 database written in C++ with first-class Rust bindings, released under the MIT

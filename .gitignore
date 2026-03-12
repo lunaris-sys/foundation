@@ -14,3 +14,9 @@
 *.lof
 *.lot
 
+main.synctex(busy)
+main.aux
+main.bbl
+main.blg
+main.log
+main.synctex.gz

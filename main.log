@@ -1,4 +1,4 @@
-This is LuaHBTeX, Version 1.24.0 (TeX Live 2026/Arch Linux)  (format=lualatex 2026.3.10)  11 MAR 2026 23:18
+This is LuaHBTeX, Version 1.24.0 (TeX Live 2026/Arch Linux)  (format=lualatex 2026.3.10)  12 MAR 2026 17:17
  restricted system commands enabled.
 **main.tex
 (./main.tex
@@ -3052,41 +3052,41 @@ Package tocbasic Info: character protrusion at toc deactivated on input line 79
 
 (./sections/01-introduction.tex [4.4]
 LaTeX Font Info:    Font shape `TU/FiraSans(0)/m/n' will be
-(Font)              scaled to size 9.1272pt on input line 134.
+(Font)              scaled to size 9.1272pt on input line 136.
 LaTeX Font Info:    Font shape `TU/FiraSans(0)/b/n' will be
-(Font)              scaled to size 9.07547pt on input line 134.
+(Font)              scaled to size 9.07547pt on input line 136.
  [5.5]) (./sections/02-overview.tex
 [6.6]
 LaTeX Font Info:    Font shape `OT1/mdbch/m/n' will be
-(Font)              scaled to size 8.64006pt on input line 45.
+(Font)              scaled to size 8.64006pt on input line 47.
 LaTeX Font Info:    Font shape `OT1/mdbch/m/n' will be
-(Font)              scaled to size 4.80003pt on input line 45.
+(Font)              scaled to size 4.80003pt on input line 47.
 LaTeX Font Info:    Font shape `OML/mdbch/m/it' will be
-(Font)              scaled to size 8.64006pt on input line 45.
+(Font)              scaled to size 8.64006pt on input line 47.
 LaTeX Font Info:    Font shape `OML/mdbch/m/it' will be
-(Font)              scaled to size 4.80003pt on input line 45.
+(Font)              scaled to size 4.80003pt on input line 47.
 LaTeX Font Info:    Font shape `OMS/mdbch/m/n' will be
-(Font)              scaled to size 8.64006pt on input line 45.
+(Font)              scaled to size 8.64006pt on input line 47.
 LaTeX Font Info:    Font shape `OMS/mdbch/m/n' will be
-(Font)              scaled to size 4.80003pt on input line 45.
+(Font)              scaled to size 4.80003pt on input line 47.
 LaTeX Font Info:    Font shape `OMX/mdbch/m/n' will be
-(Font)              scaled to size 8.64006pt on input line 45.
+(Font)              scaled to size 8.64006pt on input line 47.
 LaTeX Font Info:    Font shape `OMX/mdbch/m/n' will be
-(Font)              scaled to size 4.80003pt on input line 45.
+(Font)              scaled to size 4.80003pt on input line 47.
 LaTeX Font Info:    Font shape `OML/mdbch/m/n' will be
-(Font)              scaled to size 8.64006pt on input line 45.
+(Font)              scaled to size 8.64006pt on input line 47.
 LaTeX Font Info:    Font shape `OML/mdbch/m/n' will be
-(Font)              scaled to size 4.80003pt on input line 45.
+(Font)              scaled to size 4.80003pt on input line 47.
 LaTeX Font Info:    Font shape `MDA/mdbch/m/n' will be
-(Font)              scaled to size 8.64006pt on input line 45.
+(Font)              scaled to size 8.64006pt on input line 47.
 LaTeX Font Info:    Font shape `MDA/mdbch/m/n' will be
-(Font)              scaled to size 4.80003pt on input line 45.
+(Font)              scaled to size 4.80003pt on input line 47.
 LaTeX Font Info:    Font shape `MDB/mdbch/m/n' will be
-(Font)              scaled to size 8.64006pt on input line 45.
+(Font)              scaled to size 8.64006pt on input line 47.
 LaTeX Font Info:    Font shape `MDB/mdbch/m/n' will be
-(Font)              scaled to size 4.80003pt on input line 45.
+(Font)              scaled to size 4.80003pt on input line 47.
  [7.7] [8.8]
-Overfull \hbox (12.20563pt too wide) in paragraph at lines 175--186
+Overfull \hbox (12.20563pt too wide) in paragraph at lines 179--190
 []\TU/XCharter(0)/m/n/10.95 C and C++ have dom-i-nated op-er-at-ing sys-tem com-
 po-nents, dae-mons, and performance-
  []
@@ -3174,35 +3174,35 @@ mode=node;script=latn;language=dflt;+tlig;+pnum;+onum;-rlig,-tlig,-trep,-onum,+
 zero;+smcp;"
 
 LaTeX Font Info:    Font shape `TU/FiraSans(14)/m/n' will be
-(Font)              scaled to size 9.12704pt on input line 489.
+(Font)              scaled to size 9.12704pt on input line 500.
 LaTeX Font Info:    Font shape `OT1/mdbch/m/n' will be
-(Font)              scaled to size 9.60007pt on input line 490.
+(Font)              scaled to size 9.60007pt on input line 501.
 LaTeX Font Info:    Font shape `OT1/mdbch/m/n' will be
-(Font)              scaled to size 6.72005pt on input line 490.
+(Font)              scaled to size 6.72005pt on input line 501.
 LaTeX Font Info:    Font shape `OML/mdbch/m/it' will be
-(Font)              scaled to size 9.60007pt on input line 490.
+(Font)              scaled to size 9.60007pt on input line 501.
 LaTeX Font Info:    Font shape `OML/mdbch/m/it' will be
-(Font)              scaled to size 6.72005pt on input line 490.
+(Font)              scaled to size 6.72005pt on input line 501.
 LaTeX Font Info:    Font shape `OMS/mdbch/m/n' will be
-(Font)              scaled to size 9.60007pt on input line 490.
+(Font)              scaled to size 9.60007pt on input line 501.
 LaTeX Font Info:    Font shape `OMS/mdbch/m/n' will be
-(Font)              scaled to size 6.72005pt on input line 490.
+(Font)              scaled to size 6.72005pt on input line 501.
 LaTeX Font Info:    Font shape `OMX/mdbch/m/n' will be
-(Font)              scaled to size 9.60007pt on input line 490.
+(Font)              scaled to size 9.60007pt on input line 501.
 LaTeX Font Info:    Font shape `OMX/mdbch/m/n' will be
-(Font)              scaled to size 6.72005pt on input line 490.
+(Font)              scaled to size 6.72005pt on input line 501.
 LaTeX Font Info:    Font shape `OML/mdbch/m/n' will be
-(Font)              scaled to size 9.60007pt on input line 490.
+(Font)              scaled to size 9.60007pt on input line 501.
 LaTeX Font Info:    Font shape `OML/mdbch/m/n' will be
-(Font)              scaled to size 6.72005pt on input line 490.
+(Font)              scaled to size 6.72005pt on input line 501.
 LaTeX Font Info:    Font shape `MDA/mdbch/m/n' will be
-(Font)              scaled to size 9.60007pt on input line 490.
+(Font)              scaled to size 9.60007pt on input line 501.
 LaTeX Font Info:    Font shape `MDA/mdbch/m/n' will be
-(Font)              scaled to size 6.72005pt on input line 490.
+(Font)              scaled to size 6.72005pt on input line 501.
 LaTeX Font Info:    Font shape `MDB/mdbch/m/n' will be
-(Font)              scaled to size 9.60007pt on input line 490.
+(Font)              scaled to size 9.60007pt on input line 501.
 LaTeX Font Info:    Font shape `MDB/mdbch/m/n' will be
-(Font)              scaled to size 6.72005pt on input line 490.
+(Font)              scaled to size 6.72005pt on input line 501.
  [14.14]) (./sections/03-foundation.tex
 [15.15]
 Underfull \hbox (badness 2529) in paragraph at lines 75--75
@@ -3262,12 +3262,12 @@ Overfull \hbox (23.56206pt too wide) in paragraph at lines 171--176
  [][] 
  []
 
-(/usr/share/texmf-dist/tex/latex/listings/lstlang1.sty
+[24.24] (/usr/share/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2025/11/14 1.11b listings language file
 )
 (/usr/share/texmf-dist/tex/latex/listings/lstmisc.sty
 File: lstmisc.sty 2025/11/14 1.11b (Carsten Heinz)
-) [24.24]
+)
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
@@ -3466,16 +3466,8 @@ Package fontspec Info:
 [83.83]) [84.84] [85.85] [86.86
 
 
-]
-Overfull \hbox (13.35266pt too wide) in paragraph at lines 98--98
-[]\TU/XCharter(0)/m/n/10.95 Fe-dora Project. \TU/XCharter(0)/m/it/10.95 Fe-dora Linux\TU/XCharter(0)/m/n/10.95 . \TU/XCharter(0)/m/sc/10.95 
-󰀠󰀝󰀗\TU/XCharter(0)/m/n/10.95 : []$\TU/FiraSans(0)/m/n/10.95 https : / 
-/ fedoraproject . org$[] \TU/XCharter(0)/m/n/10.95 (vis-ited on 󰃟󰃝󰃟
-󰃣-󰃝󰃟-󰃞󰃡). 
- []
-
-[87.87] [88.88]
-Overfull \hbox (8.35558pt too wide) in paragraph at lines 98--98
+] [87.87] [88.88]
+Overfull \hbox (13.99483pt too wide) in paragraph at lines 98--98
 []\TU/XCharter(0)/m/n/10.95 NL-net Foun-da-tion. \TU/XCharter(0)/m/it/10.95 NL-n
 et Foun-da-tion\TU/XCharter(0)/m/n/10.95 . \TU/XCharter(0)/m/sc/10.95 󰀠󰀝
 󰀗\TU/XCharter(0)/m/n/10.95 : []$\TU/FiraSans(0)/m/n/10.95 https : / / nlnet 
@@ -3484,12 +3476,20 @@ et Foun-da-tion\TU/XCharter(0)/m/n/10.95 . \TU/XCharter(0)/m/sc/10.95 󰀠󰀝
  []
 
 [89.89]
-Overfull \hbox (5.28821pt too wide) in paragraph at lines 98--98
+Overfull \hbox (10.92746pt too wide) in paragraph at lines 98--98
 []\TU/XCharter(0)/m/n/10.95 Tail-wind Labs. \TU/XCharter(0)/m/it/10.95 Tail-wind
  CSS\TU/XCharter(0)/m/n/10.95 . \TU/XCharter(0)/m/sc/10.95 󰀠󰀝󰀗\TU/XCha
 rter(0)/m/n/10.95 : []$\TU/FiraSans(0)/m/n/10.95 https : / / tailwindcss . com$
 [] \TU/XCharter(0)/m/n/10.95 (vis-ited on 󰃟󰃝󰃟󰃣-󰃝󰃠-󰃝󰃠). 
 
+ []
+
+
+Overfull \hbox (1.56999pt too wide) in paragraph at lines 98--98
+[]\TU/XCharter(0)/m/n/10.95 The Qt Com-pany. \TU/XCharter(0)/m/it/10.95 Qt Frame
+-work\TU/XCharter(0)/m/n/10.95 . \TU/XCharter(0)/m/sc/10.95 󰀠󰀝󰀗\TU/XCh
+arter(0)/m/n/10.95 : []$\TU/FiraSans(0)/m/n/10.95 https : / / www . qt . io$[] 
+\TU/XCharter(0)/m/n/10.95 (vis-ited on 󰃟󰃝󰃟󰃣-󰃝󰃟-󰃞󰃦). 
  []
 
 [90.90] (/usr/share/texmf-dist/tex/generic/stringenc/se-utf32be.def
@@ -3520,14 +3520,14 @@ Package logreq Info: Writing requests to 'main.run.xml'.
 )
 
 Here is how much of LuaTeX's memory you used:
- 58861 strings out of 476076
- 305235,2373549 words of node,token memory allocated
- 1260 words of node memory still in use:
+ 58867 strings out of 476076
+ 305230,2373549 words of node,token memory allocated
+ 1272 words of node memory still in use:
    7 hlist, 2 vlist, 2 rule, 1 local_par, 4 glue, 4 kern, 1 penalty, 3 glyph, 10
-5 attribute, 88 glue_spec, 53 attribute_list, 3 write, 42 pdf_action nodes
-   avail lists: 1:11,2:7203,3:2167,4:6704,5:6028,6:335,7:12347,8:124,9:12861,10:
+7 attribute, 88 glue_spec, 54 attribute_list, 3 write, 43 pdf_action nodes
+   avail lists: 1:11,2:7201,3:2169,4:6704,5:6028,6:338,7:12293,8:124,9:12861,10:
 40,11:856,12:4
- 79125 multiletter control sequences out of 65536+600000
+ 79130 multiletter control sequences out of 65536+600000
  245 fonts using 43073439 bytes
  94i,21n,142p,11228b,2791s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
@@ -3542,10 +3542,10 @@ xcharter/XCharter-Roman.otf></usr/share/texmf-dist/fonts/opentype/public/fira/Fi
 raSans-SemiBold.otf></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10
 .pfb></usr/share/texmf-dist/fonts/type1/public/mathdesign/mdbch/md-chr7y.pfb></u
 sr/share/texmf-dist/fonts/type1/public/mathdesign/mdbch/md-chrma.pfb>
-Output written on main.pdf (91 pages, 536150 bytes).
+Output written on main.pdf (91 pages, 537453 bytes).
 
-PDF statistics: 1847 PDF objects out of 2073 (max. 8388607)
- 1700 compressed objects within 17 object streams
- 679 named destinations out of 1000 (max. 1048576)
+PDF statistics: 1853 PDF objects out of 2073 (max. 8388607)
+ 1705 compressed objects within 18 object streams
+ 680 named destinations out of 1000 (max. 1048576)
  693 words of extra memory for PDF output out of 10000 (max. 100000000)
 

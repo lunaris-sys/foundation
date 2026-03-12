@@ -1005,6 +1005,28 @@
     \field{urlyear}{2026}
   \endentry
 
+  \entry{protobuf}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=G}{%
+         family={{Google}},
+         familyi={G\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{G3}
+    \strng{fullhash}{G3}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{G}
+    \field{sortinithash}{G}
+    \field{title}{Protocol Buffers}
+    \verb{url}
+    \verb https://protobuf.dev
+    \endverb
+    \field{urlday}{22}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
+  \endentry
+
   \entry{rfc6749}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=HD}{%
