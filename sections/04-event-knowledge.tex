@@ -142,11 +142,11 @@ store anything. Figure~\ref{fig:event-flow} shows the full pipeline.
 	\node[src] (ebpf)    at (0, 4.5) {eBPF\\programs};
 	\node[src] (wayland) at (0, 3.0) {Wayland\\compositor};
 	\node[src] (apps)    at (0, 1.5) {First-party\\apps};
-	\node[src] (logwrap) at (0, 0.0) {Log\\wrappers};
+	\node[src] (journal) at (0, 0.0) {journald\\(known services)};
 	
 	% Pre-processors (x=3.6)
-	\node[proc] (norm) at (3.6, 4.5) {eBPF\\normalizer};
-	\node[proc] (llm)  at (3.6, 0.0) {Async LLM\\extraction};
+	\node[proc] (norm)   at (3.6, 4.5) {eBPF\\normalizer};
+	\node[proc] (parser) at (3.6, 0.0) {Rule-based\\parser};
 	
 	% Event Bus (x=7.0) — tall box centered at y=2.25
 	\node[proc, minimum width=2.2cm, minimum height=5.4cm, text width=1.8cm]
@@ -161,19 +161,19 @@ store anything. Figure~\ref{fig:event-flow} shows the full pipeline.
 	\draw[arr] (norm)    -- (bus.west |- norm);
 	\draw[arr] (wayland) -- (bus.west |- wayland);
 	\draw[arr] (apps)    -- (bus.west |- apps);
-	\draw[arr] (logwrap) -- (llm);
-	\draw[arr] (llm)     -- (bus.west |- llm);
+	\draw[arr] (journal) -- (parser);
+	\draw[arr] (parser)  -- (bus.west |- parser);
 	
 	% Bus → Writer → Kuzu
 	\draw[arr] (bus.east) -- (gw);
 	\draw[arr] (gw)       -- (kuzu);
 	
 \end{tikzpicture}
-\caption{Event pipeline. Raw kernel events pass through a normalizer before
-reaching the bus. Log output from third-party applications is processed
-asynchronously by an LLM that extracts structured entities. All sources
-converge on the Event Bus, which validates and forwards to the Graph Writer
-Daemon.}
+\caption{Event pipeline. Raw kernel events pass through the eBPF normalizer
+before reaching the bus. journald output from known system services passes
+through a rule-based parser. First-party app events and compositor events
+arrive already structured. All sources converge on the Event Bus, which
+validates and forwards to the Graph Writer Daemon.}
 \label{fig:event-flow}
 \end{figure}
 
@@ -294,9 +294,38 @@ The schema is intentionally minimal at this stage; it will grow as the system
 matures. \texttt{File}, \texttt{App}, \texttt{Session}, \texttt{Project},
 \texttt{Event}, and \texttt{UserAction} are the primary entities. Every raw
 occurrence from the event pipeline lands as an \texttt{Event} node first;
-higher-level \texttt{UserAction} nodes are derived from clusters of events,
-potentially with LLM assistance, and represent meaningful activity rather than
-individual syscalls.
+higher-level \texttt{UserAction} nodes are derived from clusters of related
+events and represent meaningful activity rather than individual syscalls.
+
+\paragraph{Event ingestion tiers.}
+Not all event sources are equal in structure or volume, and the ingestion
+strategy reflects that. Three tiers operate independently.
+
+\emph{Tier~1: structured sources.} eBPF events, compositor events, and
+first-party app events arrive already typed and schema-validated. They are
+written directly to the graph with no intermediate processing step. This tier
+handles the large majority of graph writes and is the only tier with hard
+latency requirements; writes are batched as described in
+Section~\ref{sec:backpressure} but no interpretation step sits between the
+event and the graph.
+
+\emph{Tier~2: rule-based parsing.} journald output from known system services
+(NetworkManager, bluetoothd, systemd-logind, and others) carries useful
+structured information in a line-oriented format. A rule-based parser with
+per-service patterns extracts this information synchronously. No machine
+learning is involved; the patterns are deterministic and fast. Unknown services
+and unmatched lines are discarded rather than approximated.
+
+\emph{Tier~3: semantic enrichment (opt-in).} For document content specifically
+— PDFs opened in the viewer, browser page titles, text file contents — a small
+local model running at idle can extract topic labels and named entities and
+attach them as properties on the corresponding \texttt{File} or \texttt{Event}
+node. This is explicitly opt-in, runs only during idle periods, makes no
+real-time promises, and is the only tier that involves a language model.
+The appropriate model class is a sub-2B parameter instruction model
+(Qwen2.5-1.5B or similar) that can run on CPU without saturating it; the
+workload is low-frequency enrichment of user documents, not stream processing.
+The graph is fully functional without this tier enabled.
 
 \begin{figure}[htbp]
 \centering
