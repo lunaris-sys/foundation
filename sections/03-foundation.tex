@@ -29,88 +29,35 @@ change direction in ways that break downstream projects without warning.
 \subsection{Base Distribution}
 \label{sec:base-distro}
 
-The base distribution has not yet been finalized; two candidates are under
-evaluation and the decision will be made before Phase~1 begins. Both use the
-\emph{RPM} package format, which means the build pipeline and tooling are
-compatible with either choice.
-
-RPM (RPM Package Manager) is one of the two dominant Linux package formats,
-alongside Debian's \texttt{.deb}. A package is a compressed archive containing
-the files to install, metadata about the package name and version, and dependency
-declarations listing which other packages must be present. The package manager
-resolves and installs these dependencies automatically.
-
-The requirements for the base are deliberately narrow. Packages need to be
-current enough for modern development toolchains and recent hardware support,
-but not so fresh that unvalidated changes arrive daily. Governance should not
-be fully concentrated in a single commercial entity. \emph{Btrfs} must be
-available as a first-class filesystem, since the update strategy described in
-Section~\ref{sec:updates} depends on it. Driver and package coverage must be
-broad enough to support consumer hardware without manual intervention.
-
-\paragraph{Candidate A: Fedora.}
-Fedora~\cite{fedora} is a community distribution
-backed by Red Hat infrastructure but governed independently through the Fedora
-Council, which makes binding decisions on project direction without requiring
-Red Hat sign-off. Packages track upstream closely and a new release ships every
+This project builds on \emph{Fedora Linux}~\cite{fedora} as its base
+distribution. Fedora is a community distribution backed by Red Hat
+infrastructure but governed independently through the Fedora Council, which
+makes binding decisions on project direction without requiring Red Hat
+sign-off. Packages track upstream closely and a new major release ships every
 six months. Btrfs has been the default filesystem since Fedora~33 (2020), and
-the Flatpak and Wayland ecosystems are better supported here than on most other
-distributions.
+the Flatpak and Wayland ecosystems receive stronger first-class support here
+than on most other distributions.
 
-\begin{table}[htbp]
-\caption{Fedora: evaluation summary}
-\label{tab:fedora}
-\begin{tabularx}{\linewidth}{XX}
-\toprule
-\textbf{Strengths} & \textbf{Weaknesses} \\
-\midrule
-Independent governance via Fedora Council &
-  Six-month release cycle requires periodic major upgrades \\
-Current packages, strong hardware support &
-  Red Hat/IBM infrastructure in the background \\
-Btrfs default since Fedora 33 &
-  Major upgrades need more integration testing than rolling updates \\
-Strong Flatpak and Wayland support & \\
-\bottomrule
-\end{tabularx}
-\end{table}
+The selection criteria were deliberately narrow: packages current enough for
+modern toolchains and recent hardware without arriving unvalidated daily;
+governance not concentrated in a single commercial entity; Btrfs as a
+first-class filesystem; and broad enough hardware coverage to work on consumer
+machines without manual driver installation. Fedora satisfies all four.
 
-\paragraph{Candidate B: OpenSUSE Slowroll.}
-OpenSUSE~\cite{opensuse} offers three release variants.
-Tumbleweed is a fully rolling distribution that ships new packages daily. Leap
-follows a fixed annual release cycle tied to SUSE Linux Enterprise. \emph{Slowroll}
-is a middle ground introduced in 2023: it pulls packages from Tumbleweed after a
-validation delay of several weeks, giving a cadence that is current enough for
-modern toolchains while providing a buffer against regressions. Btrfs and Snapper
-are more deeply integrated on OpenSUSE than anywhere else in the Linux ecosystem,
-which is a genuine advantage for the update strategy.
+\emph{RPM} (RPM Package Manager) is the native package format. It is one of
+the two dominant Linux package formats alongside Debian's \texttt{.deb}. A
+package is a compressed archive containing the files to install, metadata about
+name and version, and dependency declarations that the package manager resolves
+automatically. The \emph{Open Build Service}~\cite{obs} (OBS), described in
+Section~\ref{sec:infra}, handles building and signing RPMs for this project and
+is fully compatible with Fedora as a build target.
 
-\begin{table}[htbp]
-\caption{OpenSUSE Slowroll: evaluation summary}
-\label{tab:slowroll}
-\begin{tabularx}{\linewidth}{XX}
-\toprule
-\textbf{Strengths} & \textbf{Weaknesses} \\
-\midrule
-Best Btrfs and Snapper integration in the ecosystem &
-  SUSE owned by EQT Partners (private equity); governance risk \\
-Rolling with validation delay; good update cadence &
-  EQT ownership weakens European sovereignty narrative \\
-Open Build Service is best-in-class for RPM packaging &
-  Smaller community and hardware coverage than Fedora \\
-European roots and presence & \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-The current preference is Fedora, primarily on governance grounds. The EQT
-ownership of SUSE is not a technical problem, but it is a liability when
-applying for European software independence funding through programmes such as
-the Sovereign Tech Fund or NGI: funders will scrutinize the ownership structure
-and a US private equity firm sitting above a nominally European project is a
-difficult position to defend. Fedora's governance is cleaner for that argument.
-Both distributions use RPM packaging, so the Open Build Service can target
-either without changes to the build pipeline.
+The six-month release cadence means periodic major upgrades are required.
+This is managed through the update strategy in Section~\ref{sec:updates}:
+snapshots are taken before every upgrade, and the health check and rollback
+mechanism make a failed major upgrade recoverable without user intervention.
+Each Fedora release is supported for approximately thirteen months, giving a
+comfortable window for validation before an upgrade is required.
 
 \subsection{Update Strategy}
 \label{sec:updates}
@@ -200,7 +147,7 @@ foundation for this project's rollback strategy.
 A \emph{subvolume} is a named, independently snapshotable region of a Btrfs
 filesystem. It behaves like a directory but can be mounted separately, snapshotted
 independently, and assigned its own quota limits. This project uses the following
-layout, consistent with the convention used by both Fedora and OpenSUSE:
+layout, consistent with the convention established by Fedora:
 
 \begin{lstlisting}[language=bash]
 @          ->  mounted at /            (system root)
@@ -233,9 +180,7 @@ changed.
 The bootloader is configured to list available snapshots as boot entries. If an
 update produces a system that fails to boot, the firmware presents the previous
 snapshot as a selectable entry on the next start. No terminal or recovery mode
-is required. On Fedora this is handled by \texttt{grub2-snapper-plugin}; on
-OpenSUSE the integration is built directly into the \texttt{grub2} package and
-is one of the more polished aspects of the OpenSUSE experience.
+is required. On Fedora this is handled by \texttt{grub2-snapper-plugin}.
 
 \paragraph{Post-update health check.}
 On the first boot after an update, a systemd oneshot service runs a health check
@@ -258,7 +203,7 @@ system recovery mechanism.
 
 \paragraph{systemd.}
 \emph{systemd}~\cite{archwiki:systemd}
-is the init system and service manager on both candidate distributions and on
+is the init system and service manager on Fedora and on
 most modern Linux distributions. When the kernel finishes booting, the first
 userspace process it starts is \texttt{systemd} (PID~1), which reads
 \emph{unit files} describing each service, its dependencies, and its startup
@@ -317,21 +262,17 @@ other than the greetd socket; it runs before any user session is active, with
 no access to the graph, the event bus, or any user data.
 
 \paragraph{Package management.}
-At the base level, \texttt{dnf}~\cite{dnf} is
-used on Fedora and
-\texttt{zypper}~\cite{zypper} on
-OpenSUSE. Both handle dependency resolution, cryptographic package signature
-verification, and repository management.
+At the base level, \texttt{dnf}~\cite{dnf} handles dependency resolution,
+cryptographic package signature verification, and repository management.
 
 First-party project packages are built and distributed through the \emph{Open
-Build Service}
-(OBS~\cite{obs}). OBS is a hosted build
-infrastructure originally developed by SUSE and used by many open-source
-projects. Developers push package source files to OBS; OBS builds the resulting
-RPMs for every configured target distribution and architecture, signs them with
-the project GPG key, and hosts the repository. Building for both Fedora and
-OpenSUSE from the same spec files is one practical reason both candidates remain
-viable: the build pipeline does not change with the distribution choice.
+Build Service} (OBS~\cite{obs}). OBS is a hosted build infrastructure
+originally developed by SUSE and used by many open-source projects across
+distribution families. Developers push package source files to OBS; OBS builds
+the resulting RPMs in a clean Fedora chroot for every configured release target
+and architecture, signs them with the project GPG key, and hosts the resulting
+repository. This keeps the build pipeline reproducible and independent of the
+developer's local environment.
 
 \paragraph{Flatpak.}
 Store applications are distributed as
@@ -372,7 +313,7 @@ roughly 2018--2019.
 Linux kernel 6.6 or newer &
   Required for the eBPF features used by the event monitoring system
   (Section~\ref{sec:ebpf}) and for Intel CET hardware stack protection.
-  Standard on both candidate distributions. \\
+  Included in current Fedora releases. \\
 Vulkan-capable GPU &
   Required for hardware-accelerated compositing and for Windows compatibility
   via DXVK and vkd3d-proton. Covered automatically on AMD and Intel via Mesa;
@@ -393,7 +334,7 @@ for hardware-accelerated compositing, and the Windows compatibility layer
 (Section~\ref{sec:gaming}) translates Direct3D calls to Vulkan via DXVK and
 vkd3d-proton. On AMD and Intel hardware, Vulkan support is provided by
 \emph{Mesa}~\cite{mesa}, the open-source graphics
-driver stack included with both candidate distributions. Nvidia hardware requires
+driver stack included with Fedora. Nvidia hardware requires
 Nvidia's proprietary driver because the open-source \texttt{nouveau} driver does
 not provide Vulkan support on most hardware generations.
 
