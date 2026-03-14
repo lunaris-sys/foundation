@@ -32,7 +32,7 @@ routing sensitive requests to a local model only.
 
 \paragraph{Opt-out at any point.}
 The entire layer can be disabled in Settings under AI. When disabled, no local
-model runs, no graph queries originate from the AI layer, Spotlight falls back
+model runs, no graph queries originate from the AI layer, Waypointer falls back
 to standard search, and no MCP servers are active. The setting is not hidden
 five menus deep.
 
@@ -239,7 +239,6 @@ Figure~\ref{fig:mcp} shows the topology.
 		\draw[arr] (stub |- ext.west)  -- (ext.west);
 	\end{tikzpicture}
 
-
 \caption{MCP topology. The AI model communicates through a single MCP client
 that dispatches to individual application servers. Third-party applications
 from the Store can ship their own MCP servers, subject to the permission model
@@ -255,7 +254,7 @@ where a subprocess call is insufficient.
 \subsection{Interaction Model}
 \label{sec:ai-interaction}
 
-\paragraph{Phase 1: Query-based (default).}
+\paragraph{Query-based (default).}
 The user asks a question, the AI responds. No background activity occurs
 without an explicit trigger. The AI has access to the Knowledge Graph and
 whatever MCP servers are permitted under the current configuration. Typical
@@ -278,7 +277,7 @@ operations, and includes a \texttt{LIMIT} clause. If validation fails, the
 error is fed back for a retry; after two failed attempts the user is told the
 question could not be answered, with no silent fallback.
 
-\paragraph{Phase 2: Autonomous agent (explicit opt-in).}
+\paragraph{Autonomous agent (explicit opt-in).}
 A background agent that observes the event stream and acts proactively is
 available as an opt-in capability. It is not enabled by default and each
 autonomous behaviour is a separate toggle: suggesting related files when a
@@ -286,6 +285,45 @@ document is opened is independent of automatically tagging new files by
 project. The agent uses the same provider abstraction and MCP layer as the
 query interface; the difference is that it initiates actions rather than
 responding to them.
+
+\subsection{Project Context}
+\label{sec:ai-project-context}
+
+When a project is active in Focus Mode (Section~\ref{sec:focus-mode}), the AI
+layer adjusts its behavior to match. This happens automatically when Focus Mode
+activates and is reversed when it deactivates; no separate AI configuration is
+required.
+
+\paragraph{Context seed.}
+The \texttt{.project} file (Section~\ref{sec:projects}) is loaded as a
+structured context seed at the start of every AI query while a project is
+focused. The model receives the project name, description, tags, linked
+accounts, relevant links, and a summary of recent project activity from the
+graph before processing the user's question. This is the minimum context
+needed for the AI to give useful answers without the user having to re-explain
+their situation every time.
+
+\paragraph{Graph scope.}
+If the project's \texttt{[ai]} block declares
+\texttt{context\_scope = "project"}, the Graph Daemon restricts the AI
+daemon's traversal to nodes carrying a \texttt{PART\_OF} edge to the active
+project. The AI sees a narrower but more relevant slice of the graph: recent
+project files, sessions where the project was active, applications used in
+those sessions, and notifications received during focused work. Nodes outside
+the project are not visible to the model for the duration of the focused
+session.
+
+This is Access Level~2 from the table in Section~\ref{sec:ai-security}, applied
+automatically by Focus Mode rather than requiring the user to configure it
+manually per session.
+
+\paragraph{Waypointer integration.}
+Inside Waypointer's AI mode (Tab), queries are answered with project context
+active. Asking ``which files did I touch yesterday?'' returns results filtered
+to the project rather than the full graph. Project-specific quick actions ---
+recent files, last commit message, open issues link, focus time this week ---
+are derived from live graph queries against the active \texttt{Project} node
+and its edges, not from cached or hardcoded data.
 
 \subsection{MCP Permission Model}
 \label{sec:mcp-permissions}
@@ -312,7 +350,7 @@ Notes          & Note titles and content \\
 \end{table}
 
 Reading to answer a question is what the user expects when they ask the AI
-something. Answering "what meetings do I have today?" without a confirmation
+something. Answering ``what meetings do I have today?'' without a confirmation
 dialog is the correct behaviour. Reading does not change state, and the AI
 permission level configured in Settings still gates what data each server
 exposes regardless of this default.
@@ -358,8 +396,8 @@ has no practical way to understand what is happening without opening a terminal
 and running several diagnostic commands. This is a gap this system is
 positioned to close, because it already has the data.
 
-The AI daemon can answer the question \emph{"What is my computer doing right
-now?"} by querying the live event stream and the Knowledge Graph simultaneously.
+The AI daemon can answer the question \emph{``What is my computer doing right
+now?''} by querying the live event stream and the Knowledge Graph simultaneously.
 The event stream provides the current moment: which processes are active, what
 they are reading or writing, which network connections are open, what the CPU
 and memory usage is and which process owns it. The Knowledge Graph provides

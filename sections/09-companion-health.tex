@@ -40,7 +40,8 @@ only gets Tier 1.
   File Drop; clipboard sync (manual trigger only, not automatic);
   notification mirroring; media playback control \\
 2 & \texttt{trusted} &
-  Handoff (continue reading, browsing, or editing across devices);
+  Handoff (continue reading, browsing, or editing across devices;
+  project-aware when Focus Mode is active);
   Unified Timeline (cross-device activity, local only);
   graph presence (phone sends active app and content context);
   health data forwarding \\
@@ -103,11 +104,29 @@ background BLE scanning is not permitted continuously, only in periodic
 system-managed windows. Auto-connect works but is less reliable and carries a
 marginally higher battery cost on the iPhone side.
 
+\paragraph{Project-aware Handoff.}
+When Focus Mode is active on the desktop (Section~\ref{sec:focus-mode}), the
+Handoff feature carries project context to the phone. The companion app
+receives the active project's name, description, linked resources, and recent
+files from the graph, and surfaces them as a continuation card on the phone's
+lock screen and in the app. Tapping the card opens the project's issue tracker
+link, most recently accessed document, or notes entry depending on which was
+last active. The project context is transmitted as structured metadata over
+the existing Tier~2 channel; no additional pairing or permission is required
+beyond the \texttt{trusted} trust level.
+
+When Focus Mode is not active, Handoff operates in its baseline mode: the
+phone receives the currently active application and document without project
+context.
+
 \paragraph{Theme synchronization.}
 Because the companion app uses the same design token system as the desktop,
 the active theme propagates to the phone automatically: accent color, dark and
-light mode, typography. This is a structural side effect of the shared token
-infrastructure, not a feature that was separately implemented.
+light mode, typography. When a project accent color is active via Focus Mode,
+that override propagates to the companion app as well, giving the phone the
+same ambient context signal as the desktop shell. This is a structural side
+effect of the shared token infrastructure, not a feature that was separately
+implemented.
 
 \paragraph{iOS limitations.}
 iOS imposes constraints that cannot be worked around. There is no persistent
@@ -192,7 +211,8 @@ aggregator with no AI involvement whatsoever.
   Health events appear as standalone nodes in the Knowledge Graph \\
 2 - Correlations     &
   Graph links health data to activity data by time window
-  (e.g.\ sleep quality correlated with focus session length) \\
+  (e.g.\ sleep quality correlated with focus session length;
+  active focus time per project derived from Focus Mode session records) \\
 3 - Pattern Recognition &
   Full cross-domain analysis across health, productivity, and
   communication data \\
@@ -200,13 +220,32 @@ aggregator with no AI involvement whatsoever.
 \end{tabularx}
 \end{table}
 
+\paragraph{Project focus time.}
+Focus Mode session records (Section~\ref{sec:focus-mode}) are written to the
+Knowledge Graph with project context attached. The Health Daemon reads these
+records at Level~2 integration and derives a focus time metric per project per
+day: the total duration of sessions where a given project was active and the
+user was interacting with the system rather than idle. This metric feeds two
+Health Dashboard views. The \emph{work distribution} view shows time split
+across active projects over a configurable rolling window, useful for
+identifying whether time allocation matches priorities. The \emph{concentration
+signal} view flags extended periods of single-project focus, which correlates
+with both deep work and with burnout risk depending on duration and frequency.
+Neither view interprets the data for the user; both present the signal and let
+the user draw conclusions.
+
+The focus time metric requires only Level~2 graph integration; no health
+sensor data is involved. It is derived entirely from session and project
+activity already present in the graph.
+
 \paragraph{Settings and permissions.}
 Health has its own dedicated section in Settings rather than being buried under
 general privacy settings. Controls include per-source enable and disable for
 each data source independently; per-data-type enable and disable so the user
 can, for example, share step data with an app but not sleep data; the graph
 integration toggles from Table~\ref{tab:health-graph} presented as a grouped
-sub-section with clear explanations of what each level enables; a configurable
+sub-section with clear explanations of what each level enables; project focus
+time tracking as a sub-toggle within Level~2 integration; a configurable
 data retention period per data type; full FHIR and JSON export; and full
 deletion with a confirmation step.
 

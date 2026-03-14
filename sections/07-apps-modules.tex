@@ -154,6 +154,15 @@ from the same application is still visible. Do Not Disturb has three modes
 (off, on, and scheduled by time of day) and is togglable from the taskbar quick
 panel.
 
+Focus Mode (Section~\ref{sec:focus-mode}) interacts with the notification
+priority system directly. When a project declares a \texttt{[focus]} block
+with \texttt{suppress\_notifications\_from}, the daemon demotes matching
+application notifications to Low priority for the duration of the focused
+session. This demotion is applied by the daemon at routing time, not by
+modifying the application's permanent permission profile. Critical-priority
+alerts from system components are exempt and always pass through regardless
+of Focus Mode state.
+
 \subsection{Permission System}
 \label{sec:permissions}
 
@@ -210,12 +219,17 @@ than what the Flatpak declared.
 \paragraph{First-run learning mode.}
 If no Store profile exists and the application is not a Flatpak, the first
 launch runs in learning mode: all accesses are permitted and logged, nothing is
-blocked. The learning window closes automatically ten minutes after first launch, or when the session ends, whichever comes first, the user receives a summary of what the
-application accessed, with options to review and confirm, edit first, or start
-with all permissions blocked. From the second launch onward, the confirmed
-profile is enforced. Learning mode applies to filesystem, network, and device
-access only; graph access is always denied until explicitly granted and cannot
-be learned. During the learning window, at most five new permission grants are recorded per minute; exceeding this rate suspends learning immediately and generates an anomaly alert. This limits the damage from a compromised application that attempts to accumulate permissions in bulk during its first session.
+blocked. The learning window closes automatically ten minutes after first
+launch, or when the session ends, whichever comes first. The user then receives
+a summary of what the application accessed, with options to review and confirm,
+edit first, or start with all permissions blocked. From the second launch
+onward, the confirmed profile is enforced. Learning mode applies to filesystem,
+network, and device access only; graph access is always denied until explicitly
+granted and cannot be learned. During the learning window, at most five new
+permission grants are recorded per minute; exceeding this rate suspends
+learning immediately and generates an anomaly alert. This limits the damage
+from a compromised application that attempts to accumulate permissions in bulk
+during its first session.
 
 \paragraph{Runtime behavior.}
 When an application attempts an access outside its profile, the access is
@@ -268,13 +282,13 @@ with declared permissions.
 \toprule
 \textbf{Category} & \textbf{Extension point} & \textbf{Example} \\
 \midrule
-\texttt{theme}              & Design language layer    & Community color schemes \\
-\texttt{spotlight.provider} & Spotlight search results & Web search, stock prices \\
-\texttt{spotlight.action}   & Spotlight command actions & Create task, send message \\
-\texttt{shell.topbar}       & Topbar element slot      & Custom status widget \\
-\texttt{shell.widget}       & Desktop widget area      & Clock, weather, system stats \\
-\texttt{mcp.server}         & AI MCP integration       & External service connector \\
-\texttt{keybinding.profile} & Global input manager     & Alternative layout profiles \\
+\texttt{theme}               & Design language layer     & Community color schemes \\
+\texttt{waypointer.provider} & Waypointer search results & Web search, stock prices \\
+\texttt{waypointer.action}   & Waypointer command actions & Create task, send message \\
+\texttt{shell.topbar}        & Topbar element slot       & Custom status widget \\
+\texttt{shell.widget}        & Desktop widget area       & Clock, weather, system stats \\
+\texttt{mcp.server}          & AI MCP integration        & External service connector \\
+\texttt{keybinding.profile}  & Global input manager      & Alternative layout profiles \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -288,12 +302,18 @@ inspect and adjust it in Settings like any other application.
 
 \begin{lstlisting}[language=bash, caption={Example module manifest}]
 [package]
-id      = "com.example.ai-spotlight"
-name    = "AI Spotlight Provider"
+id      = "com.example.ai-waypointer"
+name    = "AI Waypointer Provider"
 version = "1.0.0"
 
 [provides]
-spotlight.provider = true
+waypointer.provider = true
+
+[activation]
+# Optional: only run this module when a focused project carries these tags.
+# The Module Runtime starts and stops the module as Focus Mode changes.
+# Omit this block for modules that run unconditionally.
+active_when_focused = { require_tags = ["rust"] }
 
 [dependencies]
 shell   = ">=1.2"
@@ -303,6 +323,15 @@ modules = ["com.example.ai-core"]
 network.allow = ["api.openai.com"]
 graph.allow   = ["read"]
 \end{lstlisting}
+
+The \texttt{[activation]} block is optional. When present, the Module Runtime
+evaluates it against the active \texttt{Project} node each time Focus Mode
+changes. A module with \texttt{require\_tags = ["rust"]} is started when the
+focused project carries the \texttt{rust} tag and stopped when Focus Mode
+deactivates or switches to a project that does not. The module's declared
+permissions apply for the duration it is running; they are not expanded or
+restricted by the activation condition. A module started via project activation
+follows the same crash recovery policy as any other module.
 
 Modules cannot declare permissions beyond what the manifest specifies, and
 manifests are reviewed during Store submission. Unlike applications, modules
@@ -342,9 +371,9 @@ no notification spam.
 
 Module updates are downloaded in the background and applied at different points
 depending on category: theme updates apply immediately as a token and CSS swap;
-Spotlight modules update on the next Spotlight open; shell widgets and topbar
+Waypointer modules update on the next Waypointer open; shell widgets and topbar
 modules update on the next session start by default, with a manual
-"Restart now" option available in Settings; MCP server modules update on the
+``Restart now'' option available in Settings; MCP server modules update on the
 next session start to avoid interrupting active AI interactions.
 
 \paragraph{Shell API.}
@@ -364,13 +393,27 @@ const recent = await shell.graph.query(
   "MATCH (f:File) RETURN f LIMIT 5"
 )
 
-// Spotlight provider registration
-shell.spotlight.register({
-  id:          "com.example.ai-spotlight",
+// Waypointer provider registration
+shell.waypointer.register({
+  id:          "com.example.ai-waypointer",
   placeholder: "Ask AI...",
   onQuery:     async (q) => [ /* result objects */ ]
 })
+
+// Focus Mode: react to project context changes
+shell.focus.onActivate((project) => {
+  // project.name, project.tags, project.rootPath available
+})
+shell.focus.onDeactivate(() => { /* cleanup */ })
 \end{lstlisting}
+
+The \texttt{shell.focus} API allows modules to react to Focus Mode transitions
+without polling. A Waypointer provider that wants to narrow its result set to
+the active project subscribes to \texttt{onActivate} and adjusts its query
+scope accordingly; \texttt{onDeactivate} signals that the module should return
+to its default behavior. These callbacks fire after all system-level Focus Mode
+changes have been applied, so the project context is already consistent when
+the module receives the event.
 
 \paragraph{Global Input Manager.}
 Keybindings and gestures are configured in a single place in Settings, not per
@@ -382,7 +425,7 @@ and no module can silently capture input outside its declared actions.
 
 \paragraph{Developer experience.}
 A CLI scaffolds a complete module project with one command:
-\texttt{npx create-os-module <name>}, producing a Vite, TypeScript, Tailwind,
+\texttt{npx create-os-module <n>}, producing a Vite, TypeScript, Tailwind,
 and module-sdk setup with a manifest template. In dev mode, the module runs
 unsigned in a dedicated dev sandbox, all declared permissions are granted
 without Store review, WebView DevTools are accessible, and hot-reload via Vite
@@ -394,7 +437,7 @@ self-signed key pair with the CLI, signs the module, and distributes it as an
 \texttt{.osmod} file. Installation uses TOFU: the first install prompts the
 user to trust the key fingerprint; subsequent updates from the same key are
 silent. Sideloaded modules receive no expanded permissions and are marked
-"Not from Store" in Settings.
+``Not from Store'' in Settings.
 
 \subsection{Store}
 \label{sec:store}

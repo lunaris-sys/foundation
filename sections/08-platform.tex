@@ -221,7 +221,28 @@ blocked  = ["com.valve.steam"]
 [graph]
 ai_access = "off"
 export    = "off"
+
+# Project templates bundled with this profile.
+# Each entry is a path to a .project file relative to the package root.
+# These are written to the profile's home directory on install and
+# registered as active projects in the Knowledge Graph.
+[projects]
+templates = [
+    "projects/acme-onboarding.project",
+    "projects/acme-infrastructure.project",
+]
 \end{lstlisting}
+
+Project templates bundled in the \texttt{[projects]} block are installed into
+the profile's home directory at \texttt{\textasciitilde/.projects/<template-name>/}
+on first login and registered as active \texttt{Project} nodes in the profile's
+Knowledge Graph. Each template is a standard \texttt{.project} TOML file
+(Section~\ref{sec:projects}) and follows the same format; the organization
+can pre-configure name, description, tags, linked accounts, AI scope, and
+Focus Mode rules. Project templates do not contain user data and are not
+synchronized back to the organization; they are a starting configuration
+only. The user can modify or delete them after installation without affecting
+the profile package itself.
 
 The package is signed by the organization's private key. Key distribution uses
 TOFU by default: on first install the user sees the publisher name and key
@@ -747,7 +768,7 @@ global setting.
 \midrule
 0 & Minimal       & Nothing from the graph; only what the user explicitly pastes \\
 1 & Session-scoped & Only data from the current active session \\
-2 & Project-scoped & All data associated with a user-selected project \\
+2 & Project-scoped & All data associated with a user-selected project. Applied automatically by Focus Mode when a project is active (Section~\ref{sec:focus-mode}). \\
 3 & Time-scoped   & Historical data up to a configurable lookback window \\
 4 & Full read     & Everything the user has read access to \\
 \bottomrule
@@ -833,6 +854,17 @@ administrator, no daemon, and no application can read it. The Structural Log
 is readable by the user and by the Anomaly Detector for pattern analysis;
 in managed environments, administrators receive aggregated anomaly alerts only,
 never raw log contents.
+
+\paragraph{Project-scoped export.}
+The Audit Log supports filtering by project context for export. Settings
+exposes a date-range export that can be scoped to a specific project: the
+export includes all graph access records, AI actions, and permission events
+that occurred during sessions where that project was active in Focus Mode.
+The output is a structured JSON document suitable for time tracking,
+client billing, or project handover. The Structural Log tier is used for
+this export; the Forensic Log is never included in project exports. The
+export is produced locally and handed to the user as a file; it is not
+transmitted anywhere automatically.
 
 \paragraph{Hash chain integrity and TPM anchoring.}
 The hash chain makes retroactive tampering with individual log entries

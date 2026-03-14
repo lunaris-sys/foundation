@@ -13,7 +13,7 @@ interfaces that neither side reaches past.
 \label{sec:desktop-ipc}
 
 Three communication channels connect the compositor core to the shell and its
-frontend, each carrying a different class of data. 
+frontend, each carrying a different class of data.
 
 \begin{figure}[htbp]
 \centering
@@ -169,8 +169,8 @@ recorded in the audit log whenever X11 applications are active.
 \subsection{Shell and Application Framework}
 \label{sec:shell}
 
-The shell -- taskbar, app launcher, notification center, quick settings panel,
-and lock screen -- is built with Tauri (introduced in
+The shell -- global menu bar, taskbar, app launcher, notification center,
+quick settings panel, and lock screen -- is built with Tauri (introduced in
 Section~\ref{sec:tauri-intro}) using TypeScript and \emph{Tailwind CSS} for the
 interface layer. Tauri renders the UI in a \emph{WebKitGTK} WebView, which
 provides full modern web rendering capabilities without the memory cost of an
@@ -236,9 +236,17 @@ one value changes and every element using it updates instantly, without
 reloading any component. This is the mechanism behind live theme switching.
 The second layer contains base components: Button, Input, Dialog, Card, and
 similar primitives built from shadcn/ui and styled with the token system.
+The shadcn/ui component set covers the full range of shell needs directly:
+Popover and DropdownMenu for the global menu bar and its context popup,
+Command for Waypointer's search interface, Carousel for the workspace
+switcher, Toast for notifications, and Progress for toolbar status indicators.
+Because shadcn/ui distributes component source rather than a compiled library,
+each of these can be adapted to shell-specific behaviour without fighting an
+upstream API.
 The third layer contains OS-specific components: \texttt{WindowChrome},
-\texttt{AppShell}, and \texttt{NotificationToast}, which implement patterns
-specific to this desktop environment.
+\texttt{AppShell}, \texttt{GlobalMenuBar}, \texttt{AppMenuPopup}, and
+\texttt{NotificationToast}, which implement patterns specific to this desktop
+environment.
 
 \paragraph{os-sdk.}
 A shared Rust crate provides system integration to every first-party
@@ -264,6 +272,217 @@ app-files/
     components/       # app-specific components (uses ui-kit)
     pages/
 \end{lstlisting}
+
+\subsection{Global Menu Bar}
+\label{sec:menubar}
+
+The shell includes a persistent narrow bar anchored to the top edge of each
+monitor. Its design is informed by macOS and GNOME: a single shared bar rather
+than per-window title bars carrying duplicate controls. The left side shows the
+active application's name followed by its registered menu structure. The right
+side carries system status indicators: clock, network, audio, battery, and the
+quick settings toggle. The center displays the active project name when Focus
+Mode is active, providing a persistent ambient signal of the current context.
+
+\paragraph{App menu registration.}
+First-party applications register their menu structure once via os-sdk at
+startup. The shell reads the registration and renders it in the bar; the
+application does not manage its own menu rendering at all. The registration
+declares the full menu tree, item types, default keyboard shortcuts, and
+initial enabled states:
+
+\begin{lstlisting}[language=bash, caption={App menu registration via os-sdk (TypeScript)}]
+shell.menu.register({
+  items: [
+    {
+      label: "File",
+      children: [
+        { label: "New",          shortcut: "Ctrl+N", action: "file.new" },
+        { label: "Open",         shortcut: "Ctrl+O", action: "file.open" },
+        { label: "Save",         shortcut: "Ctrl+S", action: "file.save",
+          enabled: false },
+        { separator: true },
+        { label: "Export as PDF", action: "file.export.pdf",
+          context: ["project"] },
+      ]
+    },
+    {
+      label: "View",
+      children: [
+        { label: "Show Sidebar", action: "view.sidebar",
+          type: "toggle", checked: true },
+        { separator: true },
+        { label: "Small", action: "view.size.small",
+          type: "radio", group: "view.size" },
+        { label: "Large", action: "view.size.large",
+          type: "radio", group: "view.size" },
+      ]
+    },
+    {
+      label: "File",
+      children: [
+        { label: "Open Recent", type: "recent",
+          node_type: "File", limit: 8 },
+      ]
+    }
+  ]
+})
+\end{lstlisting}
+
+The \texttt{action} field is an opaque string identifier. When the user
+selects an item, the shell dispatches it back to the application via the Tauri
+command bridge; the application handles it and never touches menu rendering
+directly. Shortcuts declared in the menu are registered automatically with the
+Global Input Manager (Section~\ref{sec:modules}), ensuring the displayed
+binding always reflects the user's actual configured binding rather than a
+hardcoded default.
+
+\paragraph{Dynamic state updates.}
+Menu items change state at runtime: Save becomes enabled when the document is
+modified, Undo carries the name of the last operation, toggles reflect the
+current view state. The application pushes these updates through os-sdk
+without re-registering the full menu:
+
+\begin{lstlisting}[language=bash, caption={Runtime menu state updates}]
+// Enable Save when document is modified
+shell.menu.setState("file.save", { enabled: true })
+
+// Update Undo label to reflect the last action
+shell.menu.setState("edit.undo", {
+  enabled: true,
+  label: "Undo Typing"
+})
+
+// Reflect sidebar toggle state
+shell.menu.setState("view.sidebar", { checked: false })
+\end{lstlisting}
+
+\paragraph{Recent items.}
+The \texttt{type: "recent"} item type is a declarative slot that os-sdk fills
+automatically from the Knowledge Graph. An application declares which node
+type it wants recent entries for and the maximum count; the shell queries the
+graph for the most recently accessed nodes of that type opened by this
+application and populates the submenu. No application-level recent-files
+tracking is needed. The list updates on every menu open, so it always reflects
+the current graph state without the application maintaining its own history.
+
+\paragraph{Context tags.}
+Menu items can carry optional context tags. When Focus Mode is active and the
+active project carries matching tags, items tagged accordingly receive a subtle
+visual marker in the menu -- a small indicator, not a structural change. This
+surfaces project-relevant actions without reordering or hiding anything. An
+export action tagged \texttt{"project"} is marked when a project is focused;
+an action tagged \texttt{"git"} is marked when the project carries the
+\texttt{git} tag. Context marking is opt-in per item and off by default.
+
+\paragraph{Third-party app coverage.}
+GTK applications expose their menu structure via the
+\texttt{org.gtk.Menus} and \texttt{org.gtk.Actions} D-Bus interfaces, which
+GNOME originally designed for global menu support. The shell implements a
+bridge that reads these interfaces and renders GTK app menus in the bar
+alongside first-party menus. Coverage depends on the application implementing
+the interface; most modern GTK4 applications do. Qt applications do not have
+an equivalent standard interface; Qt apps retain their in-window menus. This
+asymmetry is documented rather than hidden. XWayland applications are not
+covered by the global menu bar regardless of toolkit.
+
+\paragraph{Toolbar extensions.}
+Beyond the menu, applications can push three additional elements into the bar
+via os-sdk. These are additive slots that appear between the menu items and
+the system status indicators when the application is focused.
+
+Quick Actions are a small set of icon buttons for primary operations. The
+limit is three; exceeding it is rejected by the SDK. Icons come from the
+ui-kit icon set to guarantee visual consistency:
+
+\begin{lstlisting}[language=bash, caption={Quick Actions registration}]
+shell.toolbar.setQuickActions([
+  { icon: "share",     action: "file.share",    tooltip: "Share" },
+  { icon: "star",      action: "file.bookmark", tooltip: "Bookmark",
+    toggle: true, active: false },
+])
+\end{lstlisting}
+
+A Breadcrumb replaces the quick actions slot when the application is in a
+navigable hierarchy -- a file manager in a deep directory, a settings panel
+several levels in. The shell renders it as a compact inline path with each
+segment clickable:
+
+\begin{lstlisting}[language=bash, caption={Breadcrumb registration}]
+shell.toolbar.setBreadcrumb([
+  { label: "Home",       action: "nav.home" },
+  { label: "Projects",   action: "nav.projects" },
+  { label: "CoffeeShop", action: "nav.current" },
+])
+\end{lstlisting}
+
+A Progress indicator covers long-running background operations. It appears as
+a subtle fill on the bar itself and disappears automatically when cleared:
+
+\begin{lstlisting}[language=bash, caption={Progress indicator}]
+shell.toolbar.setProgress({ value: 0.67, label: "Compiling..." })
+shell.toolbar.clearProgress()
+\end{lstlisting}
+
+Quick Actions, Breadcrumb, and Progress are mutually exclusive in the same
+slot; setting one clears the others. All three are cleared automatically when
+the application loses focus.
+
+\paragraph{Audit log integration.}
+Every menu action executed by the user is written to the Knowledge Graph as a
+\texttt{UserAction} node via os-sdk, without the application emitting a
+separate event. The node carries the application identity, the action string,
+and the timestamp. This gives the AI layer a structured record of what the
+user did inside applications, not just which files they opened, enabling
+queries like ``what did I export last Tuesday'' without any extra
+instrumentation work from the application developer.
+
+\subsection{App Menu Context Popup}
+\label{sec:menu-popup}
+
+Accessing the global menu bar requires moving the pointer to the top of the
+screen. For users working in the center or bottom of the display this is a
+deliberate interruption. The App Menu Context Popup addresses this: a keyboard
+shortcut opens the active application's full menu as a floating popup at the
+current pointer position, without touching the bar.
+
+The popup renders the identical menu structure registered in the bar --
+the same items, the same enabled states, the same labels, the same submenu
+hierarchy. It is not a separate registration or a summarized version; it is
+the same data rendered in a different location. A user who knows the menu
+structure from the bar will find the popup immediately familiar.
+
+\paragraph{Positioning.}
+The popup anchors to the current pointer position with space-awareness: it
+opens in whichever direction has more room, capping at the screen boundary.
+Near the right edge it opens to the left; near the bottom it opens upward.
+Submenus follow the same rule independently of the parent popup's direction.
+The positioning logic is centralized in the shell and applied uniformly; no
+application code is involved.
+
+\paragraph{Keyboard navigation.}
+The popup opens in a keyboard-ready state: the first top-level item is
+focused, arrow keys navigate, Enter selects, Escape closes. The pointer
+remains where it was; the user does not need to move it. Mouse hover works
+in parallel -- moving the pointer over items highlights them normally. The
+two input modes are fully composable within a single popup session.
+
+The bar highlights the active application's menu section while the popup is
+open, providing a visual connection between the two surfaces.
+
+\paragraph{Keybinding.}
+The specific binding is configured in Settings as part of the unified keybinding
+system (Section~\ref{sec:modules}). There is no hardcoded default beyond
+a suggested starting point. It is treated as a first-class system shortcut,
+not an application-level binding, because it operates on any focused
+application regardless of what that application registers.
+
+\paragraph{Third-party app coverage.}
+The popup is available for any application whose menu is visible in the bar:
+first-party Tauri apps and GTK apps that expose the D-Bus menu interface.
+Applications without a registered menu show an empty popup with a single
+disabled item noting that no menu is available. Qt and XWayland apps are
+not covered for the same reasons as the bar.
 
 \subsection{Default Applications}
 \label{sec:default-apps}
@@ -319,6 +538,13 @@ that drag-and-drop of files to native (non-Tauri) applications is not
 currently supported by the framework; this is documented and will be
 resolved when upstream Tauri adds the capability.
 
+The file manager sidebar displays active projects alongside the standard
+directory tree. Selecting a project in the sidebar sets the file manager
+root to the project's configured root path and shows a recent-files view
+filtered to that project's graph context. Files can be assigned to a
+project via right-click context menu, which writes a \texttt{PART\_OF}
+edge directly to the Knowledge Graph without moving the file on disk.
+
 \paragraph{Text editor.}
 The default text editor is a first-party Tauri application embedding
 \emph{CodeMirror~6}~\cite{codemirror} as the editing component.
@@ -337,27 +563,80 @@ from the Rust backend for read and write operations across zip, tar, and
 common compression formats. All three write open-file events to the
 Knowledge Graph.
 
-\subsection{Spotlight}
-\label{sec:spotlight}
+\subsection{Waypointer}
+\label{sec:waypointer}
 
-Spotlight is the system-wide launcher and command palette: the primary
+Waypointer is the system-wide launcher and command palette: the primary
 keyboard-driven entry point to the entire desktop, triggered by the Super key
 by default and accessible from any context as a centered overlay. It handles
 app launching, file and web search, inline calculation, unit conversion,
 timezone lookup, and contextual actions derived from the current selection or
 active application. It is not a file manager; deep folder navigation and bulk
-operations belong in the File Manager. Spotlight surfaces the result the user
+operations belong in the File Manager. Waypointer surfaces the result the user
 wants immediately or hands off to the right application.
 
-When the AI layer is active, Spotlight gains an AI mode toggled by Tab.
+When the AI layer is active, Waypointer gains an AI mode toggled by Tab.
 Natural language queries are interpreted by the AI layer, resolved against the
 Knowledge Graph and available MCP actions, and returned as structured results
-in the same interface. Asking "show me what I worked on this week" is a
-Spotlight query, not a file search.
+in the same interface. Asking ``show me what I worked on this week'' is a
+Waypointer query, not a file search.
 
-Third-party modules can register as \texttt{spotlight.provider} to add result
-types or as \texttt{spotlight.action} to add commands, as described in
-Chapter~\ref{sec:modules}.
+When a project is active in Focus Mode (Section~\ref{sec:focus-mode}),
+Waypointer's default search scope narrows to that project's graph context.
+Typing a filename searches within project files first before widening to the
+full graph. Project-specific quick actions are surfaced at the top of the
+result list: recent files, last git commit message, open issues link, and
+time logged this week. These are live graph queries, not cached data.
+
+Third-party modules can register as \texttt{waypointer.provider} to add result
+types or as \texttt{waypointer.action} to add commands, as described in
+Section~\ref{sec:modules}.
+
+\subsection{Focus Mode}
+\label{sec:focus-mode}
+
+Focus Mode is the coordinated state the desktop enters when the user switches
+to a project context. It is not a distraction blocker and does not restrict
+what the user can do. It adjusts the environment to match the active project
+so that switching context is a single action rather than a series of manual
+steps across multiple applications.
+
+Activating a project --- via Waypointer, the File Manager sidebar, or the
+project quick-switch keyboard shortcut --- triggers the following changes
+simultaneously:
+
+The shell's accent color updates to the project's configured
+\texttt{appearance.accent\_color} value if one is declared, giving an
+immediate, ambient visual signal of the active context. If no project color
+is declared, the user's default accent remains.
+
+Waypointer's search scope narrows to the active project as described in
+Section~\ref{sec:waypointer}.
+
+The File Manager navigates to the project's root directory and switches its
+sidebar view to the project context.
+
+A new terminal window opened while a project is active launches with the
+working directory set to the project root.
+
+Notification priority rules declared in the project's \texttt{[focus]} block
+take effect. Applications listed under \texttt{suppress\_notifications\_from}
+have their notifications demoted to Low priority for the duration of the
+focused session, sending them silently to the Notification Center without
+a toast. Critical-priority system alerts are never suppressed.
+
+Modules declared in \texttt{active\_when\_focused} are started by the Module
+Runtime if not already running. When the project is deactivated, those modules
+are stopped.
+
+The AI daemon's read scope is updated to reflect the project context. If
+the project's \texttt{[ai]} block specifies \texttt{context\_scope = "project"},
+the daemon limits graph traversal to nodes associated with the active project.
+
+All of these changes are reversed when the user deactivates the project or
+switches to a different one. Focus Mode state is not persisted across sessions;
+the project is not automatically re-activated on login, though this is
+configurable in Settings.
 
 \subsection{Notification System}
 \label{sec:notifications}
@@ -391,8 +670,8 @@ notification data from the daemon over a Unix socket.
 Every notification that passes through the daemon is written to the Knowledge
 Graph as a \texttt{Notification} node with timestamp, source application,
 summary, and whether it was interacted with. This gives the AI layer visibility
-into what the user was interrupted by and when, and enables queries like "what
-notifications did I miss while in the meeting?" without any changes to the
+into what the user was interrupted by and when, and enables queries like ``what
+notifications did I miss while in the meeting?'' without any changes to the
 applications that sent them.
 
 \subsection{Screen Lock}
@@ -485,6 +764,18 @@ exists anywhere else. From one \texttt{tokens.toml}, the build generates:
 Changing the accent color in the TOML file propagates to every output on the
 next build; in a live switch (see below), the CSS custom property update is
 applied without a rebuild.
+
+\paragraph{Project accent colors.}
+A project can declare an optional accent color in its \texttt{.project} file
+(Section~\ref{sec:projects}). When Focus Mode activates that project, the
+declared color is applied as a temporary token override on top of the active
+theme, replacing only \texttt{--color-accent} and its derived values. All
+other theme tokens remain unchanged. The override is applied via the same CSS
+custom property mechanism used for live theme switching and takes effect
+immediately without a reload. When Focus Mode deactivates, the user's
+configured theme accent is restored. Project accent colors do not affect GTK4,
+Qt, or Wine theming; they apply to the Tauri shell and first-party applications
+only. This scope is disclosed in Settings.
 
 \paragraph{Built-in themes.}
 Four themes ship with the system. Dark and Light are standard high-contrast
@@ -627,14 +918,20 @@ second; GTK4 regeneration may take one to two seconds on slower hardware.
   {Store theme overrides \footnotesize(declared layers only)};
 \node[box] (user)   at (0, 0)
   {User token adjustments \footnotesize(accent color, font scale)};
+\node[box] (proj)   at (0, -\sep)
+  {Project accent override \footnotesize(Focus Mode only)};
 
 \draw[arr] (shadcn) -- node[lbl, right] {fallthrough} (base);
 \draw[arr] (base)   -- node[lbl, right] {fallthrough} (store);
 \draw[arr] (store)  -- node[lbl, right] {fallthrough} (user);
+\draw[arr] (user)   -- node[lbl, right] {temporary override} (proj);
 
 \end{tikzpicture}
 \caption{Theme inheritance chain. Each layer overrides only what it declares;
-everything else falls through to the layer below. A Store theme that covers
-only the shell and GTK4 leaves Wine and Qt at the base theme.}
+everything else falls through to the layer below. The project accent override
+is the outermost layer and applies only while Focus Mode is active; it is
+removed when the project is deactivated, restoring the user's configured
+accent. A Store theme that covers only the shell and GTK4 leaves Wine and Qt
+at the base theme.}
 \label{fig:theme-chain}
 \end{figure}

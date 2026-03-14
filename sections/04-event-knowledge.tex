@@ -164,7 +164,7 @@ store anything. Figure~\ref{fig:event-flow} shows the full pipeline.
 	\draw[arr] (journal) -- (parser);
 	\draw[arr] (parser)  -- (bus.west |- parser);
 	
-	% Bus → Writer → Kuzu
+	% Bus -> Writer -> Kuzu
 	\draw[arr] (bus.east) -- (gw);
 	\draw[arr] (gw)       -- (kuzu);
 	
@@ -317,7 +317,7 @@ learning is involved; the patterns are deterministic and fast. Unknown services
 and unmatched lines are discarded rather than approximated.
 
 \emph{Tier~3: semantic enrichment (opt-in).} For document content specifically
-— PDFs opened in the viewer, browser page titles, text file contents — a small
+--- PDFs opened in the viewer, browser page titles, text file contents --- a small
 local model running at idle can extract topic labels and named entities and
 attach them as properties on the corresponding \texttt{File} or \texttt{Event}
 node. This is explicitly opt-in, runs only during idle periods, makes no
@@ -362,9 +362,190 @@ The graph is fully functional without this tier enabled.
 \caption{Knowledge Graph core schema. Nodes represent entities; edges
 represent relationships. \texttt{Event} nodes are the lowest-level entries,
 created directly from the event pipeline. \texttt{UserAction} nodes are
-derived abstractions built from clusters of raw events.}
+derived abstractions built from clusters of raw events. A \texttt{File} can
+belong to multiple \texttt{Project} nodes simultaneously; membership is an
+edge, not a property of the file.}
 \label{fig:kg-schema}
 \end{figure}
+
+\subsection{Project System}
+\label{sec:projects}
+
+A project is not a folder. It is a named context node in the Knowledge Graph
+that groups related files, sessions, and activity across time and application
+boundaries. The grouping is expressed as typed edges; a file does not carry a
+project property, it participates in a \texttt{PART\_OF} relationship. This
+means a file can belong to multiple projects simultaneously, and project
+membership can be established, changed, or removed without touching the file
+itself.
+
+\paragraph{Philosophy: emergent, not prescribed.}
+Projects are designed to arise from observed behavior and be confirmed by the
+user, not to be created upfront and maintained manually. The graph accumulates
+enough signal to infer that a coherent context exists; the user names and
+confirms it. Both paths are available: explicit creation is supported for users
+who prefer structure from the start, but it is not required.
+
+\paragraph{The \texttt{.project} file.}
+Every project can optionally carry a \texttt{.project} file at its root
+directory. This is a TOML file that acts as the authoritative configuration for
+that project and is the primary structured data source the Graph Daemon uses
+when building the \texttt{Project} node. It is designed to be committed
+alongside source code: a developer who clones a repository gets the project
+context with it.
+
+\begin{lstlisting}[language=bash, caption={Example .project file}]
+[project]
+name        = "CoffeeShop"
+description = "Wii U homebrew mod manager"
+status      = "active"   # active | paused | archived
+created     = 2025-11-01
+due         = 2026-06-01 # optional
+
+[paths]
+root    = "~/Repositories/coffeeshop"
+include = [
+    "~/Documents/coffeeshop-notes",
+    "~/Downloads/wiiu-sdk-reference.pdf",
+]
+exclude = ["target/", "*.log"]
+
+[git]
+remote         = "https://github.com/timkicker/coffeeshop"
+default_branch = "main"
+
+[accounts]
+github = "timkicker"
+
+[links]
+docs   = "https://wiiu.hacks.guide"
+issues = "https://github.com/timkicker/coffeeshop/issues"
+
+[tags]
+values = ["cpp", "wiiu", "homebrew"]
+
+[appearance]
+accent_color = "#6aaa64"  # optional; overrides shell accent when focused
+
+[focus]
+suppress_notifications_from = ["steam", "discord"]
+
+[modules]
+active_when_focused = ["com.example.rust-waypointer"]
+
+[ai]
+context_scope = "project"  # minimal | project | time-scoped
+
+[collaboration]
+# Planned for a future release. The data model supports shared projects
+# from the start; this field is reserved and currently ignored.
+enabled = false
+\end{lstlisting}
+
+The \texttt{.project} file is the source of truth; the Graph Daemon reads it
+at session start and whenever it changes on disk. Projects without a
+\texttt{.project} file are fully supported: the node exists in the graph and
+all features work, but configuration defaults apply and the project cannot be
+distributed as a template.
+
+\paragraph{Project node properties.}
+The \texttt{Project} node in the graph carries the following properties, sourced
+from the \texttt{.project} file where present and inferred or defaulted otherwise:
+name, description, status, root path, creation timestamp, optional due date, tags,
+and an accent color. The status field drives visibility across the system:
+\texttt{active} projects appear prominently in Waypointer, the File Manager
+sidebar, and AI context suggestions; \texttt{paused} projects are searchable
+but not proactively surfaced; \texttt{archived} projects are read-only in the
+graph and only reachable via explicit search. Archiving is a transition, not a
+deletion: graph data is retained under the normal retention policy.
+
+\paragraph{File membership and the \texttt{PART\_OF} edge.}
+A file becomes part of a project through one of four mechanisms, in decreasing
+order of specificity. First, explicit declaration in the \texttt{[paths]} block
+of the \texttt{.project} file: any file under a declared include path is a
+member. Second, rootdir heuristic: any file under the project root directory
+is a candidate member, confirmed once the user has acknowledged the project.
+Third, co-occurrence clustering: files that consistently appear together in the
+same sessions, accessed by the same applications and terminal working directories,
+are grouped as project candidates by a background inference pass. Fourth, manual
+assignment via the File Manager or Waypointer: the user explicitly adds a file
+to a project, which writes a \texttt{PART\_OF} edge directly.
+
+A file can carry \texttt{PART\_OF} edges to multiple projects simultaneously.
+The graph enforces no uniqueness constraint on this relationship.
+
+\paragraph{Project-scoped AI context.}
+When the AI access level is set to project-scoped (Level~2, described in
+Section~\ref{sec:ai}), the \texttt{.project} file serves as the context seed
+for the AI daemon. Name, description, tags, linked accounts, and recent
+project activity from the graph are included in the context window before the
+user's query. Waypointer surfaces project-specific quick actions when a project
+is active: recent files, last commit message, open issues URL, and time spent
+this week. These are graph queries, not hardcoded integrations.
+
+\paragraph{Git integration.}
+The presence of a \texttt{.git} directory in the project root is treated as a
+strong project signal: the directory is automatically proposed as a project
+root if no \texttt{.project} file exists. The current branch name is attached
+as a property on the active \texttt{Session} node, providing context for
+queries like ``what was I working on during the refactor branch last week.''
+The \texttt{[git]} block in the \texttt{.project} file links the remote and
+default branch for use in Waypointer quick actions and AI context.
+
+Full git integration, covering commits as graph nodes, branch switches as
+session context events, and pull request status as linked resources, is
+planned for a subsequent release. The graph schema includes \texttt{Commit}
+and \texttt{Branch} node types from the start so that this integration does
+not require a schema migration when it arrives.
+
+\paragraph{Project-aware system integrations.}
+Projects are a cross-cutting concept and several system components integrate
+with them directly. These integrations are described in detail in the
+sections covering each component; the connections are summarized here for
+reference.
+
+The \emph{Focus Mode} (Section~\ref{sec:desktop}) is activated when the user
+switches to a project context. It coordinates the shell accent color, Waypointer
+search scope, File Manager root, terminal working directory, and notification
+priority rules simultaneously.
+
+The \emph{Health Daemon} (Section~\ref{sec:health}) tracks active focus time
+per project from session data. This enables queries about work distribution
+across projects and provides the signal for wellbeing observations such as
+sustained single-project concentration over extended periods.
+
+The \emph{Companion App} (Section~\ref{sec:companion}) uses the active project
+as the Handoff context: switching away from the desktop surfaces the project's
+linked resources, recent files, and notes on the phone.
+
+The \emph{Module System} (Section~\ref{sec:modules}) supports the
+\texttt{active\_when\_focused} manifest field, which activates a module only
+when a specific project is in focus. A Rust-specific Waypointer provider that
+surfaces \texttt{cargo} commands is the canonical example: it runs only when
+the focused project carries the \texttt{rust} tag.
+
+The \emph{Audit Log} (Section~\ref{sec:audit-log}) supports project-scoped
+export: all activity records associated with a project within a specified date
+range can be exported as a structured report. This is useful for time tracking,
+client billing, and project handover.
+
+\emph{Signed Profile Packages} (Section~\ref{sec:profiles}) can bundle
+\texttt{.project} template files. An organization deploying a work profile
+can pre-configure project structure, required accounts, AI scope restrictions,
+and notification rules as part of the profile installation.
+
+\paragraph{Automatic project inference.}
+Project nodes in the graph are created explicitly when the user names a
+project or a \texttt{.project} file is detected, but the graph also accumulates
+enough signal to infer project membership without either. Files that
+consistently appear together in the same sessions, terminal working directories
+that recur alongside a fixed set of applications, and browser tabs that
+co-occur with specific local files are all indicators that a coherent project
+exists even without a name. A background inference pass groups these
+co-occurrence clusters into candidate project nodes and presents them to the
+user as suggestions rather than applying them automatically. The user can
+confirm, rename, or dismiss each suggestion. Automatic inference is opt-in
+and runs locally.
 
 \subsection{Retention Policy}
 \label{sec:retention}
@@ -424,7 +605,7 @@ graph data.
 
 The Knowledge Graph contains a complete record of which files were accessed,
 created, and modified, when, and by which application. This makes it possible
-to answer queries like "show me everything I worked on last Tuesday" without
+to answer queries like ``show me everything I worked on last Tuesday'' without
 relying on file modification timestamps, which applications regularly reset, or
 on search indices, which do not capture access history.
 
@@ -438,19 +619,23 @@ small daemon that translates directory traversal into Graph Daemon queries.
 
 A path like \texttt{\textasciitilde/.timeline/2026-03-04/} lists all files the
 user touched on that date, grouped by project where the graph has enough
-context to determine project membership. Opening a file through this path opens
-the actual file at its real location; the timeline view is an index, not a
-copy. No additional storage is used.
+context to determine project membership. The project grouping is deterministic
+when a \texttt{.project} file is present and heuristic otherwise. Opening a
+file through this path opens the actual file at its real location; the timeline
+view is an index, not a copy. No additional storage is used.
 
 \begin{lstlisting}[language=bash, caption={Temporal filesystem view examples}]
 # List files worked on a specific date
 ls ~/.timeline/2026-03-04/
 
-# Find all files touched in the last week, by project
+# Browse by project across all time
+ls ~/.timeline/projects/CoffeeShop/
+
+# Files touched in the last week, grouped by project
 ls ~/.timeline/last-7-days/
 
 # Open a file as it appears in the timeline (opens real file)
-xdg-open ~/.timeline/2026-03-04/ProjectAlpha/report-draft.md
+xdg-open ~/.timeline/2026-03-04/CoffeeShop/report-draft.md
 \end{lstlisting}
 
 The FUSE daemon holds no persistent state of its own; every listing is a live
@@ -461,19 +646,8 @@ or deleted through the timeline path.
 A natural extension of the temporal view is causal chain visualization:
 because the graph records not only which files were accessed but the sequence
 and application context of those accesses, it is possible to reconstruct the
-workflow that produced a given output. A query asking "what did I do to produce
-this file?" can trace the chain of files opened, commands run, and applications
-active in the session where the file was last modified. This is planned as a
-Phase~1 feature built on the same FUSE and graph infrastructure described here.
-
-\paragraph{Automatic project inference.}
-Project nodes in the graph are created explicitly when the user names a
-project, but the graph also accumulates enough signal to infer project
-membership automatically. Files that consistently appear together in the same
-sessions, terminal working directories that recur alongside a fixed set of
-applications, and browser tabs that co-occur with specific local files are all
-indicators that a coherent project exists even without a name. A background
-inference pass groups these co-occurrence clusters into candidate project nodes
-and presents them to the user as suggestions rather than applying them
-automatically. The user can confirm, rename, or dismiss each suggestion.
-Automatic inference is opt-in and runs locally.
+workflow that produced a given output. A query asking ``what did I do to produce
+this file?'' can trace the chain of files opened, commands run, and applications
+active in the session where the file was last modified. This is planned for a
+subsequent release, built on the same FUSE and graph infrastructure described
+here.
