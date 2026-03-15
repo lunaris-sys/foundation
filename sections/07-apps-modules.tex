@@ -205,7 +205,9 @@ Common software such as Firefox, LibreOffice, and VLC has community-maintained
 profiles that are installed automatically and shown to the user at install time
 for review. Community members can submit profiles for applications not yet
 covered; submitted profiles go through Store review before publication, since
-an overly permissive profile is a meaningful risk.
+an overly permissive profile is a meaningful risk. Permission profiles are one
+component of the broader Integration Package system described in
+Section~\ref{sec:integration-packages}.
 
 \paragraph{Flatpak adapter.}
 Flatpak applications carry their own permission declarations. When a Flatpak is
@@ -261,8 +263,300 @@ protect against a compromised application exploiting a kernel vulnerability.
 What it provides is a low-friction way to reduce the footprint of routine
 untrusted content without requiring a separate session or a virtual machine.
 
-\subsection{Module System}
-\label{sec:modules}
+\subsection{Integration Packages}
+\label{sec:integration-packages}
+
+An Integration Package is a Store package that describes how the system
+integrates with a specific third-party application. It is not a bundle: it
+contains no application binaries. It is a declaration that references an
+existing application and provides three optional components alongside it:
+a permission profile, a Settings adapter, and native Settings registrations
+for os-sdk applications.
+
+The application itself and its Integration Package are two independent Store
+entries with separate versions, separate maintainers, and separate update
+cycles. A package published by Mozilla ships Firefox; an Integration Package
+published by the community ships the permission profile and Settings adapter
+for Firefox.
+
+\paragraph{Package format.}
+An Integration Package declares which application it targets and what it
+provides:
+
+\begin{lstlisting}[language=bash, caption={Integration Package manifest}]
+[package]
+id      = "community.firefox.integration"
+name    = "Firefox Integration"
+version = "2.1.0"
+conflicts = ["community.firefox.privacy"]
+
+[app]
+# At least one identifier required; all three are optional
+store_id     = "org.mozilla.firefox"
+flatpak_id   = "org.mozilla.Firefox"
+package_name = "firefox"
+
+# Compatible with which app versions
+compatible_with = ">=120.0, <130.0"
+
+[includes]
+permissions = "permissions.toml"   # optional
+adapter     = "firefox-adapter.toml"  # optional
+\end{lstlisting}
+
+The \texttt{conflicts} field lists Integration Packages that are incompatible
+with this one. When the Store detects a conflict at install time, it presents
+the user with a choice rather than silently merging or overriding. If both
+packages are installed simultaneously (for example via a package manager), the
+Settings page for the affected application shows a conflict warning and the
+permissions of the first-installed package remain active until the user
+resolves the conflict.
+
+\paragraph{Settings Adapter.}
+The Settings Adapter is a declarative TOML document that describes how a
+third-party application's native configuration file maps to Settings UI
+elements. It contains no executable code; Settings interprets the declaration
+and performs all reads and writes itself.
+
+\begin{lstlisting}[language=bash, caption={Settings Adapter declaration}]
+[adapter]
+schema_version = "1.0"
+write_strategy = "requires_app_closed"  # or "anytime"
+
+[sources]
+prefs = {
+    path              = "~/.mozilla/firefox/*/prefs.js",
+    format            = "firefox-prefs",
+    instance_strategy = "last_used"  # or "all", "ask"
+}
+
+[[settings]]
+key      = "browser.startup.homepage"
+source   = "prefs"
+label    = "Homepage"
+type     = "string"
+default  = "about:home"
+section  = "General"
+verify   = true
+
+[[settings]]
+key      = "browser.tabs.tabMinWidth"
+source   = "prefs"
+label    = "Minimum tab width"
+type     = "integer"
+min      = 50
+max      = 250
+default  = 76
+section  = "Tabs"
+readonly = false
+
+[[settings]]
+key      = "browser.cache.disk.capacity"
+source   = "prefs"
+label    = "Disk cache size (internal)"
+type     = "integer"
+section  = "Advanced"
+readonly = true
+\end{lstlisting}
+
+\emph{write\_strategy} controls when Settings may write to the configuration
+file. \texttt{anytime} writes immediately; \texttt{requires\_app\_closed}
+disables all edit controls while the application is running and writes only
+when it is not, because some applications overwrite their configuration on
+exit and would discard changes made while running.
+
+\emph{instance\_strategy} applies when the source path glob matches multiple
+files. \texttt{last\_used} selects the file with the most recent modification
+timestamp, appropriate for applications that maintain separate profiles.
+\texttt{all} writes to every matched file simultaneously. \texttt{ask}
+prompts the user once on the first opening of the Settings page and remembers
+the selection.
+
+\emph{verify} causes Settings to read the field back after writing and compare
+it to the value it attempted to write. If the values do not match, Settings
+displays an error rather than silently succeeding. This catches cases where an
+application has renamed or removed a configuration key in a newer version.
+
+\emph{readonly} fields are displayed but not editable. They carry a lock
+indicator in the Settings UI.
+
+The adapter supports the following configuration formats via built-in format
+handlers: TOML, JSON, INI and \texttt{.conf} files, Firefox \texttt{prefs.js},
+\texttt{.env} key-value files, and flat \texttt{key=value} files. Binary and
+proprietary formats are not supported; the application page in Settings shows
+only the Permissions section when no compatible adapter is available.
+
+Adapter source files are restricted to paths within known user configuration
+directories. An adapter cannot declare a source outside \texttt{\textasciitilde/.config/},
+\texttt{\textasciitilde/.mozilla/}, \texttt{\textasciitilde/.local/}, and
+similar user-owned paths. System paths are never writable through an adapter.
+
+\paragraph{Compatibility and updates.}
+The \texttt{compatible\_with} field declares which application versions the
+Integration Package supports. When the application updates beyond the declared
+range, Settings displays a compatibility warning on the application page with
+a direct link to the Store listing of the Integration Package. The adapter
+remains active -- most configuration keys do not change between application
+versions -- but the warning signals that the package maintainer should review
+and update the package.
+
+Integration Package updates are independent of application updates. The Install
+Daemon (Section~\ref{sec:install-daemon}) monitors both streams and keeps
+them consistent.
+
+\paragraph{Native app Settings registration.}
+First-party applications built with os-sdk do not use the adapter mechanism.
+They register their Settings interface directly at startup via os-sdk, using
+the same TOML configuration system the application already uses internally.
+There is no configuration file bridge and no format handler involved:
+
+\begin{lstlisting}[language=bash, caption={Native Settings registration via os-sdk (TypeScript)}]
+shell.settings.register({
+  sections: [
+    {
+      label: "General",
+      items: [
+        {
+          key:     "startup.restore_session",
+          label:   "Restore last session on startup",
+          type:    "boolean",
+          default: true,
+        },
+        {
+          key:     "editor.font_size",
+          label:   "Font size",
+          type:    "integer",
+          min:     8,
+          max:     32,
+          default: 14,
+        },
+        {
+          key:     "editor.theme",
+          label:   "Editor color scheme",
+          type:    "enum",
+          options: ["system", "dark", "light"],
+          default: "system",
+        },
+      ]
+    }
+  ]
+})
+\end{lstlisting}
+
+Settings reads this registration and renders the application's configuration
+section automatically. Values are read from and written to the application's
+own \texttt{\textasciitilde/.config/<app-id>/config.toml} via the os-sdk
+configuration system. The application observes changes via the same inotify
+mechanism all other components use. No adapter, no format handler, no
+intermediate layer.
+
+The distinction between the two paths is clean: the adapter is for existing
+third-party applications that the system does not control; native registration
+is for applications built for this platform that already use os-sdk.
+
+\subsection{Install Daemon}
+\label{sec:install-daemon}
+
+The Install Daemon is a background service that sits as an abstraction layer
+over all package managers active on the system. Its role is to ensure that
+every application installation, regardless of how it was performed, results in
+a consistent system state: permissions enforced, Integration Package loaded
+if available, Settings page populated.
+
+A user who types \texttt{dnf install firefox} in a terminal has the same
+expectation as a user who finds Firefox in the Store: the application works,
+its permissions are set to sensible defaults, and its Settings page is ready.
+The Install Daemon makes that expectation true regardless of installation path.
+
+\paragraph{Package manager coverage.}
+The daemon registers hooks with all package managers it finds on the system.
+For systemd-integrated package managers (dnf, Flatpak), it uses systemd unit
+hooks that emit an Event Bus message after every install, update, or removal.
+For non-systemd package managers (Homebrew, Nix, Cargo, pip with
+\texttt{-{}-user}), it monitors known installation paths via
+\texttt{inotify}:
+
+\begin{lstlisting}[language=bash, caption={Monitored installation paths}]
+~/.homebrew/        ~/.nix-profile/
+~/.cargo/bin/       ~/.local/bin/
+/opt/homebrew/
+\end{lstlisting}
+
+New package managers installed after first login are detected when their binary
+appears in a known package manager location. From that point the daemon begins
+monitoring their output paths as well.
+
+When the daemon detects a new application it cannot associate with a known
+app-ID, it takes no action. Only positively identified applications trigger
+Integration Package lookup.
+
+\paragraph{Integration Package matching.}
+After detecting a new application installation, the daemon queries the Store
+catalogue for Integration Packages that reference the installed app-ID via
+any of the three reference fields (\texttt{store\_id}, \texttt{flatpak\_id},
+\texttt{package\_name}). Matching packages are evaluated against a three-tier
+rating policy:
+
+\begin{table}[htbp]
+\caption{Install Daemon Integration Package rating policy}
+\label{tab:install-rating}
+\begin{tabularx}{\linewidth}{lX}
+\toprule
+\textbf{Condition} & \textbf{Behavior} \\
+\midrule
+Rating $\geq$ 4.0 and installs $\geq$ 1{,}000 &
+  Installed automatically. Brief notification after completion. \\
+Rating 3.0--3.9 or installs $<$ 1{,}000 &
+  Notification with Install button. Not automatic. \\
+Rating $<$ 3.0 or installs $<$ 100 &
+  Not surfaced. Available in the Store via manual search. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+If only one Integration Package exists for an application and it does not
+meet the automatic threshold, the minimum rating for automatic installation
+is lowered to 3.5. No Integration Package is worse than a completely absent
+one from a user experience perspective.
+
+\paragraph{Dual installation handling.}
+When the same application exists as both an RPM and a Flatpak, the daemon
+treats them as two separate entries. Settings shows both with distinct labels
+(for example ``Firefox (System)'' and ``Firefox (Flatpak)'') and separate
+application pages. The user designates one as primary in Settings; the primary
+installation is used for default application associations and Waypointer
+suggestions.
+
+\paragraph{Offline queue.}
+When an application is installed without network access, the daemon stores a
+pending lookup entry locally. The next time the network becomes available --
+detected via a NetworkManager event on the Event Bus -- the daemon processes
+queued entries and applies the normal matching policy. Queue entries expire
+after 30 days without resolution.
+
+\paragraph{Update compatibility.}
+Application updates are never blocked by Integration Package compatibility
+status. When an application updates beyond an Integration Package's declared
+\texttt{compatible\_with} range, the daemon checks the Store for a newer
+version of the Integration Package. If one exists it is installed
+automatically. If none exists, Settings displays a compatibility warning. The
+application update proceeds regardless.
+
+\paragraph{Deinstallation.}
+When an application is removed, its Integration Package is set to inactive
+rather than uninstalled. It remains visible in a dedicated ``Inactive
+Integrations'' section of Settings. If the application is reinstalled, the
+Integration Package reactivates automatically without prompting. Explicit
+removal of the Integration Package is a separate user action available from
+the inactive list or the Store.
+
+\paragraph{Audit log.}
+Every Install Daemon action is recorded in the Audit Log via the Audit Daemon:
+automatic Integration Package installations, manual installations triggered by
+notification, deactivations, reactivations, and failed queue resolutions. Each
+entry carries the app-ID, Integration Package ID and version, trigger source,
+rating and install count at decision time, and whether the action was automatic
+or user-initiated.
 
 The system is extensible at multiple layers through a unified module mechanism.
 All module types use the same installation channel (the Store) and the same
@@ -378,7 +672,7 @@ next session start to avoid interrupting active AI interactions.
 
 \paragraph{Shell API.}
 Modules interact with the system through a restricted TypeScript SDK. No direct
-access to the Smithay compositor or Graph Daemon is available; what is not in
+access to the compositor or Graph Daemon is available; what is not in
 the SDK is not accessible.
 
 \begin{lstlisting}[language=bash, caption={Module SDK surface (TypeScript)}]
@@ -520,3 +814,22 @@ Signed environment profile packages (\texttt{.lenv} files, described in
 Section~\ref{sec:platform}) are distributed through the Store using the same
 infrastructure as applications. Profile packages are free to publish and carry
 no commission.
+
+\paragraph{Integration Package distribution.}
+Integration Packages (described in Section~\ref{sec:integration-packages}) are
+distributed through the Store as a distinct package type. They are free to
+publish and carry no commission. Publishing runs the same automated technical
+checks as applications: valid signing, resolvable app references, and schema
+validation of any included adapter declaration. A manual Security Review is
+available and recommended for packages that include permission profiles, since
+an overly permissive profile represents a meaningful risk.
+
+Store listings for Integration Packages display the target application, the
+package components included (permissions, adapter, or both), the
+\texttt{compatible\_with} version range, and the standard rating and install
+count. The Install Daemon uses rating and install count to determine automatic
+installation eligibility as described in Section~\ref{sec:install-daemon}.
+
+Deep links between Integration Package Store listings and the corresponding
+application page in Settings use the \texttt{store://} and \texttt{settings://}
+URL schemas described in Section~\ref{sec:settings-deeplinks}.

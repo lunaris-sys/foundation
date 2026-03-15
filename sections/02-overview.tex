@@ -82,9 +82,9 @@ structure.
 \caption{System layer structure. The bottom four layers are always present and
 initialize in order from bottom to top. The top row shows the three classes of
 graph consumer: first-party applications (connected via os-sdk), system daemons
-(Account, Health, Audit, and others), and the AI daemon (dashed, optional). All
+(Account, Health, Audit, Install, and others), and the AI daemon (dashed, optional). All
 three connect to the Graph Daemon over a Unix socket with per-application
-capability tokens; none of them bypasses the daemon or accesses Kuzu directly.
+capability tokens; none of them bypasses the daemon or accesses the graph database directly.
 The AI daemon is not architecturally privileged over the others.}
 \label{fig:layers}
 \end{figure}
@@ -372,6 +372,7 @@ Module Runtime  & Manages the lifecycle of shell extensions \\
 Transfer Daemon & Controls data movement between user profiles \\
 Audit Daemon    & Sole writer to the append-only audit log \\
 Health Daemon   & Aggregates and stores health and wellbeing data \\
+Install Daemon  & Tracks app installations across all package managers; matches and installs Integration Packages automatically \\
 Compositor      & Draws windows and manages the display (Wayland compositor) \\
 \bottomrule
 \end{tabularx}

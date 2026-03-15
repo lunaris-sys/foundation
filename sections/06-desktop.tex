@@ -639,6 +639,114 @@ switches to a different one. Focus Mode state is not persisted across sessions;
 the project is not automatically re-activated on login, though this is
 configurable in Settings.
 
+\subsection{Settings}
+\label{sec:settings}
+
+Settings is the primary control center for the entire system. It is a
+first-party Tauri application built on ui-kit and os-sdk like any other
+first-party app, but with privileged write access to the configuration files
+of other system components. It is not a data store: every component owns its
+own TOML configuration file and Settings is a UI layer that reads and writes
+those files. Settings can crash, restart, or never be opened -- the system
+functions regardless.
+
+\paragraph{Architecture.}
+Settings writes to component configuration files via the filesystem and signals
+changes via the Event Bus. Components observe their configuration files through
+\texttt{inotify} and reload automatically. For changes that must take effect
+immediately -- theme switches, AI access level, permission updates -- Settings
+additionally emits an Event Bus message and waits for a confirmation from the
+affected daemon before marking the change as applied. For changes that take
+effect only after a restart -- keybinding profiles, profile type changes --
+Settings shows a ``Wirksam nach Neustart'' notice without forcing an immediate
+restart.
+
+\paragraph{Structure.}
+Settings is organized as a two-level sidebar: a small set of top-level
+categories on the left, each expanding into specific sections. A global search
+field at the top of the sidebar finds settings by name, synonym, or keyword
+across all categories and all depths. ``Dark mode'', ``night mode'', and
+``appearance'' all reach the Theme section; ``shortcut'' and ``hotkey'' both
+reach Keybindings.
+
+\begin{table}[htbp]
+\caption{Settings top-level categories}
+\label{tab:settings-categories}
+\begin{tabularx}{\linewidth}{lX}
+\toprule
+\textbf{Category} & \textbf{Contents} \\
+\midrule
+Appearance    & Themes, accent colors, font scale, dark/light mode, animations \\
+Privacy       & Permissions per app, graph retention, audit log, clipboard sensitivity \\
+AI            & Provider configuration, access level, routing policy, MCP servers \\
+Accounts      & Online accounts, OAuth tokens, account resolution order \\
+System        & Updates, snapshots, startup apps, hardware info \\
+Input         & Keybindings (single source of truth), mouse, touchpad, keyboard layout \\
+Display       & Monitor layout, resolution, scale, refresh rate, rotation \\
+Profiles      & Profile creation and management, transfer rules, signed packages \\
+Health        & Data sources, graph integration level, retention, export \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{App pages.}
+Every installed application has a dedicated page in Settings, reachable from
+the Privacy category or directly via deep link. The page aggregates everything
+the system knows about that application in one place: permission profile
+(filesystem, network, device, graph), Integration Package status and adapter
+configuration if installed, audit log entry count with export option, and
+ephemeral mode toggle. For applications that have registered native Settings
+via os-sdk, their configuration sections appear at the top of the page above
+the system sections, matching the macOS model where app-specific preferences
+precede system-managed permissions.
+
+\paragraph{Managed environment display.}
+When a setting is controlled by a Signed Profile Package, it is displayed
+normally but carries a visible ``Managed by organization'' badge. A tap on the
+badge explains which profile package controls it and what the current enforced
+value is. The setting is not hidden and not greyed out without explanation.
+This follows the system's general principle of transparency: the user always
+understands what is happening on their device and why.
+
+\paragraph{Keybindings.}
+The Input category hosts the unified keybinding editor: a searchable list of
+every registered action from every application, module, and system component.
+Each entry shows the application or component name, the action label, the
+current binding, and whether it is a user override or the registered default.
+Conflicts -- two actions sharing the same binding -- are highlighted in red
+with both conflicting entries visible simultaneously. The Global Input Manager
+is the authoritative source; Settings reads from and writes to it directly.
+No application manages its own bindings independently.
+
+\paragraph{Deep links.}
+\label{sec:settings-deeplinks}
+Settings registers a \texttt{settings://} URL schema at startup. Any
+application, notification, or module can open a specific Settings location
+directly:
+
+\begin{lstlisting}[language=bash, caption={Settings deep link examples}]
+settings://apps/org.mozilla.firefox
+settings://apps/org.mozilla.firefox/permissions
+settings://apps/org.mozilla.firefox/adapter
+settings://privacy/audit-log
+settings://ai/providers
+settings://input/keybindings
+settings://appearance/themes
+\end{lstlisting}
+
+If Settings is already open, incoming deep links navigate without opening a
+new window. If Settings is closed, it opens directly at the target location.
+The Store uses a complementary \texttt{store://} schema for links in the
+other direction, described in Section~\ref{sec:store}.
+
+\paragraph{Reset.}
+Every setting has a reset path. Individual settings show a reset icon that
+restores the system default. Each section header offers a ``Reset this section''
+option. Keybindings can be reset per action or for all actions at once. Resets
+never require confirmation for individual settings -- the action is immediately
+reversible by setting the value again. Section resets show a single
+confirmation step.
+
 \subsection{Notification System}
 \label{sec:notifications}
 
