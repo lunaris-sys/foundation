@@ -152,9 +152,11 @@ store anything. Figure~\ref{fig:event-flow} shows the full pipeline.
 	\node[proc, minimum width=2.2cm, minimum height=5.4cm, text width=1.8cm]
 	(bus) at (7.0, 2.25) {Event Bus\\(Unix socket\\+ protobuf)};
 	
-	% Graph Writer (x=10.2) and Kuzu (x=12.8) — both at y=2.25
-	\node[proc]  (gw)   at (10.2, 2.25) {Graph\\Writer};
-	\node[store] (kuzu) at (12.8, 2.25) {Kuzu};
+	% Graph Writer (x=10.2), SQLite (x=12.8), Kuzu (x=12.8 lower)
+	\node[proc]  (gw)     at (10.2, 2.25) {Graph\\Writer};
+	\node[store] (sqlite) at (12.8, 3.6)  {SQLite\\(writes)};
+	\node[store] (kuzu)   at (12.8, 0.9)  {Kuzu\\(queries)};
+	\node[proc]  (promo)  at (10.2, -0.6) {Promotion\\pass};
 	
 	% Source arrows
 	\draw[arr] (ebpf)    -- (norm);
@@ -164,16 +166,20 @@ store anything. Figure~\ref{fig:event-flow} shows the full pipeline.
 	\draw[arr] (journal) -- (parser);
 	\draw[arr] (parser)  -- (bus.west |- parser);
 	
-	% Bus -> Writer -> Kuzu
+	% Bus -> Writer -> SQLite, SQLite -> Promotion -> Kuzu
 	\draw[arr] (bus.east) -- (gw);
-	\draw[arr] (gw)       -- (kuzu);
+	\draw[arr] (gw)       -- (sqlite);
+	\draw[arr] (sqlite.south) -- (promo.east);
+	\draw[arr] (promo)    -- (kuzu.south);
 	
 \end{tikzpicture}
 \caption{Event pipeline. Raw kernel events pass through the eBPF normalizer
 before reaching the bus. journald output from known system services passes
 through a rule-based parser. First-party app events and compositor events
 arrive already structured. All sources converge on the Event Bus, which
-validates and forwards to the Graph Writer Daemon.}
+validates and forwards to the Graph Writer Daemon. The Graph Writer writes
+to SQLite at full event throughput; a background promotion pass periodically
+moves semantically valuable nodes into Kuzu for graph traversal queries.}
 \label{fig:event-flow}
 \end{figure}
 
@@ -220,36 +226,76 @@ notifications, NetworkManager, Bluetooth, session management via
 applications. The two systems run in parallel with no overlap; nothing that
 communicates over D-Bus today is changed.
 
-\subsection{Backpressure and Batching}
+\subsection{Write Architecture}
 \label{sec:backpressure}
 
-Kuzu is an embedded graph database optimized for analytical queries over large
-graphs, not for high-frequency single-row writes. Writing each eBPF event
-individually as it arrives would saturate the write path quickly. Instead, the
-Graph Writer Daemon maintains a ring buffer and writes to Kuzu in batches.
+The Knowledge Graph has two structurally different workloads: a high-frequency
+write path that must absorb thousands of eBPF events per second without
+dropping data, and a query path that must traverse multi-hop graph
+relationships efficiently for AI context and user queries. These two workloads
+have conflicting requirements. A database optimized for one performs poorly at
+the other. The write architecture addresses this by separating the two into
+dedicated stores.
 
-\begin{quote}
-\textbf{Phase 0 validation required.} The batching architecture below is
-designed to make Kuzu viable under sustained eBPF load. This must be confirmed
-with a benchmark before the architecture is finalized: Event Bus plus Graph
-Writer under simulated load targeting 5,000 events per second, with Kuzu as
-the write target. If Kuzu cannot sustain this load even with batching, the
-fallback is a two-layer architecture with SQLite handling writes and Kuzu
-receiving promoted data periodically for queries. This is a Go/No-Go decision
-at Phase~0.
-\end{quote}
+\paragraph{SQLite as the write store.}
+All incoming events are written to \emph{SQLite}~\cite{sqlite}, a
+battle-tested embedded relational database with excellent write throughput for
+append-heavy workloads. SQLite is the write store: every event from every
+source lands here first, at full throughput, with no analytical overhead.
 
-The ring buffer holds 10,000 event slots. A batch write is triggered by
-whichever threshold is reached first: 500 milliseconds have elapsed, or 1,000
-events have accumulated. Both values are configurable. When the buffer is full,
-the system works through three tiers before discarding anything. First, it
-checks whether an identical event (same type, source, and subject) already
-exists in the buffer and, if so, updates its timestamp rather than inserting a
-duplicate. If no duplicate exists, it drops the lowest-value event currently in
-the buffer to make room, prioritizing raw eBPF read and write events with no
-app-level context. Only if neither approach frees a slot is the incoming event
-discarded, which should not occur under normal operating conditions. Drop rates
-per tier are exposed as metrics and monitored by the Anomaly Detector.
+The Graph Writer Daemon maintains a ring buffer of 10,000 event slots. A
+batch write to SQLite is triggered by whichever threshold is reached first:
+500 milliseconds have elapsed, or 1,000 events have accumulated. Both values
+are configurable. When the buffer is full, the system works through three tiers
+before discarding anything. First, it checks whether an identical event (same
+type, source, and subject) already exists in the buffer and updates its
+timestamp rather than inserting a duplicate. If no duplicate exists, it drops
+the lowest-value event in the buffer, prioritizing raw eBPF read and write
+events with no app-level context. Only if neither approach frees a slot is the
+incoming event discarded, which should not occur under normal operating
+conditions. Drop rates per tier are exposed as metrics and monitored by the
+Anomaly Detector.
+
+Raw eBPF events are retained in SQLite for 30 days and then discarded. They
+serve the anomaly detection window and nothing else; they are never promoted
+to Kuzu.
+
+\paragraph{Kuzu as the query store.}
+\emph{Kuzu}~\cite{kuzu} is the query store: an embedded graph database written
+in C++ with first-class Rust bindings, released under the MIT license.
+Embedded means it runs inside the Graph Daemon process with no separate server
+process, no network port, and no additional service to manage. Kuzu uses
+\emph{Cypher}~\cite{opencypher} as its query language, which is the interface
+the AI daemon, first-party applications, and the FUSE timeline daemon all use
+for graph traversal.
+
+Kuzu operates on a curated graph, not a raw event log. Raw eBPF noise never
+reaches it. Only semantically valuable nodes are promoted here: \texttt{File},
+\texttt{App}, \texttt{Session}, \texttt{Project}, \texttt{UserAction}, and
+their relationships. This keeps the Kuzu graph clean and traversal queries
+fast.
+
+\paragraph{Promotion pipeline.}
+A background promotion pass runs periodically during idle periods, reading
+from SQLite and writing promoted nodes and edges to Kuzu. The pass is
+incremental: it tracks a high-water mark in SQLite and processes only new
+records since the last run. Promotion criteria are deterministic: \texttt{Event}
+nodes that have been correlated into \texttt{UserAction} clusters, \texttt{File}
+nodes that have been accessed more than once, and all \texttt{Session} and
+\texttt{Project} nodes are promoted. Single-occurrence raw eBPF events that
+have not been correlated are not promoted.
+
+The two stores have different query surfaces. SQLite answers time-range
+lookups over recent raw events; Kuzu answers multi-hop graph traversals over
+semantic history. The Graph Daemon presents a unified query interface to all
+callers; the layer boundary is an implementation detail they never see.
+
+\begin{lstlisting}[language=SQL, caption={Example Cypher query against Kuzu: files accessed last Tuesday}]
+MATCH (f:File)-[:OPENED_BY]->(a:App)
+WHERE f.last_modified > datetime('2026-03-01')
+RETURN f.path, a.name
+ORDER BY f.last_modified DESC
+\end{lstlisting}
 
 \subsection{Knowledge Graph}
 \label{sec:knowledge-graph}
@@ -265,49 +311,33 @@ everything is connected (processes open files, files belong to projects,
 projects span sessions, sessions overlap with other applications), a graph
 models the domain naturally.
 
-\paragraph{Kuzu.}
-The Knowledge Graph is implemented with \emph{Kuzu}~\cite{kuzu}, an embedded
-graph database written in C++ with first-class Rust bindings, released under
-the MIT license. Embedded means it runs inside the Graph Daemon process with no
-separate server process, no network socket, and no additional service to manage.
-The database is a directory of files on disk that only the Graph Daemon process
-opens directly.
-
-Kuzu uses \emph{Cypher} as its query language~\cite{opencypher}. Cypher is a
-declarative graph query language originally developed by Neo4j and now
-maintained as an open standard under the openCypher project. It reads close to
-natural language: nodes are written as \texttt{(n:Label)}, relationships as
-\texttt{-[:TYPE]->}, and the query describes the pattern to match rather than
-the steps to execute. Anyone familiar with SQL can read Cypher within minutes;
-anyone who has used Neo4j will find it identical.
-
-\begin{lstlisting}[language=SQL, caption={Example Cypher query: files accessed last Tuesday}]
-MATCH (f:File)-[:OPENED_BY]->(a:App)
-WHERE f.last_modified > datetime('2026-03-01')
-RETURN f.path, a.name
-ORDER BY f.last_modified DESC
-\end{lstlisting}
+The write architecture that feeds the graph is described in
+Section~\ref{sec:backpressure}: SQLite absorbs the high-frequency event
+stream, and a promotion pipeline moves semantically valuable data into Kuzu
+for graph traversal. This section describes the Kuzu graph itself: its schema,
+ingestion tiers, and the data that lives in it.
 
 \paragraph{Schema.}
 Figure~\ref{fig:kg-schema} shows the core node types and their relationships.
 The schema is intentionally minimal at this stage; it will grow as the system
 matures. \texttt{File}, \texttt{App}, \texttt{Session}, \texttt{Project},
 \texttt{Event}, and \texttt{UserAction} are the primary entities. Every raw
-occurrence from the event pipeline lands as an \texttt{Event} node first;
-higher-level \texttt{UserAction} nodes are derived from clusters of related
-events and represent meaningful activity rather than individual syscalls.
+occurrence from the event pipeline lands in SQLite first; promotion to Kuzu
+happens after correlation into higher-level nodes. \texttt{UserAction} nodes
+are derived abstractions built from clusters of related events and represent
+meaningful activity rather than individual syscalls.
 
 \paragraph{Event ingestion tiers.}
 Not all event sources are equal in structure or volume, and the ingestion
-strategy reflects that. Three tiers operate independently.
+strategy reflects that. Three tiers operate independently. All three write
+to SQLite first via the write architecture described in
+Section~\ref{sec:backpressure}; promotion to Kuzu follows asynchronously.
 
 \emph{Tier~1: structured sources.} eBPF events, compositor events, and
 first-party app events arrive already typed and schema-validated. They are
-written directly to the graph with no intermediate processing step. This tier
-handles the large majority of graph writes and is the only tier with hard
-latency requirements; writes are batched as described in
-Section~\ref{sec:backpressure} but no interpretation step sits between the
-event and the graph.
+written to SQLite with no intermediate processing step. This tier handles
+the large majority of writes and is the only tier with hard latency
+requirements.
 
 \emph{Tier~2: rule-based parsing.} journald output from known system services
 (NetworkManager, bluetoothd, systemd-logind, and others) carries useful
@@ -325,6 +355,7 @@ real-time promises, and is the only tier that involves a language model.
 The appropriate model class is a sub-2B parameter instruction model
 (Qwen2.5-1.5B or similar) that can run on CPU without saturating it; the
 workload is low-frequency enrichment of user documents, not stream processing.
+The graph is fully functional without this tier enabled.
 The graph is fully functional without this tier enabled.
 
 \begin{figure}[htbp]
@@ -561,17 +592,17 @@ policy defines how long data lives, with user control at every tier.
 \toprule
 \textbf{Tier} & \textbf{Default} & \textbf{Content} \\
 \midrule
-Raw eBPF events &
+Raw eBPF events (SQLite) &
   30 days &
-  High-volume, low-semantic-value syscall events. Already incorporated
-  into higher-level nodes after ingestion; the raw records are largely
-  redundant beyond the anomaly detection window. \\
-Semantic nodes &
+  High-volume, low-semantic-value syscall events. Retained for the
+  anomaly detection window; never promoted to Kuzu and discarded
+  after expiry. \\
+Semantic nodes (Kuzu) &
   12 months rolling &
-  File, App, Session, and NetworkConnection nodes representing actual
-  activity. This is where AI query value lives. Nodes past the window
+  File, App, Session, and NetworkConnection nodes promoted from SQLite.
+  This is where AI query value lives. Nodes past the window
   are summarized rather than deleted. \\
-Pinned nodes &
+Pinned nodes (Kuzu) &
   Permanent &
   Nodes explicitly marked by the user, active Project nodes, and nodes
   recently referenced in AI queries. Only manual deletion removes these. \\

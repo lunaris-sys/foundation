@@ -671,21 +671,29 @@ modules update on the next session start by default, with a manual
 next session start to avoid interrupting active AI interactions.
 
 \paragraph{Shell API.}
-Modules interact with the system through a restricted TypeScript SDK. No direct
-access to the compositor or Graph Daemon is available; what is not in
-the SDK is not accessible.
+Modules access the same \texttt{shell} namespace as first-party applications,
+with two differences. First, the available surface is restricted to what the
+module declared in its manifest: a module without \texttt{graph.allow = "read"}
+cannot call \texttt{shell.graph.query}, and a module without
+\texttt{clipboard.read.sensitive} receives \texttt{null} for sensitive
+clipboard entries. Second, modules access the API via
+\texttt{@os/module-sdk} rather than os-sdk directly, which wraps the same
+underlying interfaces with module-specific permission enforcement.
 
-\begin{lstlisting}[language=bash, caption={Module SDK surface (TypeScript)}]
+The full Shell API surface -- clipboard, presence, search, annotations,
+intents, timeline, shortcuts, badges, context menu, onboarding, ambient,
+spatial, and voice -- is documented in Section~\ref{sec:shell-api}. Modules
+may use any surface for which they hold the corresponding manifest permission.
+
+The following surfaces are always available to modules without additional
+permission declarations, as they carry no privacy or security implications:
+
+\begin{lstlisting}[language=bash, caption={Module SDK -- always available surfaces}]
 import { shell } from "@os/module-sdk"
 
 // Window management
 const windows = await shell.getWindows()
 const active  = await shell.getActiveWindow()
-
-// Graph (requires graph = "read" in manifest)
-const recent = await shell.graph.query(
-  "MATCH (f:File) RETURN f LIMIT 5"
-)
 
 // Waypointer provider registration
 shell.waypointer.register({
@@ -694,20 +702,26 @@ shell.waypointer.register({
   onQuery:     async (q) => [ /* result objects */ ]
 })
 
-// Focus Mode: react to project context changes
+// Focus Mode transitions
 shell.focus.onActivate((project) => {
   // project.name, project.tags, project.rootPath available
 })
 shell.focus.onDeactivate(() => { /* cleanup */ })
+
+// Badges (always available, error/warning types logged to graph)
+shell.badges.set({ count: 3 })
+shell.badges.clear()
+
+// Ambient effects (respects user's global ambient preference)
+shell.ambient.set({ effect: "pulse", intensity: 0.2, reason: "syncing" })
+shell.ambient.clear()
 \end{lstlisting}
 
-The \texttt{shell.focus} API allows modules to react to Focus Mode transitions
-without polling. A Waypointer provider that wants to narrow its result set to
-the active project subscribes to \texttt{onActivate} and adjusts its query
-scope accordingly; \texttt{onDeactivate} signals that the module should return
-to its default behavior. These callbacks fire after all system-level Focus Mode
-changes have been applied, so the project context is already consistent when
-the module receives the event.
+The \texttt{shell.focus} callbacks fire after all system-level Focus Mode
+changes have been applied, so the project context is consistent when the
+module receives the event. A Waypointer provider that narrows its result set
+to the active project subscribes to \texttt{onActivate} and resets on
+\texttt{onDeactivate}.
 
 \paragraph{Global Input Manager.}
 Keybindings and gestures are configured in a single place in Settings, not per

@@ -21,17 +21,18 @@ by the versioning mechanism described below.
 org/
   blueprint       <- architecture documents and this document
   kernel-layer    <- eBPF programs, Event Bus daemon
-  knowledge       <- Kuzu integration, graph schema, Graph Daemon
+  knowledge       <- SQLite write store, Kuzu query store, Graph Daemon
   ai-layer        <- provider abstraction, MCP client
-  compositor      <- Smithay-based Wayland compositor (Rust)
+  compositor      <- cosmic-comp fork (Wayland compositor)
   desktop-shell   <- taskbar, launcher, shell (Tauri + TypeScript)
   ui-kit          <- shared component library (TypeScript + Tailwind)
-  os-sdk          <- shared Rust crate for system integration
+  os-sdk          <- shared Rust crate + TypeScript shell API for first-party apps
   app-files       <- File Manager
   app-settings    <- Settings
   app-terminal    <- Terminal
   app-store       <- Store
-  module-sdk      <- SDK for shell module development
+  install-daemon  <- Install Daemon, Integration Package matching
+  module-sdk      <- shell API subset + module scaffolding for third-party modules
   themes          <- GTK4, Wine .msstyles, token source
   distro          <- build system, ISO generation, meta-packages
 \end{lstlisting}
@@ -101,6 +102,44 @@ fn check_compatibility() -> Result<()> {
 A component that detects a version mismatch refuses to start and surfaces a
 clear message. The only resolution is applying the pending system update.
 
+\paragraph{Hosting infrastructure.}
+The project operates two distinct distribution channels with different
+infrastructure requirements.
+
+\emph{System package repository.} All core system components -- the compositor,
+shell, daemons, and first-party applications -- are distributed as RPMs via the
+Open Build Service. OBS builds, signs, and hosts the repository. End-user
+systems add the repository once:
+
+\begin{lstlisting}[language=bash]
+dnf config-manager --add-repo \
+    https://packages.[project].dev/fedora/$releasever/
+\end{lstlisting}
+
+After that, updates arrive through the normal \texttt{dnf} update mechanism.
+No custom infrastructure is required for this channel; OBS provides everything.
+
+\emph{Store backend.} The Store requires purpose-built infrastructure because
+its requirements are specific to this project: Integration Package matching,
+adapter schema validation, the rating-based Install Daemon policy, signed
+package verification, and payment processing. The target stack is a Rust
+backend service with PostgreSQL for metadata and S3-compatible object storage
+for package binaries. \emph{Hetzner Object Storage} is the preferred object
+storage provider: it is operated in European data centres, priced predictably
+for outbound traffic, and S3-compatible without vendor lock-in. A CDN sits in
+front of the object storage for binary downloads; \emph{BunnyNet} is the
+preferred provider for the same reasons.
+
+Payment processing uses \emph{Stripe}, which covers European payment standards,
+handles VAT for digital goods across EU jurisdictions, and provides a
+well-documented API. Stripe's commission is accounted for separately from the
+Store's own commission tiers described in Section~\ref{sec:store}.
+
+The Store backend is self-hosted, not dependent on any US-based platform
+service for its critical path. This is a direct consequence of the project's
+European digital autonomy stance: the infrastructure that distributes software
+to users should be under the project's control and subject to European law.
+
 \paragraph{CI/CD pipeline.}
 Tests run at three levels of integration. Table~\ref{tab:ci-triggers} shows
 when each level runs.
@@ -140,7 +179,7 @@ token change in Settings propagates to all running Tauri processes; the shell
 sends a keybinding action and the Input Manager calls the correct handler.
 
 Full VM tests boot a complete system image in QEMU and run smoke tests: system
-boots without crash; Spotlight opens, finds an application, and launches it;
+boots without crash; Waypointer opens, finds an application, and launches it;
 eBPF events arrive and land in the Knowledge Graph; theme switch propagates
 correctly; module install and uninstall behave as expected. These tests are
 slow and run on release candidates only. The VM image is built by the same
@@ -154,11 +193,11 @@ Each repository has its own development setup with \texttt{cargo run},
 from \texttt{os-sdk} need no external dependencies running. Fast feedback loop,
 runs entirely on the developer's machine.
 
-For shell and compositor work, Smithay supports nested mode: the compositor
-runs as a regular Wayland window inside the developer's existing desktop. The
-full shell appears inside that window. No VM or extra hardware is needed. This
-covers the majority of shell and compositor development; eBPF and kernel-level
-components are not active in nested mode.
+For shell and compositor work, the cosmic-comp fork supports nested mode: the
+compositor runs as a regular Wayland window inside the developer's existing
+desktop. The full shell appears inside that window. No VM or extra hardware is
+needed. This covers the majority of shell and compositor development; eBPF and
+kernel-level components are not active in nested mode.
 
 Full system work requires \emph{QEMU}~\cite{qemu}, a machine emulator and
 virtualizer. QEMU can emulate a complete x86-64 machine -- CPU, RAM, storage,
@@ -201,7 +240,7 @@ from the real schema. The mock is the contract.
 
 \paragraph{Project planning tooling.}
 A project of this scope has cross-cutting concerns that span multiple
-repositories simultaneously: an Epic about the Spotlight Module API touches
+repositories simultaneously: an Epic about the Waypointer Module API touches
 \texttt{desktop-shell}, \texttt{os-sdk}, \texttt{module-sdk}, and potentially
 \texttt{compositor}. Standard per-repository issue tracking is not sufficient
 for this. The requirements are hierarchical issues or Epics that span multiple
@@ -352,8 +391,9 @@ Architecture and design decisions are documented in this blueprint. The proof
 of concept consists of the Event Bus and Knowledge Graph running as a daemon
 and collecting basic system events. The base distribution decision between
 Fedora and OpenSUSE Slowroll is pending and will be made before Phase 1 begins.
-The Kuzu benchmark described in Section~\ref{sec:knowledge-graph} at 5,000
-events per second is a Phase 0 exit criterion.
+A sustained write benchmark of the SQLite write store under simulated eBPF load
+targeting 5,000 events per second, combined with validation of the promotion
+pipeline into Kuzu for graph queries, is a Phase 0 exit criterion.
 
 \paragraph{Phase 1 and beyond.}
 Phase scope will be defined once Phase 0 is complete. The ordering of

@@ -274,7 +274,401 @@ app-files/
     pages/
 \end{lstlisting}
 
-\subsection{Global Menu Bar}
+\subsection{Shell API}
+\label{sec:shell-api}
+
+Beyond graph access, event emission, and MCP integration, os-sdk exposes a
+\texttt{shell} namespace that gives first-party applications structured access
+to desktop-level capabilities. Each surface is permission-gated: the app
+declares which \texttt{shell.*} capabilities it needs in its manifest, and
+the system enforces this at runtime. What is not declared is not accessible.
+
+The shell API is TypeScript-first: all surfaces are available to the Tauri
+frontend via the same \texttt{invoke} bridge used for other Tauri commands.
+Rust equivalents exist for capabilities that the backend needs directly.
+
+\paragraph{Clipboard.}
+Applications interact with the clipboard using explicit sensitivity labels.
+The system enforces these labels at read time: an application without
+\texttt{clipboard.read.sensitive} permission receives \texttt{null} when
+requesting clipboard contents that carry a sensitive label.
+
+\begin{lstlisting}[language=bash, caption={shell.clipboard}]
+// Write with explicit sensitivity label
+shell.clipboard.write({
+  content: "sk-ant-api03-...",
+  mime:    "text/plain",
+  label:   "sensitive"   // "normal" is default
+})
+
+// Read -- returns null if content is sensitive and app lacks permission
+const entry = await shell.clipboard.read()
+
+// React to clipboard changes
+shell.clipboard.onChanged((entry) => {
+  // entry.mime and entry.label always available
+  // entry.content only if not sensitive or app has permission
+})
+
+// History (requires clipboard.history permission)
+const history = await shell.clipboard.getHistory({ limit: 10 })
+\end{lstlisting}
+
+\paragraph{Presence.}
+Applications describe what the user is currently doing. This produces
+semantically precise \texttt{UserAction} nodes in the Knowledge Graph without
+relying on eBPF inference, and provides structured context for the Companion
+App's Handoff feature. Presence data never leaves the device without an
+explicit user action.
+
+\begin{lstlisting}[language=bash, caption={shell.presence}]
+shell.presence.set({
+  activity: "editing",    // "editing"|"reading"|"reviewing"|"building"|custom
+  subject:  "report-draft.md",
+  project:  "coffeeshop",   // optional; inherits Focus Mode if omitted
+  metadata: { language: "rust", line: 247 },
+  autoClear: "on-blur"      // clear automatically when app loses focus
+})
+
+shell.presence.clear()
+\end{lstlisting}
+
+\paragraph{Search.}
+Applications open Waypointer programmatically and register as handlers for
+specific query patterns or file types, making Waypointer an extensible
+action surface rather than only a launcher.
+
+\begin{lstlisting}[language=bash, caption={shell.search}]
+// Open Waypointer with a pre-filled query
+shell.search.open({ query: "files in this project", mode: "ai" })
+
+// Register as a handler for query patterns
+shell.search.registerHandler({
+  pattern: /^calc\s+(.+)/i,
+  label:   "Calculate",
+  icon:    "calculator",
+  handle:  async (match) => ({
+    result: evaluate(match[1]),
+    label:  `= ${evaluate(match[1])}`,
+    action: "copy-to-clipboard"
+  })
+})
+
+// Register as a handler for file types
+shell.search.registerFileHandler({
+  extensions: [".rs", ".toml"],
+  label:      "Open in My Editor",
+  handle:     async (file) => openFile(file.path)
+})
+\end{lstlisting}
+
+\paragraph{Annotations.}
+Applications attach structured metadata to existing Knowledge Graph nodes
+without requiring \texttt{arbitrary\_query} graph permissions. Each
+application writes only to its own namespace; reading another application's
+annotations requires an explicit permission declaration.
+
+\begin{lstlisting}[language=bash, caption={shell.annotations}]
+shell.annotations.set({
+  target:    { type: "File", path: "/home/tim/report.md" },
+  namespace: "com.example.editor",
+  data:      { word_count: 1240, last_cursor_position: 847 }
+})
+
+const mine = await shell.annotations.get({
+  target:    { type: "File", path: "/home/tim/report.md" },
+  namespace: "com.example.editor"
+})
+
+// Read another app's annotations (requires declared permission)
+const gitInfo = await shell.annotations.get({
+  target:    { type: "File", path: "/home/tim/report.md" },
+  namespace: "com.example.git-integration"
+})
+
+shell.annotations.onChanged({
+  target:    { type: "File", path: "/home/tim/report.md" },
+  namespace: "com.example.git-integration",
+  handle:    (data) => updateGitStatusDisplay(data)
+})
+\end{lstlisting}
+
+The filter callback in context menu and annotation queries receives graph
+metadata about the target -- project membership, last accessed timestamp,
+which application last modified the file -- enabling precise conditional
+logic without a separate graph query.
+
+\paragraph{Intents.}
+A typed intent system decouples applications from each other. Applications
+dispatch intents describing what they want to happen; the system routes to
+the best registered handler. When multiple handlers match, the user chooses
+once and the preference is remembered.
+
+\begin{lstlisting}[language=bash, caption={shell.intents}]
+// Dispatch an intent
+shell.intents.dispatch({
+  action:   "view",
+  type:     "url",
+  data:     "https://github.com/timkicker/coffeeshop/issues/42",
+  fallback: "open-in-default-app"
+})
+
+// Register as a handler
+shell.intents.register({
+  action:  "view",
+  type:    "url",
+  pattern: /github\.com\/.*\/issues\/\d+/,
+  label:   "Open in GitHub Integration",
+  handle:  async (intent) => openIssue(intent.data)
+})
+\end{lstlisting}
+
+Intents differ from \texttt{xdg-open} in that they are typed and
+pattern-aware. A handler can match \texttt{type: "url"} with a specific
+hostname pattern, routing only GitHub issue URLs to the GitHub integration
+while all other URLs go to the browser. This is not expressible with MIME
+types alone.
+
+\paragraph{Timeline.}
+Applications write explicit semantic entries to the Knowledge Graph timeline.
+These produce \texttt{UserAction} nodes that are more precise than eBPF
+inference and are immediately available in \texttt{\textasciitilde/.timeline/}
+and AI queries.
+
+\begin{lstlisting}[language=bash, caption={shell.timeline}]
+// Point-in-time event
+shell.timeline.record({
+  label:    "Exported PDF",
+  subject:  "/home/tim/report.pdf",
+  type:     "export",
+  metadata: { pages: 12, format: "pdf/a" }
+})
+
+// Duration event
+shell.timeline.record({
+  label:      "Build succeeded",
+  subject:    "coffeeshop",
+  type:       "build",
+  started_at: buildStart,
+  ended_at:   new Date(),
+  metadata:   { duration_ms: 4230, target: "release" }
+})
+\end{lstlisting}
+
+Timeline differs from Presence: Presence describes the current state and is
+ephemeral; Timeline describes completed events and is persistent. Both produce
+graph nodes but with different semantics.
+
+\paragraph{Shortcuts.}
+Applications register contextual quick actions that appear in Waypointer and
+the global menu bar when the application is focused. Unlike menu items,
+shortcuts are designed for immediate single-action access without navigation.
+Context tags connect shortcuts to Focus Mode: a shortcut tagged \texttt{"git"}
+appears only when the active project carries that tag.
+
+\begin{lstlisting}[language=bash, caption={shell.shortcuts}]
+shell.shortcuts.register([
+  {
+    label:   "New Issue",
+    icon:    "plus-circle",
+    action:  "issue.new",
+    context: ["project", "git"],
+    confirm: "Create new issue in current project?"
+  },
+  {
+    label:   "Run Tests",
+    icon:    "play",
+    action:  "test.run",
+    context: []   // always visible when app is focused
+  }
+])
+
+// Update shortcut state dynamically
+shell.shortcuts.setState("git.push", {
+  enabled: hasUnpushedCommits,
+  badge:   unpushedCount > 0 ? `${unpushedCount}` : undefined
+})
+\end{lstlisting}
+
+\paragraph{Badges.}
+Applications set status indicators on their taskbar icon. The system renders
+all badges consistently; applications cannot define custom badge styles or
+colors beyond the four status types. Error and warning badges are recorded in
+the Knowledge Graph; count-only badges are not.
+
+\begin{lstlisting}[language=bash, caption={shell.badges}]
+shell.badges.set({ count: 3 })
+shell.badges.set({ dot: true })
+shell.badges.set({ status: "warning" })   // "success"|"warning"|"error"|"progress"
+shell.badges.set({ status: "progress", value: 0.67 })
+shell.badges.set({ count: 2, status: "warning" })
+shell.badges.clear()
+\end{lstlisting}
+
+\paragraph{Context menu.}
+Applications add entries to system context menus -- right-click on files,
+directories, or Waypointer results. Filter callbacks receive graph metadata
+about the target, enabling precise conditional entries.
+
+\begin{lstlisting}[language=bash, caption={shell.contextmenu}]
+shell.contextmenu.register({
+  target: "File",
+  filter: (file) => file.extension === ".md",
+  label:  "Open in My Editor",
+  icon:   "file-text",
+  action: "open.markdown",
+})
+
+shell.contextmenu.register({
+  target:   "File",
+  filter:   (file) => file.extension === ".md",
+  label:    "Export as...",
+  icon:     "export",
+  children: [
+    { label: "PDF",  action: "export.pdf"  },
+    { label: "HTML", action: "export.html" },
+    { label: "EPUB", action: "export.epub" },
+  ]
+})
+
+shell.contextmenu.register({
+  target:  "Directory",
+  filter:  (dir) => dir.hasFile(".git"),
+  label:   "Open Git Dashboard",
+  icon:    "git-branch",
+  action:  "git.open",
+})
+\end{lstlisting}
+
+\paragraph{Onboarding.}
+Applications register setup steps that are woven into the system onboarding
+wizard at first login. All steps use ui-kit components and appear as a
+single coherent flow rather than per-app dialogs.
+
+\begin{lstlisting}[language=bash, caption={shell.onboarding}]
+shell.onboarding.register({
+  id:        "com.example.editor.import",
+  label:     "Import your notes",
+  subtitle:  "Bring your existing notes from Obsidian or Notion",
+  icon:      "import",
+  optional:  true,
+  order:     "after:accounts",
+
+  component: OnboardingImportStep,
+
+  shouldShow: async () => checkForExistingNotes(),
+
+  onComplete: async (result) => {
+    if (result.imported) {
+      shell.timeline.record({
+        label:    "Imported notes",
+        type:     "import",
+        metadata: { count: result.count, source: result.source }
+      })
+    }
+  }
+})
+\end{lstlisting}
+
+\texttt{shouldShow} runs before the wizard renders. Steps that return
+\texttt{false} are omitted entirely; the user never sees an empty or
+irrelevant step.
+
+\paragraph{Ambient.}
+Applications influence the visual state of the desktop subtly -- a slow pulse
+of the accent color while a build runs, a warning tint when tests fail. Ambient
+effects are peripheral rather than interruptive: they are perceptible without
+demanding attention. The user can disable all ambient effects globally in
+Settings. Only colors from the token system are permitted; arbitrary hex values
+are rejected. Maximum intensity is capped at 0.5.
+
+\begin{lstlisting}[language=bash, caption={shell.ambient}]
+shell.ambient.set({
+  effect:    "pulse",
+  intensity: 0.3,
+  speed:     "slow",    // "slow" | "medium" | "fast"
+  reason:    "build-running",
+})
+
+shell.ambient.set({
+  effect:    "tint",
+  color:     "warning",   // token system color, not a hex value
+  intensity: 0.15,
+  reason:    "test-failing",
+  autoClear: 5000         // ms
+})
+
+shell.ambient.clear()
+\end{lstlisting}
+
+\paragraph{Spatial.}
+Applications provide window placement hints to the compositor. Hints are
+suggestions, not commands: the compositor applies them when possible and
+ignores them when the current layout does not permit it. User-initiated
+window moves always take precedence.
+
+Full spatial hint support requires a compositor-side extension of the
+cosmic-comp fork and is planned for a subsequent release. The SDK surface
+is defined now so that applications can declare hints without breaking changes
+when the compositor support arrives. Until then, \texttt{shell.spatial} calls
+are accepted and silently ignored.
+
+\begin{lstlisting}[language=bash, caption={shell.spatial}]
+shell.spatial.suggest({
+  relation: "beside",
+  target:   "com.example.terminal",
+  side:     "right",
+  size:     0.4
+})
+
+shell.spatial.suggest({
+  relation: "float",
+  anchor:   "cursor",
+  size:     { width: 600, height: 400 }
+})
+
+// Remember layout preference for a Focus Mode context
+shell.spatial.remember({ context: "focus-mode" })
+\end{lstlisting}
+
+\paragraph{Voice.}
+Applications access speech recognition through the AI daemon's local
+inference pipeline. No application needs to implement its own speech
+recognition. Cloud fallback is available only if the user has explicitly
+configured a cloud AI provider in Settings.
+
+When any application is actively listening, the system displays a microphone
+indicator in the global menu bar. This indicator cannot be suppressed by the
+application. It is a system-level affordance that the user always knows when
+the microphone is in use.
+
+\begin{lstlisting}[language=bash, caption={shell.voice}]
+// One-shot transcription
+const text = await shell.voice.transcribe({
+  language: "de-AT",
+  local:    true
+})
+
+// Streaming transcription
+shell.voice.stream({
+  language:  "en",
+  onPartial: (text) => showLivePreview(text),
+  onFinal:   (text) => processCommand(text),
+  onSilence: () => stopListening()
+})
+
+// Command grammar
+shell.voice.listenForCommand({
+  grammar: [
+    { phrase: "open $project", action: "project.open" },
+    { phrase: "new file",      action: "file.new"     },
+  ],
+  onMatch: (action, params) => handleCommand(action, params)
+})
+
+shell.voice.setIndicator({ visible: true, label: "Listening..." })
+shell.voice.setIndicator({ visible: false })
+\end{lstlisting}
 \label{sec:menubar}
 
 The shell includes a persistent narrow bar anchored to the top edge of each
