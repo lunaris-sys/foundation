@@ -16,67 +16,65 @@ structure.
 \centering
 \begin{tikzpicture}[
 	box/.style={
-		draw, thick, rectangle,
-		minimum width=8.4cm, minimum height=1.1cm,
-		font=\small\bfseries, align=center, inner sep=5pt
+		draw, thick, rectangle, rounded corners=2pt,
+		minimum width=8.4cm, minimum height=1.0cm,
+		font=\small\bfseries, align=center, inner sep=6pt
 	},
-	splitbox/.style={
-		draw, thick, rectangle,
-		minimum width=4.2cm, text width=3.8cm, minimum height=1.1cm,
-		font=\small\bfseries, align=center, inner sep=5pt
+	halfbox/.style={
+		draw, thick, rectangle, rounded corners=2pt,
+		minimum width=4.0cm, minimum height=1.0cm,
+		font=\small\bfseries, align=center, inner sep=6pt
 	},
-	tribox/.style={
-		draw, thick, rectangle,
-		minimum width=2.6cm, text width=2.3cm, minimum height=1.1cm,
-		font=\small\bfseries, align=center, inner sep=4pt
+	topbox/.style={
+		draw, thick, rectangle, rounded corners=2pt,
+		minimum width=2.5cm, minimum height=1.6cm,
+		font=\small\bfseries, align=center, inner sep=6pt
 	},
-	optbox/.style={
-		draw, thick, dashed, rectangle,
-		minimum width=2.6cm, text width=2.3cm, minimum height=1.1cm,
-		font=\small\bfseries, align=center, inner sep=4pt
+	topbox_opt/.style={
+		draw, thick, dashed, rectangle, rounded corners=2pt,
+		minimum width=2.5cm, minimum height=1.6cm,
+		font=\small\bfseries, align=center, inner sep=6pt
 	},
 	arr/.style={->, thick, gray},
 	]
-	\def\sep{1.2}
+	\def\sep{1.4}
 	
 	\node[box] (os) at (0, 0) {
-		OS Base\\[-2pt]
-		{\mdseries\footnotesize Fedora Workstation $\cdot$ systemd $\cdot$ Btrfs $\cdot$ RPM/Flatpak}
+		OS Base\\[2pt]
+		{\mdseries\footnotesize Fedora $\cdot$ systemd $\cdot$ Btrfs $\cdot$ RPM/Flatpak}
 	};
 	\node[box] (de) at (0, \sep) {
-		Desktop Environment\\[-2pt]
-		{\mdseries\footnotesize Wayland (cosmic-comp fork) $\cdot$ Shell $\cdot$ Tauri $\cdot$ ui-kit $\cdot$ os-sdk}
+		Desktop Environment\\[2pt]
+		{\mdseries\footnotesize cosmic-comp $\cdot$ Shell $\cdot$ Tauri $\cdot$ ui-kit $\cdot$ os-sdk}
 	};
-	\node[splitbox, anchor=east] (eb)  at (0.0, 2*\sep) {
-		Event Bus\\[-2pt]
+	\node[halfbox, anchor=east] (eb) at (-0.2, 2*\sep) {
+		Event Bus\\[2pt]
 		{\mdseries\footnotesize Unix socket $\cdot$ protobuf}
 	};
-	\node[splitbox, anchor=west] (mcp) at (0.0, 2*\sep) {
-		MCP Server Layer\\[-2pt]
+	\node[halfbox, anchor=west] (mcp) at (0.2, 2*\sep) {
+		MCP Server Layer\\[2pt]
 		{\mdseries\footnotesize App capability bridge}
 	};
 	\node[box] (kg) at (0, 3*\sep) {
-		Knowledge Graph\\[-2pt]
-		{\mdseries\footnotesize Graph Daemon $\cdot$ Kuzu $\cdot$ Cypher $\cdot$ capability tokens}
+		Knowledge Graph\\[2pt]
+		{\mdseries\footnotesize Graph Daemon $\cdot$ SQLite $\cdot$ Kuzu $\cdot$ capability tokens}
 	};
-	
-	% Top row at y=5.3 — boxes at x=-2.9/0/+2.9 fill exactly 8.4cm
-	\node[tribox]  (apps)    at (-2.9, 5.3) {
-		First-party\\Applications\\[-2pt]
+	\node[topbox]     (apps)    at (-2.975, 6.2) {
+		First-party\\Applications\\[2pt]
 		{\mdseries\footnotesize via os-sdk}
 	};
-	\node[tribox]  (daemons) at ( 0.0, 5.3) {
-		System\\Daemons\\[-2pt]
-		{\mdseries\footnotesize Account, Health \ldots}
+	\node[topbox]     (daemons) at (0,      6.2) {
+		System\\Daemons\\[2pt]
+		{\mdseries\footnotesize Account, Health\ldots}
 	};
-	\node[optbox]  (ai)      at ( 2.9, 5.3) {
-		AI Daemon\\[-2pt]
+	\node[topbox_opt] (ai)      at ( 2.975, 6.2) {
+		AI Daemon\\[2pt]
 		{\mdseries\footnotesize optional}
 	};
 	
-	\draw[arr] (apps)    -- (kg.north -| apps);
-	\draw[arr] (daemons) -- (kg.north);
-	\draw[arr] (ai)      -- (kg.north -| ai);
+	\draw[arr] (apps.south)    -- (kg.north -| apps);
+	\draw[arr] (daemons.south) -- (kg.north);
+	\draw[arr] (ai.south)      -- (kg.north -| ai);
 	
 \end{tikzpicture}
 \caption{System layer structure. The bottom four layers are always present and

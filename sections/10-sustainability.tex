@@ -18,24 +18,129 @@ change requires a coordinated update across all affected components, enforced
 by the versioning mechanism described below.
 
 \begin{lstlisting}[language=bash, caption={Repository structure}]
-org/
-  blueprint       <- architecture documents and this document
-  kernel-layer    <- eBPF programs, Event Bus daemon
-  knowledge       <- SQLite write store, Kuzu query store, Graph Daemon
-  ai-layer        <- provider abstraction, MCP client
-  compositor      <- cosmic-comp fork (Wayland compositor)
-  desktop-shell   <- taskbar, launcher, shell (Tauri + TypeScript)
-  ui-kit          <- shared component library (TypeScript + Tailwind)
-  os-sdk          <- shared Rust crate + TypeScript shell API for first-party apps
-  app-files       <- File Manager
-  app-settings    <- Settings
-  app-terminal    <- Terminal
-  app-store       <- Store
-  install-daemon  <- Install Daemon, Integration Package matching
-  module-sdk      <- shell API subset + module scaffolding for third-party modules
-  themes          <- GTK4, Wine .msstyles, token source
-  distro          <- build system, ISO generation, meta-packages
+# Documentation and architecture
+foundation              <- architecture document (this document)
+wiki                    <- user-facing wiki, API reference landing page,
+                           rustdoc/typedoc aggregation script
+
+# OS image and distribution
+distro                  <- mkosi configuration, ISO generation,
+                           meta-packages, VM scripts, CI image pipeline
+store-backend           <- Store API service, PostgreSQL schema,
+                           object storage integration
+
+# System layer
+compositor              <- cosmic-comp fork (standalone repo, not a
+                           GitHub fork; upstream tracked via git remote)
+kernel-layer            <- eBPF programs, Event Bus daemon
+knowledge               <- SQLite write store, Kuzu query store,
+                           Graph Daemon, promotion pipeline
+ai-layer                <- provider abstraction, MCP client, AI daemon
+notification-daemon     <- Notification daemon (Rust)
+install-daemon          <- Install Daemon, Integration Package matching
+
+# Desktop and shell
+desktop-shell           <- taskbar, Waypointer, Notification Center,
+                           Quick Settings (Tauri + TypeScript)
+app-lock-screen         <- Lock Screen (privileged context, own repo)
+app-greeter             <- Greeter (runs before session, own repo)
+
+# First-party applications
+app-settings            <- Settings
+app-files               <- File Manager
+app-terminal            <- Terminal
+app-store               <- Store
+app-text-editor         <- Text Editor
+app-system-monitor      <- System Monitor
+app-wine-manager        <- Wine Manager
+app-viewers             <- PDF Viewer, Image Viewer, Archive Manager
+
+# Shared libraries
+ui-kit                  <- component library, design token system
+os-sdk                  <- Rust crate + TypeScript shell API
+                           (first-party apps)
+module-sdk              <- shell API subset, module scaffolding
+                           (third-party modules)
+themes                  <- GTK4 theme, Wine .msstyles, token source
+
+# Community
+community-integrations  <- community Integration Packages (PR-based,
+                           CI validates schema)
+community-adapters      <- community Settings Adapters (PR-based,
+                           CI validates schema)
 \end{lstlisting}
+
+\paragraph{On GitHub.}
+The project is hosted on GitHub. This requires an honest acknowledgment:
+GitHub is owned by Microsoft, hosted in the United States, and therefore
+structurally at odds with the project's European digital autonomy position.
+The decision to use it is deliberate and time-limited, not an oversight.
+
+Three factors make GitHub the right choice for the build phase. First,
+network effects: the overwhelming majority of open-source contributors are
+already on GitHub. Reducing the contribution barrier at the point when the
+project most needs contributors is worth the sovereignty trade-off temporarily.
+Second, tooling maturity: GitHub Actions, Dependabot, and the PR review
+infrastructure are more reliable than the alternatives at this stage. Building
+community around infrastructure problems is a distraction the project cannot
+afford early on. Third, trust signal: a public GitHub repository with visible
+activity, issues, and contributions is a credibility marker for a new project
+asking users to run it as their operating system.
+
+The migration path is planned and not open-ended.
+\emph{Forgejo}~\cite{forgejo} -- a fully open-source, self-hostable Git forge
+-- is the target for self-hosted source control. \emph{Codeberg}~\cite{codeberg},
+a Forgejo-based hosting service operated by a German non-profit, is a viable
+intermediate step. Git repositories are trivially portable; the harder
+migration is Issues, PRs, and CI pipelines. That migration will be executed
+when the project has the operational capacity to absorb it without disrupting
+contributor workflows.
+
+\paragraph{The \texttt{distro} repository.}
+\texttt{distro} is responsible for everything that turns individual component
+builds into a running operating system. It contains the mkosi configuration
+declaring which packages and overlays go into the image, build scripts, VM
+tooling for development and testing, meta-package RPM spec files, and the CI
+pipeline that builds images on release candidates.
+
+Two image build targets exist. The \emph{production image} contains no SSH
+server, no debug symbols, and optimized binaries. This is what users receive.
+The \emph{developer image} adds an SSH server, \texttt{debuginfo} packages,
+Rust binaries compiled with debug symbols, and a known SSH key injected at
+build time. It is only buildable via an explicit flag and is never distributed
+as a release artifact.
+
+\begin{lstlisting}[language=bash, caption={distro build targets}]
+# Production image (default)
+distro/build-image.sh
+
+# Developer image with SSH and debug symbols
+distro/build-image.sh --target developer
+
+# Start a normal development VM
+distro/run-vm.sh
+
+# Mount a local directory into the VM via virtiofs
+distro/run-vm.sh --share ~/projects/kernel-layer
+
+# Start a persistent VM for update scenario testing
+distro/vm-update-test.sh --init    # create persistent qcow2 disk
+distro/vm-update-test.sh --start
+distro/vm-update-test.sh --apply-update
+distro/vm-update-test.sh --list-snapshots
+distro/vm-update-test.sh --rollback
+\end{lstlisting}
+
+The update test target uses a \texttt{qcow2} disk image that persists across
+VM restarts, enabling reproducible testing of the full Snapper snapshot,
+health-check, and rollback cycle. The developer image is used as the base
+for update tests so that SSH access and debug tooling are available during
+the scenario.
+
+A strict rule applies to eBPF development: eBPF programs are developed and
+tested exclusively inside the VM, never directly on the development machine.
+A bad eBPF program can destabilize the kernel; the VM isolation is not
+optional.
 
 \paragraph{Build system.}
 \emph{mkosi}~\cite{mkosi}, maintained by the systemd team, is the target
@@ -174,7 +279,7 @@ without a full system boot, starting only the directly involved daemons as real
 processes against real IPC sockets. A failing integration test with all unit
 tests passing means interface drift between repositories, which is the primary
 failure mode this level exists to catch. Examples: the Event Bus emits a
-\texttt{FileAccessEvent} and the Graph Daemon writes correctly to Kuzu; a theme
+\texttt{FileAccessEvent} and the Graph Daemon writes correctly to SQLite; a theme
 token change in Settings propagates to all running Tauri processes; the shell
 sends a keybinding action and the Input Manager calls the correct handler.
 
@@ -205,20 +310,8 @@ network, and display -- entirely in software, or accelerate execution via KVM
 (the Linux kernel's hardware virtualization support) to near-native speed when
 running on matching hardware. This covers eBPF development, the boot sequence,
 the update system, and anything that requires a real kernel or a complete
-system environment. The \texttt{distro} repository contains a script
-set for this workflow, including \texttt{build-image.sh} for a complete
-bootable image, \texttt{run-vm.sh} for an interactive session,
-\texttt{run-vm.sh --share \textasciitilde/projects/kernel-layer} to mount a
-host directory into the VM via \emph{virtiofs}~\cite{virtiofs} (a shared
-filesystem protocol that exposes a host directory to a QEMU guest at
-near-native speed using the virtio transport), so that the developer can
-compile on the host and test in the VM without a full image rebuild, and snapshot
-management scripts for saving and restoring VM state.
-
-A strict rule applies to eBPF development: eBPF programs are developed and
-tested exclusively inside the VM, never directly on the development machine.
-A bad eBPF program can destabilize the kernel; the isolation of the VM is not
-optional.
+system environment. The \texttt{distro} repository contains the full script
+set for this workflow, described in the \texttt{distro} paragraph above.
 
 \paragraph{Mock strategy.}
 Every IPC interface in the system has an official mock implementation that
@@ -249,7 +342,7 @@ components, and cross-repository milestone coordination.
 
 Three options are under evaluation. The first is GitHub Projects v2 with a
 meta-repo convention: cross-cutting Epics live as issues in the
-\texttt{blueprint} repository and component repositories link back to the
+\texttt{foundation} repository and component repositories link back to the
 relevant Epic; GitHub Projects v2 aggregates issues from all repositories into
 one board. The advantage is zero additional tooling and everything staying
 in GitHub. The disadvantage is that dependency tracking is honor-system only
@@ -277,15 +370,18 @@ at \texttt{wiki.[project].dev} is written by hand in the spirit of the Arch
 Wiki: prose that explains intent and reasoning, not only what a setting does.
 It covers concepts, how-tos, troubleshooting, and architecture explanations.
 Community contributions are accepted via pull requests reviewed by the core
-team. The wiki source lives in the \texttt{blueprint} repository alongside the
-architecture documents.
+team. The wiki source lives in the \texttt{wiki} repository, separate from
+\texttt{foundation} which contains only the architecture document.
 
 The developer API reference at \texttt{api.[project].dev} is auto-generated
 from code comments: \texttt{rustdoc} for Rust components,
 \texttt{typedoc} for TypeScript components, aggregated and hosted under a single
-domain so there is one place to search across all components. Keeping it
-current is a CI gate: a pull request that removes or modifies a public API
-without updating its documentation comment does not merge.
+domain so there is one place to search across all components. The aggregation
+script and the API reference landing page live in \texttt{wiki} alongside the
+user-facing documentation; both sites share the same visual language and are
+maintained together. Keeping the API reference current is a CI gate: a pull
+request that removes or modifies a public API without updating its documentation
+comment does not merge.
 
 \subsection{Sustainability and Business Model}
 \label{sec:business}

@@ -213,30 +213,30 @@ Figure~\ref{fig:mcp} shows the topology.
 		},
 		srv/.style={
 			draw, thick, rectangle, rounded corners=2pt,
-			minimum width=2.8cm, minimum height=0.8cm,
+			minimum width=3.2cm, minimum height=0.8cm,
 			font=\small, align=center, inner sep=5pt
 		},
-		arr/.style={->, thick},
+		arr/.style={<->, thick, gray},
 		]
-		\node[box] (model)  at (0, 0)   {\textbf{AI Model}};
-		\node[box] (client) at (3.4, 0) {MCP Client};
-		\node[srv] (fm)     at (7.8,  2.4) {MCP: File Manager};
-		\node[srv] (term)   at (7.8,  0.8) {MCP: Terminal};
-		\node[srv] (kg)     at (7.8, -0.8) {MCP: Knowledge Graph};
-		\node[srv] (ext)    at (7.8, -2.4) {MCP: third-party};
+		
+		\node[box] (model)  at (0, 0) {\textbf{AI Model}};
+		\node[box] (client) at (3.6, 0) {MCP Client};
+		
+		\node[srv] (fm)   at (7.4,  1.5) {MCP: File Manager};
+		\node[srv] (term) at (7.4,  0.5) {MCP: Terminal};
+		\node[srv] (kg)   at (7.4, -0.5) {MCP: Knowledge Graph};
+		\node[srv] (ext)  at (7.4, -1.5) {MCP: third-party};
+		
+		\coordinate (mid) at (5.0, 0);
 		
 		\draw[arr] (model) -- (client);
+		\draw[thick, gray] (client.east) -- (mid);
+		\draw[thick, gray] (mid |- fm.west)  -- (mid |- ext.west);
+		\draw[arr] (mid |- fm.west)   -- (fm.west);
+		\draw[arr] (mid |- term.west) -- (term.west);
+		\draw[arr] (mid |- kg.west)   -- (kg.west);
+		\draw[arr] (mid |- ext.west)  -- (ext.west);
 		
-		% Bus: horizontal stub then vertical rail
-		\coordinate (stub) at (5.0, 0);
-		\draw[thick] (client.east) -- (stub);
-		\draw[thick] (stub |- fm.west)  -- (stub |- ext.west);
-		
-		% Horizontal branches from rail to each server
-		\draw[arr] (stub |- fm.west)   -- (fm.west);
-		\draw[arr] (stub |- term.west) -- (term.west);
-		\draw[arr] (stub |- kg.west)   -- (kg.west);
-		\draw[arr] (stub |- ext.west)  -- (ext.west);
 	\end{tikzpicture}
 
 \caption{MCP topology. The AI model communicates through a single MCP client
