@@ -45,7 +45,7 @@ structure.
 	};
 	\node[box] (de) at (0, \sep) {
 		Desktop Environment\\[-2pt]
-		{\mdseries\footnotesize Wayland (Smithay) $\cdot$ Shell $\cdot$ Tauri $\cdot$ ui-kit $\cdot$ os-sdk}
+		{\mdseries\footnotesize Wayland (cosmic-comp fork) $\cdot$ Shell $\cdot$ Tauri $\cdot$ ui-kit $\cdot$ os-sdk}
 	};
 	\node[splitbox, anchor=east] (eb)  at (0.0, 2*\sep) {
 		Event Bus\\[-2pt]
@@ -101,11 +101,12 @@ are covered in detail in Section~\ref{sec:foundation}.
 
 \paragraph{Desktop Environment.}
 The Wayland compositor and the shell sit at this layer. This is what the user
-directly interacts with: windows, the taskbar, the Waypoint launcher,
+directly interacts with: windows, the taskbar, the Waypointer launcher,
 notifications, and the lock screen. All user-facing applications in this project
 are built with \emph{Tauri}~\cite{tauri}, a framework described in
-Section~\ref{sec:tauri-intro}. The compositor itself is built on
-\emph{Smithay}~\cite{smithay}, described in Section~\ref{sec:smithay-intro}.
+Section~\ref{sec:tauri-intro}. The compositor is based on a fork of
+\emph{cosmic-comp}~\cite{cosmic:comp}, described in
+Section~\ref{sec:compositor-intro}.
 
 \paragraph{Event Bus.}
 The internal message bus handles all communication between custom system
@@ -139,10 +140,10 @@ Section~\ref{sec:kg-rationale}.
 \paragraph{First-party applications.}
 Every first-party application written for this system connects to the Graph
 Daemon via the typed client bundled in \emph{os-sdk}. Opening the File Manager,
-searching in Waypoint, or checking System Monitor all translate to parameterized
+searching in Waypointer, or checking System Monitor all translate to parameterized
 Cypher queries over a Unix socket. The application receives structured results
-and renders them; it never touches the Kuzu files directly, and the capability
-token it presents limits which node types and relations it can read.
+and renders them; it never touches the graph database files directly, and the
+capability token it presents limits which node types and relations it can read.
 
 \paragraph{System daemons.}
 Background daemons such as the Account Daemon, Health Daemon, and Audit Daemon
@@ -282,32 +283,62 @@ the allowlist model of 1.x with a finer-grained capability model), official
 mobile support, and improved IPC ergonomics. The capability model in 2.0 aligns
 well with this project's general approach to least-privilege permissions.
 
-\subsection{Why Smithay}
-\label{sec:smithay-intro}
+\subsection{Why cosmic-comp (Forked)}
+\label{sec:compositor-intro}
 
-\emph{Smithay} is a Rust library for building Wayland compositors. It provides
-the low-level plumbing: Wayland protocol handling, DRM/KMS interfaces for direct
-display hardware access, input processing via \emph{libinput}, and buffer
-management. Compositor logic such as window placement, focus rules, and workspace
-behaviour is built on top of Smithay rather than dictated by it.
+The compositor is based on a fork of \emph{cosmic-comp}~\cite{cosmic:comp},
+the Wayland compositor built by System76 for their COSMIC desktop environment.
+cosmic-comp is written in Rust on top of \emph{Smithay}~\cite{smithay}, a Rust
+library that provides the low-level compositor plumbing: Wayland protocol
+handling, DRM/KMS interfaces for direct display hardware access, input
+processing via \emph{libinput}, and buffer management including GPU-side
+zero-copy paths via \texttt{dmabuf}.
 
-The alternative is \emph{wlroots}, a C library used by compositors including
-Sway and Hyprland. wlroots is mature and widely deployed, but integrating it
-into a Rust codebase requires C FFI (Foreign Function Interface) bindings, which
-partially undermines the memory safety argument for using Rust: the boundary
-between Rust and C code requires \texttt{unsafe} blocks that the Rust compiler
-cannot verify. Smithay is written in Rust and integrates cleanly with the rest
-of the codebase without unsafe boundaries.
+\paragraph{Why fork rather than build from scratch.}
+Building a production Wayland compositor from Smithay primitives is a
+multi-year effort. cosmic-comp has already solved the hard problems: correct
+multi-monitor handling with per-output scale factors, tiling and floating
+window management, XWayland integration, screen capture via
+\texttt{wlr-screencopy}, input method framework support for non-Latin input,
+and the full Wayland protocol extension set a modern desktop requires. Forking
+inherits all of this. Starting from scratch would reproduce it, worse, over a
+longer timeline.
 
-The \emph{COSMIC} desktop from System76 is a production Rust-first Linux desktop
-with comparable technical goals and uses Smithay as its compositor foundation.
-Forking COSMIC was considered and rejected: it ships as an integrated product
-with System76's own design language, release schedule, and branding decisions,
-and the architectural overlap is not deep enough to justify the coupling that a
-fork would introduce. This project's UI model, shell design, and integration
-architecture diverge enough that a fork would need to undo as much as it
-inherits. \emph{cosmic-comp}~\cite{cosmic:comp} serves as an implementation
-reference for Smithay usage in a production compositor; it is not a base.
+\paragraph{Why not adopt COSMIC wholesale.}
+The COSMIC desktop ships as an integrated product: cosmic-comp is coupled to
+cosmic-panel, cosmic-launcher, cosmic-settings, and the rest of the COSMIC
+shell via custom Wayland protocol extensions and D-Bus interfaces designed
+specifically for that stack. Adopting COSMIC wholesale would mean inheriting
+its shell design, its theming system based on \emph{iced}, and its release
+cadence -- none of which align with this project. The goal is the compositor
+kernel, not the product.
+
+\paragraph{What the fork retains.}
+The fork keeps everything below the shell boundary: the Smithay-based window
+management engine, the input pipeline, the multi-monitor and HiDPI
+infrastructure, the XWayland bridge, and the Wayland protocol extension
+implementations. Window placement logic, tiling and floating behaviour, focus
+rules, and workspace management all come from cosmic-comp and are modified
+only where this project's behaviour explicitly differs.
+
+\paragraph{What the fork replaces.}
+The entire shell layer is replaced. cosmic-comp's custom IPC protocols for
+communicating with cosmic-panel and cosmic-launcher are removed. In their
+place the compositor exposes the standard \texttt{wlr-} Wayland protocol
+extensions -- \texttt{wlr-layer-shell}, \texttt{wlr-foreign-toplevel-management},
+\texttt{wlr-workspace-management} -- which the Tauri-based shell consumes
+exactly as any other compliant shell client would. A minimal custom Unix
+socket channel handles events that have no standard Wayland equivalent: theme
+updates, Focus Mode signals, and graph notifications from the Event Bus.
+The shell is not a privileged internal component of the compositor; it is a
+Wayland client with the same protocol access any shell would have.
+
+\paragraph{Maintenance posture.}
+The fork tracks cosmic-comp's upstream for bug fixes and Smithay version
+updates. COSMIC-specific features that land upstream are evaluated
+individually: those that improve the window management kernel are merged;
+those that add COSMIC shell coupling are not. The fork is a maintained
+derivative, not a snapshot.
 
 \subsection{Component Boundaries}
 \label{sec:component-boundaries}
@@ -356,7 +387,7 @@ described below; Table~\ref{tab:apps} lists them.
 \toprule
 \textbf{Application} & \textbf{Notes} \\
 \midrule
-Shell        & Taskbar, Waypoint launcher, notification center, lock screen \\
+Shell        & Taskbar, Waypointer launcher, notification center, lock screen \\
 Settings     & System-wide configuration: theming, permissions, AI level, accounts \\
 File Manager & First-party file browser with graph-aware features \\
 Store        & App and module discovery, installation, and updates \\
@@ -475,20 +506,36 @@ For an operating system where everything is connected (processes open files,
 files belong to projects, projects span sessions, sessions involve multiple
 applications), a graph is the natural data model.
 
-\emph{Kuzu} is the specific graph database used here. It is an embedded graph
-database written in C++ with first-class Rust bindings, released under the MIT
-license. \emph{Embedded} means it runs as a library inside the Graph Daemon
+\emph{Kuzu} is the query-facing graph database in this system. It is an embedded
+graph database written in C++ with first-class Rust bindings, released under the
+MIT license. \emph{Embedded} means it runs as a library inside the Graph Daemon
 process with no separate server process, no network port, and no additional
 service to manage. The database is a directory of files on disk that only the
 Graph Daemon process opens.
+
+Kuzu is an OLAP system: it is optimized for analytical queries over large graphs,
+not for high-frequency transactional writes. This is a deliberate fit for its
+role. The Graph Daemon uses a two-layer write architecture: \emph{SQLite} acts
+as the high-frequency write store, accepting the continuous stream of eBPF
+events and compositor events at full throughput. Structured, semantically
+valuable data -- \texttt{UserAction} nodes, \texttt{Project} edges,
+\texttt{Session} nodes -- is periodically promoted from SQLite into Kuzu, where
+it becomes available for graph traversal queries. Raw eBPF noise never reaches
+Kuzu; it is retained in SQLite for the anomaly detection window and then
+discarded. This means Kuzu operates on a clean, curated graph rather than a
+raw event log, which improves both query performance and the quality of AI
+context.
+
+The two layers have different retention windows and query surfaces. SQLite
+answers time-range lookups over recent raw events; Kuzu answers multi-hop
+graph traversals over semantic history. The Graph Daemon presents a unified
+query interface to callers; the layer boundary is an implementation detail
+they never see.
 
 \emph{Neo4j} was evaluated and rejected. Neo4j is the most widely deployed
 graph database and has a large ecosystem, but it runs as a separate server
 process, its community edition has usage restrictions, and its JVM-based runtime
 carries memory overhead inappropriate for a component embedded in a user session.
-SQLite with recursive Common Table Expressions for graph traversal was also
-considered; the query complexity and traversal performance for deep graphs made
-it unsuitable.
 
 Kuzu uses \emph{Cypher} as its query language, an open graph query standard
 (openCypher) originally developed for Neo4j. It reads close to natural language:

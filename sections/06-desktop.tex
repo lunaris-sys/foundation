@@ -27,7 +27,7 @@ frontend, each carrying a different class of data.
 	lbl/.style={font=\footnotesize, fill=white, inner sep=2pt, align=center},
 	]
 	
-	\node[box] (smithay) at (0, 4.0) {\textbf{Smithay Core} \quad {\footnotesize Rust}};
+	\node[box] (smithay) at (0, 4.0) {\textbf{Compositor Core} \quad {\footnotesize cosmic-comp fork}};
 	\node[box] (tauri)   at (0, 2.0) {\textbf{Tauri Shell} \quad {\footnotesize Rust backend}};
 	\node[box] (ui)      at (0, 0.0) {\textbf{Shell UI} \quad {\footnotesize TypeScript / Tailwind}};
 	
@@ -62,17 +62,21 @@ emitter. No ad-hoc serialization; the bridge handles it.
 \subsection{Compositor and Window Manager}
 \label{sec:compositor}
 
-The Wayland compositor is built on \emph{Smithay}~\cite{smithay} (introduced
-in Section~\ref{sec:smithay-intro}). Smithay handles three distinct layers of
-low-level plumbing that would otherwise require months of work per area.
+The Wayland compositor is a fork of \emph{cosmic-comp}~\cite{cosmic:comp},
+as described in Section~\ref{sec:compositor-intro}. This section covers what
+that means in practice for window management and the shell boundary.
+
+The fork retains the full window management engine from cosmic-comp: floating
+and tiling layouts switchable per workspace independently, focus rules,
+workspace management, and all the low-level Wayland plumbing that cosmic-comp
+inherits from \emph{Smithay}~\cite{smithay}.
 
 \emph{DRM/KMS} (Direct Rendering Manager / Kernel Mode Setting) is the Linux
 kernel subsystem responsible for talking directly to display hardware. DRM
 manages GPU memory and command submission; KMS handles setting display modes,
 resolutions, refresh rates, and which GPU output drives which physical
-connector. A compositor that wants to draw to the screen without going through
-another display server must use DRM/KMS directly. Smithay abstracts this into
-a safe Rust API~\cite{archwiki:drm}.
+connector. Smithay, which underlies cosmic-comp, abstracts this into a safe
+Rust API~\cite{archwiki:drm}.
 
 \emph{libinput}~\cite{libinput} is the standard Linux input processing library.
 It reads raw events from kernel input devices (keyboards, mice, touchpads,
@@ -88,14 +92,11 @@ contents into. The compositor receives these buffers, composites them together
 display hardware via DRM/KMS. Smithay handles the buffer lifecycle including
 GPU-side zero-copy paths via \texttt{dmabuf}.
 
-Compositor logic built on top of Smithay: window placement, focus rules, and
-workspace behaviour are all written by this project. Smithay does not prescribe
-any of it. The \emph{COSMIC} desktop compositor from System76
-(\texttt{cosmic-comp}~\cite{cosmic:comp}) is a useful reference for a
-production Rust-first Smithay compositor with comparable goals.
-
-Window management supports both floating and tiling layouts, switchable per
-workspace independently.
+What the fork does not retain is the COSMIC shell integration. The custom
+IPC protocols that cosmic-comp uses to communicate with cosmic-panel and
+cosmic-launcher are removed. The shell boundary is defined entirely by
+standard Wayland protocol extensions, described below, plus the minimal
+custom Unix socket channel described in Section~\ref{sec:compositor-intro}.
 
 \paragraph{Wayland protocol extensions.}
 The core Wayland protocol covers only the basics: surfaces (drawable regions),
