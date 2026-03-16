@@ -1243,7 +1243,9 @@ with no compositor-level fix.
 The specific visual design language, exact color palettes, and motion design
 are finalized in a separate design phase. This section documents the technical
 theming architecture: how themes are structured, how they propagate, and how
-community themes work.
+community themes work. A theme is not limited to colors: it can cover cursor,
+sounds, wallpaper, typography, motion, shadows, icons, the login screen, and
+the terminal prompt alongside the visual layer.
 
 \paragraph{Token system.}
 All themes are defined in TOML and compiled to platform-specific outputs by
@@ -1311,6 +1313,194 @@ installation so users know which layers remain at the base theme. Two authoring
 formats are supported: token overrides for authors who want to change colors and
 radius values without touching CSS, and full compiled CSS for themes that need
 structural changes beyond what the token system exposes.
+
+\paragraph{Cursor.}
+A theme package can include a complete cursor set in the standard
+\emph{xcursor} format. xcursor supports frame-based animation natively, so
+animated cursors for states such as loading or resize require no additional
+mechanism. The cursor files are installed to
+\texttt{\textasciitilde/.local/share/icons/<theme-name>/cursors/} on theme
+activation; the Settings daemon sets \texttt{XCURSOR\_THEME} and
+\texttt{XCURSOR\_SIZE} in the session environment. This applies automatically
+to all Wayland applications and XWayland. A theme that does not declare a
+\texttt{[cursor]} block leaves the system cursor unchanged.
+
+\begin{lstlisting}[language=bash, caption={Cursor theme declaration}]
+[cursor]
+theme = "bundled"
+size  = 24
+\end{lstlisting}
+
+\paragraph{Greeter.}
+The login screen is a first-party Tauri application and therefore fully
+covered by the token system like any other Tauri surface. It is listed as an
+explicit coverage layer in the theme manifest so that users can see whether a
+theme extends to the login screen or leaves it at the system default. The
+greeter reads the active theme from a system-wide path at startup since it
+runs before any user session is active; live theme switching does not apply
+to it.
+
+\paragraph{Sounds.}
+A theme can declare system sounds and per-application sound overrides. System
+sounds cover the standard events: notification, error, warning, and action
+completion. Applications declare their own sound slots in their manifest; a
+theme can override these by namespace.
+
+\begin{lstlisting}[language=bash, caption={Sound theme declaration}]
+[sounds]
+system.notification = "sounds/notification.ogg"
+system.error        = "sounds/error.ogg"
+system.warning      = "sounds/warning.ogg"
+
+# Per-app overrides by namespace
+"org.lunaris.calendar.notification.reminder" = "sounds/soft-chime.ogg"
+\end{lstlisting}
+
+All sounds are played by the Notification Daemon, never by applications
+directly. This means Do Not Disturb, Focus Mode suppression, and the global
+volume setting apply automatically to every sound regardless of which theme
+declared it. OGG/Vorbis is the required format. A theme that omits
+\texttt{[sounds]} leaves system sounds unchanged.
+
+\paragraph{Motion.}
+Animation timing and easing curves are theme tokens like colors. A theme
+declares duration and easing values that apply to every transition across the
+shell and all first-party applications.
+
+\begin{lstlisting}[language=bash, caption={Motion token declaration}]
+[motion]
+duration.short  = "120ms"
+duration.medium = "200ms"
+duration.long   = "350ms"
+easing.default  = "cubic-bezier(0.4, 0, 0.2, 1)"
+easing.enter    = "cubic-bezier(0.0, 0.0, 0.2, 1)"
+easing.exit     = "cubic-bezier(0.4, 0.0, 1.0, 1)"
+easing.spring   = "cubic-bezier(0.34, 1.56, 0.64, 1)"
+\end{lstlisting}
+
+These compile to CSS custom properties (\texttt{--duration-short},
+\texttt{--easing-default}, and so on) consumed by ui-kit components and the
+shell. When the user enables \emph{Reduce Motion} in Settings, the system
+overrides all duration tokens to \texttt{0ms} regardless of the active theme.
+This override is not suppressible by a theme package; accessibility takes
+precedence over aesthetic preference.
+
+\paragraph{Shadows and depth.}
+In-application shadows and blur effects are CSS custom properties and work
+within the Tauri WebView layer without compositor involvement.
+
+\begin{lstlisting}[language=bash, caption={Depth token declaration}]
+[depth]
+shadow.active   = "0 8px 32px rgba(0,0,0,0.4)"
+shadow.inactive = "0 2px 8px rgba(0,0,0,0.15)"
+shadow.popup    = "0 4px 16px rgba(0,0,0,0.3)"
+blur.panels     = "12px"
+blur.popups     = "8px"
+blur.enabled    = true
+\end{lstlisting}
+
+\texttt{blur.enabled} is set to \texttt{false} automatically for High Contrast
+themes; blur reduces text legibility and is incompatible with WCAG AAA
+compliance. Compositor-rendered window shadows (outside the Tauri window
+boundary) require a compositor-side extension and are planned for a subsequent
+release; the token declarations are defined now so that themes can declare
+values without breaking changes when support arrives.
+
+\paragraph{Typography.}
+A theme can bundle font files and declare the typefaces used across all
+surfaces. Bundled fonts are installed to
+\texttt{\textasciitilde/.local/share/fonts/} on theme activation and removed
+on deinstallation.
+
+\begin{lstlisting}[language=bash, caption={Typography token declaration}]
+[typography]
+font.sans       = "Inter"
+font.mono       = "JetBrains Mono"
+font.size       = "14px"
+font.weight.regular = 400
+font.weight.bold    = 600
+font.lineheight     = 1.5
+
+[typography.bundled]
+files = [
+  "fonts/Inter-Regular.woff2",
+  "fonts/Inter-Bold.woff2",
+  "fonts/JetBrainsMono-Regular.woff2",
+]
+\end{lstlisting}
+
+Only fonts licensed for redistribution may be bundled in a Store theme. The
+Open Font License (OFL) and equivalents are acceptable; proprietary fonts are
+not. Store submission validates the declared license field against the bundled
+files.
+
+\paragraph{Wallpaper.}
+A theme declares a wallpaper in one of three modes. Static delivers a single
+image. Dynamic delivers multiple images selected by time of day, matching the
+ambient light cycle. Video delivers an animated wallpaper rendered as a
+looping video via \emph{mpv}~\cite{mpv} as a background Wayland client.
+
+\begin{lstlisting}[language=bash, caption={Wallpaper declaration}]
+# Static
+[wallpaper]
+type = "static"
+file = "wallpapers/wallpaper.jpg"
+
+# Dynamic (time-of-day)
+[wallpaper]
+type    = "dynamic"
+dawn    = "wallpapers/dawn.jpg"
+morning = "wallpapers/morning.jpg"
+day     = "wallpapers/day.jpg"
+evening = "wallpapers/evening.jpg"
+night   = "wallpapers/night.jpg"
+
+# Animated video
+[wallpaper]
+type     = "video"
+file     = "wallpapers/wallpaper.mp4"
+loop     = true
+fps      = 30
+fallback = "wallpapers/wallpaper.jpg"
+\end{lstlisting}
+
+Video wallpapers are opt-in: the system uses the static fallback by default
+and switches to the video only when the user explicitly enables animated
+wallpapers in Settings. A clear notice explains the GPU cost. The
+\texttt{fallback} field is required for video declarations.
+
+\paragraph{Icons.}
+A theme can supply a complete icon set in the Freedesktop icon theme format,
+installed to \texttt{\textasciitilde/.local/share/icons/}. This covers
+application icons in Waypointer, the File Manager, and the taskbar, as well
+as GTK application icons. First-party Tauri application UIs use the ui-kit
+SVG icon set internally; Store themes can supply overrides for these
+separately as SVG files declared in the manifest.
+
+The Store listing shows two icon coverage indicators independently:
+\emph{System icons} (Freedesktop) and \emph{UI icons} (ui-kit). A theme that
+covers only one of the two is valid and common; full icon coverage requires
+both.
+
+\paragraph{Terminal prompt style.}
+A theme can supply a complete \emph{Starship}~\cite{starship} configuration
+that defines the prompt layout, information density, symbols, and structure
+alongside the color tokens already covered by CLI theming. The prompt
+configuration is delivered as a separate file and merged via Starship's
+include mechanism, leaving the user's own Starship configuration untouched.
+
+\begin{lstlisting}[language=bash, caption={Terminal prompt style declaration}]
+[terminal.prompt]
+type = "bundled"
+file = "starship/prompt.toml"
+\end{lstlisting}
+
+The Settings daemon writes the bundled file to
+\texttt{\textasciitilde/.config/starship-theme-prompt.toml} on theme
+activation. The user opts in by adding
+\texttt{includes = ["starship-theme-prompt.toml"]} to their own
+\texttt{starship.toml}. As with all generated files, the user's own
+configuration is never modified directly.
 
 \paragraph{CLI and terminal theming.}
 The token system is not limited to GUI layers. The same color tokens that drive
