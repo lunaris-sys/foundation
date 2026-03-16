@@ -980,12 +980,111 @@ When a project is active in Focus Mode (Section~\ref{sec:focus-mode}),
 Waypointer's default search scope narrows to that project's graph context.
 Typing a filename searches within project files first before widening to the
 full graph. Project-specific quick actions are surfaced at the top of the
-result list: recent files, last git commit message, open issues link, and
-time logged this week. These are live graph queries, not cached data.
+result list: recent files, last git commit message, open issues, and time
+logged this week. These are live graph queries, not cached data.
 
 Third-party modules can register as \texttt{waypointer.provider} to add result
 types or as \texttt{waypointer.action} to add commands, as described in
 Section~\ref{sec:modules}.
+
+\paragraph{Typed result system.}
+Waypointer results carry an explicit type that determines how they are
+rendered. Every type has a defined data structure and a native render component
+in ui-kit; Integration Packages and modules deliver data in the correct format
+and Waypointer renders consistently regardless of which provider supplied the
+result. A GitHub Integration Package and a GitLab Integration Package both
+deliver \texttt{issue} type results -- the user sees the same layout
+independent of the underlying provider.
+
+\begin{table}[htbp]
+\caption{Built-in Waypointer result types}
+\label{tab:waypointer-types}
+\begin{tabularx}{\linewidth}{lX}
+\toprule
+\textbf{Type} & \textbf{Rendered fields} \\
+\midrule
+\texttt{app}     & Icon, name, description, launch action \\
+\texttt{file}    & Path, last modified, project membership \\
+\texttt{action}  & Label, icon, registered keybinding \\
+\texttt{issue}   & Number, title, status, assignee, labels, inline expansion \\
+\texttt{commit}  & Hash, message, author, date, changed files \\
+\texttt{contact} & Name, avatar, last interaction timestamp \\
+\texttt{result}  & Generic label and subtitle for custom providers \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Inline expansion.}
+Typed results support inline expansion: pressing the right arrow key or a
+dedicated expand shortcut opens a detail panel inside the Waypointer overlay
+without opening a new window or leaving the current context. The expansion
+renders the full content of the result -- for an \texttt{issue} type this
+means title, full description, status, assignee, labels, and available actions.
+
+Actions available from the inline expansion depend on the result type and the
+provider. For issue results the standard actions are: focus on this issue
+(activates Focus Mode with the issue as sub-context), open in browser (opens
+the issue URL in the default browser), create related issue, and copy URL.
+The provider declares which actions are available; Waypointer renders them
+uniformly.
+
+\paragraph{Issue tracker integration.}
+When a project declares a \texttt{[tracker]} block in its
+\texttt{.project} file (Section~\ref{sec:projects}), Waypointer surfaces
+issues from that tracker as first-class results when the project is focused.
+Typing \texttt{\#} triggers issue search; typing \texttt{\#42} jumps directly
+to that issue number.
+
+\begin{lstlisting}[language=bash, caption={Issue provider registration via module SDK}]
+shell.waypointer.register({
+  id:          "com.lunaris.github-issues",
+  trigger:     "#",
+  placeholder: "Search issues...",
+  onQuery: async (q) => {
+    const issues = await fetchIssues(q)
+    return issues.map(issue => ({
+      id:      `issue-${issue.number}`,
+      title:   `#${issue.number} ${issue.title}`,
+      subtitle: issue.status,
+      icon:    issueIcon(issue.status),
+      type:    "issue",
+      data:    issue,
+      actions: [
+        { label: "Focus on this", action: "issue.focus"        },
+        { label: "Open in Browser", action: "issue.open-browser" },
+        { label: "Copy URL",      action: "issue.copy-url"     },
+      ]
+    }))
+  }
+})
+\end{lstlisting}
+
+Issue tracker Integration Packages are available for GitHub Issues, GitLab
+Issues, OpenProject, Plane, and Jira. Each is a separate Store package that
+implements the \texttt{waypointer.provider} interface and declares the
+\texttt{[tracker]} provider type it handles. The \texttt{.project} file
+specifies which provider to use; Waypointer routes to the correct Integration
+Package automatically.
+
+\paragraph{Issue Focus Mode sub-context.}
+When the user selects ``Focus on this issue'' from a Waypointer issue result,
+Focus Mode activates with the issue as an additional sub-context layer on top
+of the active project. The AI daemon receives the issue title, description,
+and labels as part of its context window. Waypointer surfaces files that have
+been recently modified in sessions where this issue was active. The terminal
+opens in the project root. A \texttt{timeline} entry is created when the focus
+session ends, recording which files were touched and how long the session
+lasted -- giving the user a traceable record of work done per issue without
+any manual time tracking.
+
+\paragraph{Creating issues from context.}
+From any file's context menu or from Waypointer directly, the user can create
+a new issue in the active project's tracker. The creation form is pre-filled
+with context: project name, the currently focused file if relevant, and the
+active branch name if the project has a git integration. The form is minimal
+-- title and description only -- with a ``Open full editor in browser'' option
+for everything else. The created issue is immediately available as a Waypointer
+result without a manual refresh.
 
 \subsection{Focus Mode}
 \label{sec:focus-mode}

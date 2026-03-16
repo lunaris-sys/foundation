@@ -449,8 +449,13 @@ default_branch = "main"
 github = "timkicker"
 
 [links]
-docs   = "https://wiiu.hacks.guide"
-issues = "https://github.com/timkicker/coffeeshop/issues"
+docs = "https://wiiu.hacks.guide"
+
+[tracker]
+provider = "github-issues"
+url      = "https://github.com/timkicker/coffeeshop"
+# provider options: github-issues | gitlab-issues | openproject |
+#                   plane | jira
 
 [tags]
 values = ["cpp", "wiiu", "homebrew"]
@@ -511,7 +516,7 @@ Section~\ref{sec:ai}), the \texttt{.project} file serves as the context seed
 for the AI daemon. Name, description, tags, linked accounts, and recent
 project activity from the graph are included in the context window before the
 user's query. Waypointer surfaces project-specific quick actions when a project
-is active: recent files, last commit message, open issues URL, and time spent
+is active: recent files, last commit message, open issues, and time spent
 this week. These are graph queries, not hardcoded integrations.
 
 \paragraph{Git integration.}
@@ -528,6 +533,33 @@ session context events, and pull request status as linked resources, is
 planned for a subsequent release. The graph schema includes \texttt{Commit}
 and \texttt{Branch} node types from the start so that this integration does
 not require a schema migration when it arrives.
+
+\paragraph{Issue tracker integration.}
+The \texttt{[tracker]} block in the \texttt{.project} file connects the
+project to an external issue tracker. The Graph Daemon reads this block and
+exposes the configuration to the corresponding tracker Integration Package,
+which registers a Waypointer provider that surfaces issues as typed
+\texttt{issue} results (Section~\ref{sec:waypointer}).
+
+When a project is focused, typing \texttt{\#} in Waypointer opens issue
+search against the configured tracker. Selecting an issue opens an inline
+expansion showing title, description, status, assignee, and labels without
+leaving Waypointer. From there the user can activate issue-scoped Focus Mode,
+open the issue in the browser, or create a related issue with pre-filled
+context.
+
+Issue-scoped Focus Mode adds the issue as a sub-context layer on top of the
+active project. The AI daemon receives the issue title, description, and
+labels in its context window. When the focus session ends, a
+\texttt{UserAction} node is written to the graph recording which files were
+touched and the session duration -- automatic time tracking at the issue level
+without any manual input.
+
+Supported tracker providers, each delivered as a separate Integration Package:
+GitHub Issues, GitLab Issues, OpenProject, Plane, and Jira. The
+\texttt{provider} field in \texttt{[tracker]} selects which package handles
+the connection; the Install Daemon installs the matching Integration Package
+automatically when it detects the \texttt{.project} file declares a provider.
 
 \paragraph{Project-aware system integrations.}
 Projects are a cross-cutting concept and several system components integrate
