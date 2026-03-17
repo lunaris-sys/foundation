@@ -37,6 +37,51 @@ requiring anything from third-party developers, combined with richer semantic
 data where apps support it. eBPF provides the floor; structured app events
 raise the ceiling.
 
+\subsection{Wayland as an Event Source}
+\label{sec:wayland-events}
+
+The Wayland compositor sits at the intersection of every user interaction with
+the graphical desktop. Because the compositor is a first-party component of
+this project, it can emit structured events to the Event Bus directly without
+any protocol extension or third-party cooperation.
+
+Wayland provides the following event categories natively, without requiring
+applications to do anything:
+
+\emph{Window lifecycle.} The compositor knows when a Wayland surface is
+created, mapped (becomes visible), unmapped, and destroyed. This translates
+directly to app open and close events carrying the app ID, window title, and
+timestamp. The \texttt{xdg-shell} protocol provides this for all standard
+application windows; \texttt{wlr-foreign-toplevel-management} extends it to
+allow the shell to observe all open windows including those from other clients.
+
+\emph{Focus transitions.} The compositor controls which surface receives
+keyboard input at any given moment. Every focus change -- the user switching
+windows, clicking into a different app, or the active window closing -- is an
+event the compositor observes before any application does. Focus events carry
+the incoming and outgoing app IDs and the timestamp, giving the graph an
+accurate record of how attention moves across applications.
+
+\emph{Clipboard operations.} The Wayland clipboard protocol
+(\texttt{wl\_data\_device}) routes all clipboard interactions through the
+compositor. The compositor observes when content is placed on the clipboard and
+when a paste request is made, including which application is the source and
+which is the destination. Clipboard \emph{content} is never logged; only the
+operation metadata (source app, destination app, MIME type, timestamp) reaches
+the Event Bus.
+
+\emph{Output events.} Monitor connect, disconnect, and configuration changes
+are compositor-level events. These are logged as session context, useful for
+queries like ``which monitor was I on when I worked on this file.''
+
+What Wayland does \emph{not} provide, and what therefore requires eBPF or
+app-level instrumentation: filesystem access, network connections, what the
+user typed, the content of windows, or any in-application state beyond the
+window title. The compositor sees surfaces, not their contents. This is by
+design -- it is the same isolation property that makes Wayland more secure than
+X11 -- and it defines the boundary between what the compositor can contribute
+and what other event sources must cover.
+
 \subsection{Kernel Monitoring with eBPF}
 \label{sec:ebpf}
 
@@ -99,15 +144,34 @@ at runtime, so no compiler is required on the end-user's machine. The result is
 a fully Rust codebase with no unsafe FFI boundaries, no runtime compilation, and
 no additional system dependencies beyond what the kernel already provides.
 
-\paragraph{Noise filtering.}
-eBPF can generate thousands of events per second under normal load, most of
-which carry no useful information for the Knowledge Graph. Two filters in the
-normalizer reduce this before events reach the bus. Identical operations on the
-same file by the same process within 100 milliseconds are collapsed into a
-single event with an updated timestamp. Paths under \texttt{/proc},
-\texttt{/sys}, \texttt{/dev}, \texttt{/tmp}, and shared libraries under
-\texttt{/usr/lib} are discarded entirely, since they have no semantic value in
-a graph of user activity.
+\paragraph{eBPF Normalizer.}
+Raw eBPF events arrive at high frequency from the kernel ring buffer. Before
+they reach the Event Bus they pass through the \emph{eBPF Normalizer}, a
+user-space component that performs three operations in sequence.
+
+First, \emph{deduplication}: identical operations on the same file by the same
+process within 100 milliseconds are collapsed into a single event with an
+updated timestamp. A text editor that calls \texttt{read()} on a file hundreds
+of times per second produces one graph-relevant event, not hundreds.
+
+Second, \emph{path filtering}: events on paths with no semantic value for a
+graph of user activity are discarded entirely before reaching the bus.
+Discarded prefixes include \texttt{/proc}, \texttt{/sys}, \texttt{/dev},
+\texttt{/tmp}, shared libraries under \texttt{/usr/lib}, and kernel internal
+paths. An event on \texttt{/proc/1234/status} carries no information the
+Knowledge Graph needs; dropping it at the normalizer saves the bus, the Graph
+Writer, and SQLite from processing it at all.
+
+Third, \emph{UUID assignment}: each surviving event receives a UUID~v7
+identifier. UUID~v7 embeds a millisecond-precision timestamp in its most
+significant bits, making events generated close together sort together
+lexicographically -- a property that improves write performance and
+time-range query efficiency in SQLite.
+
+The normalizer runs in the same user-space process as the eBPF ring buffer
+consumer. It introduces no IPC hop; filtered events pass directly to the
+Event Bus client in the same process. Drop rates and deduplication ratios
+are exposed as metrics and monitored by the Anomaly Detector.
 
 \subsection{Event Bus}
 \label{sec:event-bus}
@@ -316,6 +380,29 @@ Section~\ref{sec:backpressure}: SQLite absorbs the high-frequency event
 stream, and a promotion pipeline moves semantically valuable data into Kuzu
 for graph traversal. This section describes the Kuzu graph itself: its schema,
 ingestion tiers, and the data that lives in it.
+
+\paragraph{Why not RDF and SPARQL.}
+\emph{RDF} (Resource Description Framework) and \emph{SPARQL} are W3C
+standards for the \emph{Semantic Web}: a vision of interlinked, publicly
+queryable knowledge graphs on the open internet. They are designed for
+schema-flexible, distributed, open data -- a fundamentally different problem
+than this system's.
+
+This system's Knowledge Graph is local, private, schema-fixed, and
+performance-sensitive. RDF's triple-store model (\texttt{subject predicate
+object}) is optimized for schema flexibility at the cost of query expressiveness
+and traversal performance. SPARQL is significantly less expressive than Cypher
+for multi-hop graph traversals and pattern matching, which are the primary
+query patterns this system needs. The reference implementations of RDF stores
+(rdf4j, Apache Jena) run on the JVM, which is incompatible with the project's
+Rust-first system stack and introduces runtime overhead inappropriate for an
+embedded component.
+
+W3C interoperability is not a design goal. The Knowledge Graph is an internal,
+local data store; it does not need to federate with external systems or conform
+to open web standards. If data export is needed, the export format is a
+separate concern from the storage format and can be addressed at the export
+layer without constraining the internal representation.
 
 \paragraph{Schema.}
 Figure~\ref{fig:kg-schema} shows the core node types and their relationships.
