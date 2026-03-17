@@ -26,7 +26,7 @@ planned core applications.
 \midrule
 File Manager    & Graph-aware features: recent files by project, related files sidebar \\
 Terminal        & MCP server exposing command history and session output \\
-Settings        & System-wide configuration: theming, permissions, AI level, accounts \\
+Settings        & System-wide configuration: theming, permissions, connections, AI level \\
 Store           & App and module discovery, installation, and updates \\
 Text Editor     & Basic editor primarily for configuration files \\
 System Monitor  & Process list, resource usage, and Anomaly Detector alerts \\
@@ -695,6 +695,11 @@ import { shell } from "@os/module-sdk"
 const windows = await shell.getWindows()
 const active  = await shell.getActiveWindow()
 
+// Graph (requires graph = "read" in manifest)
+const recent = await shell.graph.query(
+  "MATCH (f:File) RETURN f LIMIT 5"
+)
+
 // Waypointer provider registration
 shell.waypointer.register({
   id:          "com.example.ai-waypointer",
@@ -702,7 +707,7 @@ shell.waypointer.register({
   onQuery:     async (q) => [ /* result objects */ ]
 })
 
-// Focus Mode transitions
+// Focus Mode: react to project context changes
 shell.focus.onActivate((project) => {
   // project.name, project.tags, project.rootPath available
 })
@@ -717,11 +722,13 @@ shell.ambient.set({ effect: "pulse", intensity: 0.2, reason: "syncing" })
 shell.ambient.clear()
 \end{lstlisting}
 
-The \texttt{shell.focus} callbacks fire after all system-level Focus Mode
-changes have been applied, so the project context is consistent when the
-module receives the event. A Waypointer provider that narrows its result set
-to the active project subscribes to \texttt{onActivate} and resets on
-\texttt{onDeactivate}.
+The \texttt{shell.focus} API allows modules to react to Focus Mode transitions
+without polling. A Waypointer provider that wants to narrow its result set to
+the active project subscribes to \texttt{onActivate} and adjusts its query
+scope accordingly; \texttt{onDeactivate} signals that the module should return
+to its default behavior. These callbacks fire after all system-level Focus Mode
+changes have been applied, so the project context is already consistent when
+the module receives the event.
 
 \paragraph{Global Input Manager.}
 Keybindings and gestures are configured in a single place in Settings, not per
@@ -847,3 +854,55 @@ installation eligibility as described in Section~\ref{sec:install-daemon}.
 Deep links between Integration Package Store listings and the corresponding
 application page in Settings use the \texttt{store://} and \texttt{settings://}
 URL schemas described in Section~\ref{sec:settings-deeplinks}.
+
+\subsection{MCP Safety and External Connections}
+\label{sec:mcp-safety}
+
+The MCP Server Layer enables powerful integrations between the AI daemon,
+first-party applications, and external tools such as n8n and OpenClaw. Two
+mechanisms exist to prevent this power from causing runaway or uncontrolled
+behavior: a call depth limit for MCP chains, and a controlled outbound webhook
+surface for the Event Bus.
+
+\paragraph{Call depth limit.}
+Every MCP call chain carries a \texttt{call\_chain\_id} and a \texttt{depth}
+counter. When a component initiates an MCP call the depth starts at one. If
+that call triggers a further MCP call, the depth increments and the chain
+identifier is forwarded. A call that would exceed depth five is rejected
+immediately with the error \texttt{mcp\_depth\_exceeded} rather than
+executing. The full call chain is written to the Audit Log on rejection so
+the user can diagnose what triggered the loop.
+
+The default limit of five is intentionally conservative. Legitimate nested
+MCP calls rarely exceed two or three levels. Users who build complex
+multi-step workflows can raise the limit to a maximum of ten in Settings under
+AI; no configuration can exceed ten regardless of how it is set. The limit
+applies globally across all MCP callers including the AI daemon, modules, and
+external connections.
+
+\paragraph{Outbound Event Bus webhooks.}
+The Event Bus can forward selected events to external endpoints configured as
+Connections in Settings (Section~\ref{sec:connections}). This enables tools
+like n8n to react to desktop events without polling. The mechanism is
+intentionally restrictive to prevent uncontrolled data leakage.
+
+Outbound webhook endpoints are bound to a Connection. There is no mechanism
+for arbitrary URL registration outside of a Connection; a module or a
+\texttt{.project} file cannot register a webhook endpoint on its own. The
+Event Bus receives its permitted endpoint whitelist directly from the Account
+Daemon at startup and after any Connection change. Any event targeting an
+endpoint not on the whitelist is silently discarded without error or retry.
+
+The user selects which event types to forward per Connection from a fixed list
+derived from the Event Bus schema. Raw eBPF events are not available as
+outbound event types regardless of configuration; only semantic events such as
+\texttt{focus.activated}, \texttt{timeline.record}, and
+\texttt{issue.status\_changed} can be forwarded. This prevents low-level
+system telemetry from leaking to external services even if the user
+misconfigures a connection.
+
+Outbound events are rate-limited to 60 per minute per Connection. When the
+limit is reached the remaining events in that minute are dropped, not queued,
+and a warning badge appears on the Connection in Settings. The limit resets
+at the start of the next minute. This prevents high-frequency desktop activity
+from generating uncontrolled external traffic volume.

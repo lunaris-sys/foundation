@@ -5,10 +5,20 @@
 \label{sec:accounts}
 
 The Account System is the single place where the user manages all online
-accounts. Set up once, available everywhere, with full visibility into which
-application accesses what. The design principle is straightforward: no
-application ever directly handles OAuth flows, stores tokens, or manages
-credentials. All account logic lives in a dedicated \emph{Account Daemon}.
+accounts and external service connections. Set up once, available everywhere,
+with full visibility into which application accesses what. The design principle
+is straightforward: no application ever directly handles OAuth flows, stores
+tokens, or manages credentials. All credential logic lives in a dedicated
+\emph{Account Daemon}.
+
+The daemon serves two related but distinct purposes. First, it manages
+user-facing online accounts such as Google, Microsoft, and Nextcloud, including
+OAuth flows, token refresh, and the GNOME Online Accounts bridge. Second, it
+manages the credentials for external service Connections configured in Settings
+(Section~\ref{sec:connections}): GitHub, GitLab, n8n, OpenClaw, and any other
+Connection the user creates. Both credential types live in the Linux Kernel
+Keyring and are accessed exclusively through the daemon. No other component
+reads credentials from the Keyring directly.
 
 \emph{OAuth~2.0}~\cite{rfc6749} is the standard authorization framework used
 by cloud services to grant third-party applications access to user data without
@@ -97,6 +107,34 @@ with the timestamp of the last update. A calendar application shows last-known
 events labeled with their age rather than an empty state. When connectivity
 is restored, the daemon refreshes silently in the background and notifies
 applications of updated data via the Event Bus.
+
+\paragraph{Connection credential management.}
+External service Connections configured in Settings are stored as named
+entries in the Linux Kernel Keyring under the \texttt{lunaris/connections/}
+namespace. The Account Daemon is the sole process that reads and writes these
+entries. When a component requests the credential for a Connection it provides
+the Connection identifier and its own component identity; the daemon checks
+whether the requesting component is listed in the Connection's \texttt{allowed}
+field before returning anything. Unauthorized requests receive
+\texttt{EACCES} with no credential data.
+
+Token refresh for Connections follows a two-path model. For providers that
+issue refresh tokens alongside access tokens, the daemon attempts a silent
+refresh in the background when the access token approaches expiry. If the
+refresh succeeds the new token is stored in the Keyring and the Connection
+continues working without interruption. If the refresh fails, or if the
+provider does not issue refresh tokens at all, the daemon marks the Connection
+as \texttt{expired}, returns \texttt{token\_expired} to requesting components
+rather than a stale or invalid token, and sends a single High-priority
+notification to the user with a deep link to
+\texttt{settings://connections/<id>}. The notification is sent once and not
+repeated until the user interacts with it or the Connection is renewed.
+
+The daemon also maintains the outbound webhook endpoint whitelist for the
+Event Bus. Whenever a Connection with outbound events is created, modified,
+or deleted, the daemon pushes the updated whitelist to the Event Bus over a
+dedicated internal channel. The Event Bus never queries the daemon at send
+time; it uses the cached whitelist to avoid any latency in the hot event path.
 
 \paragraph{GNOME Online Accounts bridge.}
 \emph{GNOME Online Accounts}~\cite{gnome:goa} (GOA) is a GNOME framework

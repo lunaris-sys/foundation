@@ -1172,7 +1172,8 @@ reach Keybindings.
 Appearance    & Themes, accent colors, font scale, dark/light mode, animations \\
 Privacy       & Permissions per app, graph retention, audit log, clipboard sensitivity \\
 AI            & Provider configuration, access level, routing policy, MCP servers \\
-Accounts      & Online accounts, OAuth tokens, account resolution order \\
+Connections   & External service connections, OAuth tokens, outbound event configuration \\
+Accounts      & Online accounts, login token handling, account resolution order \\
 System        & Updates, snapshots, startup apps, hardware info \\
 Input         & Keybindings (single source of truth), mouse, touchpad, keyboard layout \\
 Display       & Monitor layout, resolution, scale, refresh rate, rotation \\
@@ -1211,6 +1212,109 @@ with both conflicting entries visible simultaneously. The Global Input Manager
 is the authoritative source; Settings reads from and writes to it directly.
 No application manages its own bindings independently.
 
+\paragraph{Connections.}
+\label{sec:connections}
+Connections is the Settings category for external service integrations: GitHub,
+GitLab, OpenProject, n8n, OpenClaw, and any other third-party service the
+system or a project needs to communicate with. It is the single place where
+these integrations are created, configured, and revoked. No other component
+stores connection credentials or creates integrations independently.
+
+A connection has an identifier, a provider type, authentication credentials
+stored in the system keyring via the Account Daemon (never in plaintext), and
+a data flow classification that describes where data goes. The classification
+is one of four values: \texttt{local} for services running on the same machine,
+\texttt{self-hosted} for services the user controls on their own
+infrastructure, \texttt{encrypted} for end-to-end encrypted channels such as
+Signal or Matrix, and \texttt{third-party} for external services whose servers
+process the data. The classification is displayed prominently on the connection
+list and on each connection's detail page. It is not a warning -- it is
+information the user needs to make an informed decision about what to connect.
+
+Multiple connections to the same provider are fully supported. A user with two
+GitHub accounts configures two separate connections with different identifiers;
+Settings distinguishes them by showing the account name as a subtitle on each
+entry. When creating a second connection for a provider that already has one,
+Settings shows a notice but does not block the action.
+
+Each connection detail page shows the provider and account, the data flow
+classification with a plain-language explanation, which system components are
+permitted to use the connection, which projects reference it, the last
+successful contact timestamp from the audit log, and controls to edit or
+revoke it. The permitted components list is editable: by default only the
+components that need a connection can use it, and the user can restrict this
+further.
+
+When a connection's token expires, the Account Daemon attempts a silent
+refresh using the stored refresh token if one exists. If the refresh fails or
+no refresh token is available, the connection is marked as expired. All
+components that request the token receive an access-denied response with the
+reason \texttt{token\_expired} rather than a silent failure. Settings
+surfaces a warning badge on the connection entry and sends a single
+High-priority notification with a deep link to the connection detail page.
+
+Deleting a connection that is still referenced by projects or components
+requires confirmation. Settings presents a list of every dependency before
+proceeding. It does not automatically update the referencing files; the user
+cleans up the references after deletion. Settings highlights any
+\texttt{.project} files that still reference the deleted connection identifier
+after the deletion completes, each with a deep link to the project's
+configuration.
+
+When a \texttt{.project} file references a connection identifier that does not
+exist locally, the system treats this as an onboarding moment rather than an
+error. Waypointer shows a one-time prompt offering to create the missing
+connection or assign an existing one to that identifier. A local override file
+at \texttt{\textasciitilde/.config/lunaris/connection-overrides.toml} records
+any identifier remappings; this file is never committed to version control.
+
+\begin{lstlisting}[language=bash, caption={Example connection configuration}]
+# ~/.config/lunaris/connections.toml
+
+[[connection]]
+id        = "github-personal"
+provider  = "github"
+account   = "timkicker"
+scopes    = ["repo", "issues"]
+token     = { keyring = "lunaris/github-personal" }
+data_flow = "third-party"
+allowed   = ["tracker", "ai-daemon"]
+
+[[connection]]
+id        = "n8n-local"
+provider  = "n8n"
+endpoint  = "http://localhost:5678/mcp"
+token     = { keyring = "lunaris/n8n-token" }
+data_flow = "local"
+allowed   = ["ai-daemon"]
+workflows = ["wf_abc123", "wf_def456"]
+
+[[connection]]
+id        = "openclaw-local"
+provider  = "openclaw"
+endpoint  = "ws://127.0.0.1:18789"
+data_flow = "local"
+allowed   = ["ai-daemon"]
+\end{lstlisting}
+
+For connections that support outbound events, such as n8n, the detail page
+includes an Outbound Events section. The user selects which event types to
+forward from a fixed list derived from the Event Bus schema. The endpoint
+receiving these events is bound to the connection and cannot be changed to an
+arbitrary URL outside of it. The Event Bus enforces a whitelist of permitted
+outbound endpoints that it receives from the Account Daemon; any event
+targeting an endpoint not on the whitelist is silently discarded. Outbound
+events are rate-limited to 60 per minute per connection to prevent high-frequency
+desktop activity from generating uncontrolled external traffic. When the limit
+is reached the connection receives a warning badge in Settings.
+
+For n8n connections specifically, the detail page also shows an Allowed
+Workflows section. The AI daemon may only invoke workflows explicitly listed
+here. The default is an empty list, meaning no workflows are callable until
+the user explicitly permits them. A fetch button retrieves the available
+workflows directly from the configured n8n instance and presents them as a
+selectable list, so the user never needs to type workflow identifiers manually.
+
 \paragraph{Deep links.}
 \label{sec:settings-deeplinks}
 Settings registers a \texttt{settings://} URL schema at startup. Any
@@ -1225,6 +1329,10 @@ settings://privacy/audit-log
 settings://ai/providers
 settings://input/keybindings
 settings://appearance/themes
+settings://connections
+settings://connections/github-personal
+settings://connections/new?provider=github
+settings://connections/new?provider=n8n
 \end{lstlisting}
 
 If Settings is already open, incoming deep links navigate without opening a
