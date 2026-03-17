@@ -1799,33 +1799,29 @@ second; GTK4 regeneration may take one to two seconds on slower hardware.
 \begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[
-  box/.style={
-    draw, thick, rectangle,
-    minimum width=6cm, minimum height=0.85cm,
-    font=\small, align=center, inner sep=5pt
-  },
-  arr/.style={->, thick},
-  lbl/.style={font=\footnotesize\itshape, anchor=west},
-]
-
-\def\sep{1.6}
-
-\node[box] (shadcn) at (0, 3*\sep)
-  {shadcn/ui defaults};
-\node[box] (base)   at (0, 2*\sep)
-  {Base theme (Dark / Light / Panda / High Contrast)};
-\node[box] (store)  at (0, \sep)
-  {Store theme overrides \footnotesize(declared layers only)};
-\node[box] (user)   at (0, 0)
-  {User token adjustments \footnotesize(accent color, font scale)};
-\node[box] (proj)   at (0, -\sep)
-  {Project accent override \footnotesize(Focus Mode only)};
-
-\draw[arr] (shadcn) -- node[lbl, right] {fallthrough} (base);
-\draw[arr] (base)   -- node[lbl, right] {fallthrough} (store);
-\draw[arr] (store)  -- node[lbl, right] {fallthrough} (user);
-\draw[arr] (user)   -- node[lbl, right] {temporary override} (proj);
-
+	box/.style={
+		draw, thick, rectangle, rounded corners=2pt,
+		minimum width=8.5cm, minimum height=0.85cm,
+		font=\small, align=center, inner sep=5pt
+	},
+	arr/.style={->, thick},
+	lbl/.style={font=\footnotesize\itshape, anchor=west},
+	]
+	\def\sep{1.6}
+	\node[box] (shadcn) at (0, 3*\sep)
+	{shadcn/ui defaults};
+	\node[box] (base)   at (0, 2*\sep)
+	{Base theme (Dark / Light / Panda / High Contrast)};
+	\node[box] (store)  at (0, \sep)
+	{Store theme overrides \footnotesize(declared layers only)};
+	\node[box] (user)   at (0, 0)
+	{User token adjustments \footnotesize(accent color, font scale)};
+	\node[box] (proj)   at (0, -\sep)
+	{Project accent override \footnotesize(Focus Mode only)};
+	\draw[arr] (shadcn) -- node[lbl, right] {fallthrough} (base);
+	\draw[arr] (base)   -- node[lbl, right] {fallthrough} (store);
+	\draw[arr] (store)  -- node[lbl, right] {fallthrough} (user);
+	\draw[arr] (user)   -- node[lbl, right] {temporary override} (proj);
 \end{tikzpicture}
 \caption{Theme inheritance chain. Each layer overrides only what it declares;
 everything else falls through to the layer below. The project accent override

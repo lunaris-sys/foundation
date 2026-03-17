@@ -76,41 +76,36 @@ all sources. Figure~\ref{fig:notifications} shows the pipeline.
 \begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[
-  src/.style={
-    draw, thick, rectangle, rounded corners=2pt,
-    minimum width=3.0cm, minimum height=0.8cm,
-    font=\footnotesize, align=center, inner sep=4pt
-  },
-  proc/.style={
-    draw, thick, rectangle,
-    minimum width=3.0cm, minimum height=0.8cm,
-    font=\footnotesize, align=center, inner sep=4pt
-  },
-  store/.style={
-    draw, thick, cylinder, shape border rotate=90,
-    minimum width=1.8cm, minimum height=0.8cm,
-    font=\footnotesize, align=center, inner sep=4pt
-  },
-  arr/.style={->, thick},
-]
-
-\node[src]  (dbus)   at (0,  2.4) {libnotify\\(D-Bus standard)};
-\node[src]  (native) at (0,  1.2) {Native apps\\(Event Bus)};
-\node[src]  (system) at (0,  0.0) {System components\\(Anomaly Detector\ldots)};
-
-\node[proc] (nd)     at (3.8, 1.2) {Notification\\Daemon};
-
-\node[proc]  (toast) at (7.4,  2.4) {Toast Renderer\\(Tauri)};
-\node[proc]  (nc)    at (7.4,  1.2) {Notification Center\\(Tauri shell)};
-\node[proc] (al) at (7.4, 0.0) {Audit Log};
-
-\draw[arr] (dbus)   -- (nd);
-\draw[arr] (native) -- (nd);
-\draw[arr] (system) -- (nd);
-\draw[arr] (nd)     -- (toast);
-\draw[arr] (nd)     -- (nc);
-\draw[arr] (nd)     -- (al);
-
+	src/.style={
+		draw, thick, rectangle, rounded corners=2pt,
+		minimum width=3.0cm, minimum height=0.8cm,
+		font=\footnotesize, align=center, inner sep=4pt
+	},
+	proc/.style={
+		draw, thick, rectangle, rounded corners=2pt,
+		minimum width=3.0cm, minimum height=0.8cm,
+		font=\footnotesize, align=center, inner sep=4pt
+	},
+	store/.style={
+		draw, thick, cylinder, shape border rotate=90,
+		minimum width=1.8cm, minimum height=0.8cm,
+		font=\footnotesize, align=center, inner sep=4pt
+	},
+	arr/.style={->, thick},
+	]
+	\node[src]  (dbus)   at (0,  2.4) {libnotify\\(D-Bus standard)};
+	\node[src]  (native) at (0,  1.2) {Native apps\\(Event Bus)};
+	\node[src]  (system) at (0,  0.0) {System components\\(Anomaly Detector\ldots)};
+	\node[proc] (nd)     at (3.8, 1.2) {Notification\\Daemon};
+	\node[proc]  (toast) at (7.4,  2.4) {Toast Renderer\\(Tauri)};
+	\node[proc]  (nc)    at (7.4,  1.2) {Notification Center\\(Tauri shell)};
+	\node[proc] (al) at (7.4, 0.0) {Audit Log};
+	\draw[arr] (dbus)   -- (nd);
+	\draw[arr] (native) -- (nd);
+	\draw[arr] (system) -- (nd);
+	\draw[arr] (nd)     -- (toast);
+	\draw[arr] (nd)     -- (nc);
+	\draw[arr] (nd)     -- (al);
 \end{tikzpicture}
 \caption{Notification pipeline. All sources converge on the Notification Daemon,
 which normalizes, groups, and applies priority logic before forwarding to the
@@ -671,24 +666,11 @@ modules update on the next session start by default, with a manual
 next session start to avoid interrupting active AI interactions.
 
 \paragraph{Shell API.}
-Modules access the same \texttt{shell} namespace as first-party applications,
-with two differences. First, the available surface is restricted to what the
-module declared in its manifest: a module without \texttt{graph.allow = "read"}
-cannot call \texttt{shell.graph.query}, and a module without
-\texttt{clipboard.read.sensitive} receives \texttt{null} for sensitive
-clipboard entries. Second, modules access the API via
-\texttt{@os/module-sdk} rather than os-sdk directly, which wraps the same
-underlying interfaces with module-specific permission enforcement.
+Modules interact with the system through a restricted TypeScript SDK. No direct
+access to the compositor or Graph Daemon is available; what is not in
+the SDK is not accessible.
 
-The full Shell API surface -- clipboard, presence, search, annotations,
-intents, timeline, shortcuts, badges, context menu, onboarding, ambient,
-spatial, and voice -- is documented in Section~\ref{sec:shell-api}. Modules
-may use any surface for which they hold the corresponding manifest permission.
-
-The following surfaces are always available to modules without additional
-permission declarations, as they carry no privacy or security implications:
-
-\begin{lstlisting}[language=bash, caption={Module SDK -- always available surfaces}]
+\begin{lstlisting}[language=bash, caption={Module SDK surface (TypeScript)}]
 import { shell } from "@os/module-sdk"
 
 // Window management

@@ -218,9 +218,9 @@ store anything. Figure~\ref{fig:event-flow} shows the full pipeline.
 	
 	% Graph Writer (x=10.2), SQLite (x=12.8), Kuzu (x=12.8 lower)
 	\node[proc]  (gw)     at (10.2, 2.25) {Graph\\Writer};
-	\node[store] (sqlite) at (12.8, 3.6)  {SQLite\\(writes)};
-	\node[store] (kuzu)   at (12.8, 0.9)  {Kuzu\\(queries)};
-	\node[proc]  (promo)  at (10.2, -0.6) {Promotion\\pass};
+	\node[store] (sqlite) at (12.8, 2.25) {SQLite\\(writes)};
+	\node[proc]  (promo)  at (12.8, -0.6) {Promotion\\pass};
+	\node[store] (kuzu)   at (10.2, -0.6) {Kuzu\\(queries)};
 	
 	% Source arrows
 	\draw[arr] (ebpf)    -- (norm);
@@ -232,9 +232,9 @@ store anything. Figure~\ref{fig:event-flow} shows the full pipeline.
 	
 	% Bus -> Writer -> SQLite, SQLite -> Promotion -> Kuzu
 	\draw[arr] (bus.east) -- (gw);
-	\draw[arr] (gw)       -- (sqlite);
-	\draw[arr] (sqlite.south) -- (promo.east);
-	\draw[arr] (promo)    -- (kuzu.south);
+	\draw[arr] (gw)     -- (sqlite);
+	\draw[arr] (sqlite) -- (promo);
+	\draw[arr] (promo)  -- (kuzu);
 	
 \end{tikzpicture}
 \caption{Event pipeline. Raw kernel events pass through the eBPF normalizer
