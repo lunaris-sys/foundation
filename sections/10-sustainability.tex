@@ -217,7 +217,7 @@ both remain viable candidates.
 \paragraph{Update system.}
 Updates arrive from two independent streams managed separately. The base
 system, meaning the kernel and base distribution packages, is handled by the
-native package manager (dnf or zypper depending on the chosen base), with
+native package manager (dnf), with
 Snapper automatically taking a Btrfs snapshot before every update. Project
 components, meaning the compositor, shell, event bus, graph daemon, AI layer,
 and first-party applications, are distributed via the project's own OBS
@@ -682,8 +682,7 @@ technical development.
 \paragraph{Phase 0: Foundation (current).}
 Architecture and design decisions are documented in this blueprint. The
 repository organization, CI template, and shared tooling are established before
-component code is written. The base distribution decision between Fedora and
-OpenSUSE Slowroll~\cite{opensuse:slowroll} is made and recorded. The
+component code is written. The base distribution is Fedora. The
 \texttt{event-bus} protobuf schema is defined; the \texttt{sdk} crate structure
 is initialized with the public API as traits before any implementation exists.
 This ordering is intentional: schema and interface decisions are the most

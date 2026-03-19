@@ -758,7 +758,7 @@ The \texttt{action} field is an opaque string identifier. When the user
 selects an item, the shell dispatches it back to the application via the Tauri
 command bridge; the application handles it and never touches menu rendering
 directly. Shortcuts declared in the menu are registered automatically with the
-Global Input Manager (Section~\ref{sec:modules}), ensuring the displayed
+Global Input Manager (Section~\ref{sec:input-manager}), ensuring the displayed
 binding always reflects the user's actual configured binding rather than a
 hardcoded default.
 
@@ -897,7 +897,7 @@ open, providing a visual connection between the two surfaces.
 
 \paragraph{Keybinding.}
 The specific binding is configured in Settings as part of the unified keybinding
-system (Section~\ref{sec:modules}). There is no hardcoded default beyond
+system (Section~\ref{sec:input-manager}). There is no hardcoded default beyond
 a suggested starting point. It is treated as a first-class system shortcut,
 not an application-level binding, because it operates on any focused
 application regardless of what that application registers.
@@ -1015,7 +1015,7 @@ logged this week. These are live graph queries, not cached data.
 
 Third-party modules can register as \texttt{waypointer.provider} to add result
 types or as \texttt{waypointer.action} to add commands, as described in
-Section~\ref{sec:modules}.
+Section~\ref{sec:apps-modules}.
 
 \paragraph{Typed result system.}
 Waypointer results carry an explicit type that determines how they are
