@@ -1,4 +1,4 @@
-This is LuaHBTeX, Version 1.24.0 (TeX Live 2026/Arch Linux)  (format=lualatex 2026.3.10)  17 MAR 2026 18:24
+This is LuaHBTeX, Version 1.24.0 (TeX Live 2026/Arch Linux)  (format=lualatex 2026.3.10)  19 MAR 2026 08:50
  restricted system commands enabled.
 **main.tex
 (./main.tex
@@ -3085,13 +3085,17 @@ LaTeX Font Info:    Font shape `MDB/mdbch/m/n' will be
 LaTeX Font Info:    Font shape `MDB/mdbch/m/n' will be
 (Font)              scaled to size 4.80003pt on input line 44.
 
-[7.7] [8.8]
+[7.7]
+
+LaTeX Warning: Citation 'ladybug' on page 8 undefined on input line 135.
+
+[8.8]
 Overfull \hbox (12.20563pt too wide) in paragraph at lines 174--185
 []\TU/XCharter(0)/m/n/10.95 C and C++ have dom-i-nated op-er-at-ing sys-tem com-
 po-nents, dae-mons, and performance-
  []
 
-[9.9] [10.10] [11.11] [12.12] [13.13] [14.14]
+[9.9] [10.10] [11.11] [12.12] [13.13] [14.14] [15.15]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
@@ -3174,37 +3178,37 @@ mode=node;script=latn;language=dflt;+tlig;+pnum;+onum;-rlig,-tlig,-trep,-onum,+
 zero;+smcp;"
 
 LaTeX Font Info:    Font shape `TU/FiraSans(14)/m/n' will be
-(Font)              scaled to size 9.12704pt on input line 542.
+(Font)              scaled to size 9.12704pt on input line 573.
 LaTeX Font Info:    Font shape `OT1/mdbch/m/n' will be
-(Font)              scaled to size 9.60007pt on input line 543.
+(Font)              scaled to size 9.60007pt on input line 574.
 LaTeX Font Info:    Font shape `OT1/mdbch/m/n' will be
-(Font)              scaled to size 6.72005pt on input line 543.
+(Font)              scaled to size 6.72005pt on input line 574.
 LaTeX Font Info:    Font shape `OML/mdbch/m/it' will be
-(Font)              scaled to size 9.60007pt on input line 543.
+(Font)              scaled to size 9.60007pt on input line 574.
 LaTeX Font Info:    Font shape `OML/mdbch/m/it' will be
-(Font)              scaled to size 6.72005pt on input line 543.
+(Font)              scaled to size 6.72005pt on input line 574.
 LaTeX Font Info:    Font shape `OMS/mdbch/m/n' will be
-(Font)              scaled to size 9.60007pt on input line 543.
+(Font)              scaled to size 9.60007pt on input line 574.
 LaTeX Font Info:    Font shape `OMS/mdbch/m/n' will be
-(Font)              scaled to size 6.72005pt on input line 543.
+(Font)              scaled to size 6.72005pt on input line 574.
 LaTeX Font Info:    Font shape `OMX/mdbch/m/n' will be
-(Font)              scaled to size 9.60007pt on input line 543.
+(Font)              scaled to size 9.60007pt on input line 574.
 LaTeX Font Info:    Font shape `OMX/mdbch/m/n' will be
-(Font)              scaled to size 6.72005pt on input line 543.
+(Font)              scaled to size 6.72005pt on input line 574.
 LaTeX Font Info:    Font shape `OML/mdbch/m/n' will be
-(Font)              scaled to size 9.60007pt on input line 543.
+(Font)              scaled to size 9.60007pt on input line 574.
 LaTeX Font Info:    Font shape `OML/mdbch/m/n' will be
-(Font)              scaled to size 6.72005pt on input line 543.
+(Font)              scaled to size 6.72005pt on input line 574.
 LaTeX Font Info:    Font shape `MDA/mdbch/m/n' will be
-(Font)              scaled to size 9.60007pt on input line 543.
+(Font)              scaled to size 9.60007pt on input line 574.
 LaTeX Font Info:    Font shape `MDA/mdbch/m/n' will be
-(Font)              scaled to size 6.72005pt on input line 543.
+(Font)              scaled to size 6.72005pt on input line 574.
 LaTeX Font Info:    Font shape `MDB/mdbch/m/n' will be
-(Font)              scaled to size 9.60007pt on input line 543.
+(Font)              scaled to size 9.60007pt on input line 574.
 LaTeX Font Info:    Font shape `MDB/mdbch/m/n' will be
-(Font)              scaled to size 6.72005pt on input line 543.
- [15.15])
-(./sections/03-foundation.tex [16.16] [17.17]
+(Font)              scaled to size 6.72005pt on input line 574.
+)
+(./sections/03-foundation.tex [16.16] [17.17] [18.18]
 (/usr/share/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2025/11/14 1.11b listings language file
 )
@@ -3215,15 +3219,29 @@ File: lstlang1.sty 2025/11/14 1.11b listings language file
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [18.18] [19.19]
-[20.20] [21.21]
+ [19.19] [20.20]
+Underfull \hbox (badness 10000) in paragraph at lines 328--328
+[]|\TU/XCharter(0)/m/n/10.95 Re-quired for the eBPF pro-gram types used
+ []
+
+
+Underfull \hbox (badness 4518) in paragraph at lines 328--328
+\TU/XCharter(0)/m/n/10.95 by the event mon-i-tor-ing sys-tem (Sec-tion []󰃡.
+󰃠[]):
+ []
+
+[21.21]
+
+LaTeX Warning: Citation 'ebpf:core' on page 22 undefined on input line 343.
+
+[22.22]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
 LaTeX Font Info:    Font shape `TU/FiraSans(14)/b/n' will be
-(Font)              scaled to size 9.07547pt on input line 369.
-) (./sections/04-event-knowledge.tex [22.22]
+(Font)              scaled to size 9.07547pt on input line 416.
+ [23.23]) (./sections/04-event-knowledge.tex
 Underfull \hbox (badness 7963) in paragraph at lines 32--32
 []|\TU/XCharter(0)/m/n/10.95 Built-in (com-pos-i-tor is
  []
@@ -3248,78 +3266,82 @@ Underfull \hbox (badness 10000) in paragraph at lines 32--32
 []|\TU/XCharter(0)/m/n/10.95 Rich se-man-tic ac-tions:
  []
 
-[23.23]
+[24.24]
 Overfull \hbox (7.75963pt too wide) in paragraph at lines 73--76
 []\TU/XCharter(0)/m/it/10.95 Out-put events. \TU/XCharter(0)/m/n/10.95 Mon-i-tor
  con-nect, dis-con-nect, and con-fig-u-ra-tion changes are compositor-
  []
 
-[24.24]
+[25.25] [26.26]
 Overfull \hbox (38.22578pt too wide) in paragraph at lines 239--246
  [][] 
  []
 
-[25.25] (/usr/share/texmf-dist/tex/latex/listings/lstlang1.sty
+(/usr/share/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2025/11/14 1.11b listings language file
 )
 (/usr/share/texmf-dist/tex/latex/listings/lstmisc.sty
 File: lstmisc.sty 2025/11/14 1.11b (Carsten Heinz)
-)
+) [27.27]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
 LaTeX Font Info:    Font shape `TU/FiraSans(14)/m/n' will be
 (Font)              scaled to size 9.99411pt on input line 273.
- [26.26]
 
-LaTeX Warning: Citation 'sqlite' on page 27 undefined on input line 305.
 
-[27.27] (/usr/share/texmf-dist/tex/latex/listings/lstlang1.sty
+LaTeX Warning: Citation 'sqlite' on page 28 undefined on input line 305.
+
+[28.28]
+
+LaTeX Warning: Citation 'ladybug' on page 29 undefined on input line 328.
+
+[29.29] (/usr/share/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2025/11/14 1.11b listings language file
 )
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [28.28]
-[29.29]
+ [30.30]
+[31.31]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
 LaTeX Font Info:    Font shape `OT1/cmtt/m/n' will be
-(Font)              scaled to size 10.72006pt on input line 518.
+(Font)              scaled to size 10.72006pt on input line 539.
 Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `cmtt' (encoding: OT1).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
- [30.30] [31.31] [32.32]
+ [32.32] [33.33] [34.34]
 
-LaTeX Warning: Reference `sec:modules' on page 33 undefined on input line 671.
+LaTeX Warning: Reference `sec:modules' on page 35 undefined on input line 692.
 
-[33.33]
-Underfull \hbox (badness 10000) in paragraph at lines 729--729
+
+Underfull \hbox (badness 10000) in paragraph at lines 750--750
 []|\TU/XCharter(0)/m/n/10.95 High-volume, low-semantic-
  []
 
 
-Underfull \hbox (badness 1762) in paragraph at lines 729--729
-\TU/XCharter(0)/m/n/10.95 never pro-moted to Kuzu and
+Underfull \hbox (badness 10000) in paragraph at lines 750--750
+\TU/XCharter(0)/m/n/10.95 Con-nec-tion nodes pro-moted
  []
 
-[34.34]
+[35.35] [36.36]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
-) (./sections/05-ai.tex [35.35] [36.36]
+) (./sections/05-ai.tex [37.37] [38.38]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [37.37] [38.38] [39.39] [40.40]
-[41.41]) (./sections/06-desktop.tex [42.42] [43.43]
+ [39.39] [40.40] [41.41]
+[42.42] [43.43]) (./sections/06-desktop.tex [44.44]
 Underfull \hbox (badness 10000) in paragraph at lines 144--144
 []|\TU/XCharter(0)/m/n/10.95 Ex-poses workspace state (cur-rent
  []
@@ -3329,13 +3351,13 @@ Underfull \hbox (badness 2277) in paragraph at lines 144--144
 \TU/XCharter(0)/m/n/10.95 workspace, window-to-workspace map-
  []
 
-[44.44] [45.45] [46.46]
+[45.45] [46.46] [47.47] [48.48]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
-
-Overfull \hbox (0.6116pt too wide) in paragraph at lines 291--295
+ [49.49]
+Overfull \hbox (0.6116pt too wide) in paragraph at lines 321--325
 \TU/XCharter(0)/m/n/10.95 The sys-tem en-forces these la-bels at read time: an 
 ap-pli-ca-tion with-out \TU/FiraSans(0)/m/n/10.95 clip-board.read.sen-
  []
@@ -3344,7 +3366,6 @@ ap-pli-ca-tion with-out \TU/FiraSans(0)/m/n/10.95 clip-board.read.sen-
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
-[47.47]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
@@ -3352,36 +3373,8 @@ Package fontspec Info:
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
-
- [48.48]
-
-Package fontspec Info: 
-(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
-
- [49.49]
-
-Package fontspec Info: 
-(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
-
-
-Package fontspec Info: 
-(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
-
-
-Overfull \hbox (3.23286pt too wide) in paragraph at lines 458--461
-[]\TU/XCharter(0)/m/n/10.95 Time-line dif-fers from Pres-ence: Pres-ence de-scri
-bes the cur-rent state and is ephemeral;
- []
 
 [50.50]
-
-Package fontspec Info: 
-(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
-
-
-Package fontspec Info: 
-(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
-
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
@@ -3391,7 +3384,16 @@ Package fontspec Info:
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
+
+Package fontspec Info: 
+(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
+
  [52.52]
+Overfull \hbox (3.23286pt too wide) in paragraph at lines 488--491
+[]\TU/XCharter(0)/m/n/10.95 Time-line dif-fers from Pres-ence: Pres-ence de-scri
+bes the cur-rent state and is ephemeral;
+ []
+
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
@@ -3400,7 +3402,11 @@ Package fontspec Info:
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [53.53]
+[53.53]
+
+Package fontspec Info: 
+(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
+
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
@@ -3411,10 +3417,10 @@ Package fontspec Info:
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
 
+Package fontspec Info: 
+(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
-LaTeX Warning: Reference `sec:modules' on page 55 undefined on input line 731.
-
-[55.55]
+ [55.55]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
@@ -3425,51 +3431,15 @@ Package fontspec Info:
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
 
-Package fontspec Info: 
-(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
+LaTeX Warning: Reference `sec:modules' on page 57 undefined on input line 761.
 
-Package fontspec Info: 
-(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
-
- [57.57]
-
-LaTeX Warning: Reference `sec:modules' on page 58 undefined on input line 870.
-
-[58.58] [59.59]
-
-LaTeX Warning: Reference `sec:modules' on page 60 undefined on input line 988.
-
-[60.60]
+[57.57]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [61.61] [62.62] [63.63] [64.64]
-
-Package fontspec Info: 
-(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
-
- [65.65]
-
-Package fontspec Info: 
-(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
-
-
-
-LaTeX Warning: Citation 'swaync' on page 66 undefined on input line 1364.
-
-[66.66]
-
-LaTeX Warning: Citation 'ext:session-lock' on page 67 undefined on input line 1
-391.
-
-[67.67] [68.68]
-
-Package fontspec Info: 
-(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
-
- [69.69]
+ [58.58]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
@@ -3482,76 +3452,131 @@ Package fontspec Info:
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [70.70]
+ [59.59]
+
+LaTeX Warning: Reference `sec:modules' on page 60 undefined on input line 900.
+
+[60.60] [61.61]
+
+LaTeX Warning: Reference `sec:modules' on page 62 undefined on input line 1018.
+
+
+[62.62]
+
+Package fontspec Info: 
+(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
+
+ [63.63] [64.64] [65.65] [66.66]
+
+Package fontspec Info: 
+(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
+
+ [67.67]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
 
 
-LaTeX Warning: Citation 'mpv' on page 71 undefined on input line 1648.
+LaTeX Warning: Citation 'swaync' on page 68 undefined on input line 1394.
+
+[68.68]
+
+LaTeX Warning: Citation 'ext:session-lock' on page 69 undefined on input line 1
+421.
+
+[69.69] [70.70]
+
+Package fontspec Info: 
+(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
+
+ [71.71] [72.72]
+
+Package fontspec Info: 
+(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
-[71.71]
 
-LaTeX Warning: Citation 'starship' on page 72 undefined on input line 1693.
+Package fontspec Info: 
+(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
+
+ [73.73]
+
+Package fontspec Info: 
+(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
 
-Overfull \hbox (5.45192pt too wide) in paragraph at lines 1705--1711
+
+LaTeX Warning: Citation 'mpv' on page 74 undefined on input line 1735.
+
+
+Package fontspec Info: 
+(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
+
+[74.74]
+
+LaTeX Warning: Citation 'starship' on page 75 undefined on input line 1780.
+
+
+Package fontspec Info: 
+(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
+
+
+Overfull \hbox (5.45192pt too wide) in paragraph at lines 1792--1798
 \TU/XCharter(0)/m/n/10.95 on theme ac-ti-va-tion. The user opts in by adding \T
 U/FiraSans(0)/m/n/10.95 in-cludes 󰎪 [”starship-theme-prompt.toml”]
  []
 
-[72.72]
-Underfull \hbox (badness 10000) in paragraph at lines 1762--1762
+[75.75]
+Underfull \hbox (badness 10000) in paragraph at lines 1849--1849
 []|\TU/XCharter(0)/m/n/10.95 En-able in Set-tings; Set-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1762--1762
+Underfull \hbox (badness 10000) in paragraph at lines 1849--1849
 \TU/XCharter(0)/m/n/10.95 tings dae-mon writes
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1762--1762
+Underfull \hbox (badness 10000) in paragraph at lines 1849--1849
 \TU/FiraSans(0)/m/n/10.95 󰏂/.con-fig/ghostty/theme-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1762--1762
+Underfull \hbox (badness 10000) in paragraph at lines 1849--1849
 \TU/FiraSans(0)/m/n/10.95 󰏂/.con-fig/starship-theme.toml\TU/XCharter(0)/m/n/
 10.95 ,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1762--1762
+Underfull \hbox (badness 10000) in paragraph at lines 1849--1849
 \TU/XCharter(0)/m/n/10.95 merged by Star-ship at
  []
 
 
-Underfull \hbox (badness 2205) in paragraph at lines 1762--1762
+Underfull \hbox (badness 2205) in paragraph at lines 1849--1849
 []|\TU/XCharter(0)/m/n/10.95 En-able in Set-tings; gen-er-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1762--1762
+Underfull \hbox (badness 10000) in paragraph at lines 1849--1849
 \TU/XCharter(0)/m/n/10.95 ates \TU/FiraSans(0)/m/n/10.95 󰏂/.con-fig/nvim/them
 e-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1762--1762
+Underfull \hbox (badness 10000) in paragraph at lines 1849--1849
 \TU/FiraSans(0)/m/n/10.95 managed.lua\TU/XCharter(0)/m/n/10.95 . User adds
  []
 
-[73.73]) (./sections/07-apps-modules.tex [74.74] [75.75]
+[76.76]) (./sections/07-apps-modules.tex [77.77] [78.78]
 Underfull \hbox (badness 2698) in paragraph at lines 140--140
 []|\TU/XCharter(0)/m/n/10.95 Toast auto-closes af-ter ap-prox-i-
  []
@@ -3561,37 +3586,27 @@ Underfull \hbox (badness 2698) in paragraph at lines 140--140
 []|\TU/XCharter(0)/m/n/10.95 Toast auto-closes af-ter ap-prox-i-
  []
 
-[76.76]
-
-Package fontspec Info: 
-(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
-
- [77.77]
-Overfull \hbox (3.56274pt too wide) in paragraph at lines 240--244
-\TU/XCharter(0)/m/n/10.95 from the right-click con-text menu in the launcher or via a command-line flag. Ephemeral
- []
-
-[78.78]
-
-Package fontspec Info: 
-(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
-
- [79.79]
+[79.79]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
  [80.80]
+Overfull \hbox (3.56274pt too wide) in paragraph at lines 240--244
+\TU/XCharter(0)/m/n/10.95 from the right-click con-text menu in the launcher or via a command-line flag. Ephemeral
+ []
+
+[81.81]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [81.81]
+ [82.82]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [82.82] [83.83]
+ [83.83]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
@@ -3601,97 +3616,104 @@ Package fontspec Info:
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [86.86]
-[87.87] [88.88]) (./sections/08-platform.tex [89.89]
+ [86.86] [87.87]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [90.90]
+ [88.88]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [91.91] [92.92]
+ [89.89]
+[90.90] [91.91] [92.92]) (./sections/08-platform.tex [93.93]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
 
-[93.93]
+Package fontspec Info: 
+(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
+
+ [94.94] [95.95]
+[96.96]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [94.94]
+
+Package fontspec Info: 
+(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
+
+ [97.97]
 Overfull \hbox (7.39204pt too wide) in paragraph at lines 304--307
 \TU/XCharter(0)/m/n/10.95 Gam-ing and Win-dows ap-pli-ca-tion com-pat-i-bil-ity are first-class fea-tures, not af-terthoughts.
  []
 
-[95.95] [96.96] [97.97] [98.98] [99.99]
+[98.98] [99.99] [100.100] [101.101] [102.102] [103.103]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [100.100]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [101.101]
+ [104.104]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [102.102] [103.103] [104.104] [105.105] [106.106] [107.107] [108.108] [109.109
-]
+ [105.105]
+[106.106] [107.107] [108.108] [109.109] [110.110] [111.111] [112.112] [113.113]
+
 Overfull \hbox (11.14728pt too wide) in paragraph at lines 1178--1180
 []\TU/FiraSans(0)/b/n/10.95 Re-mote at-tes-ta-tion as net-work gate.[][] \TU/XC
 harter(0)/m/n/10.95 TPM Re-mote At-tes-ta-tion, de-scribed in Sec-tion []󰃥.
 󰃡.󰃞󰃝[],
  []
 
-[110.110]) (./sections/09-companion-health.tex [111.111] [112.112] [113.113]
+) (./sections/09-companion-health.tex [114.114] [115.115] [116.116] [117.117]
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
 
-[114.114]) (./sections/10-sustainability.tex [115.115]
-
-Package fontspec Info: 
-(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
-
- [116.116]
-
-LaTeX Warning: Citation 'forgejo' on page 117 undefined on input line 91.
-
-
-LaTeX Warning: Citation 'codeberg' on page 117 undefined on input line 92.
-
-[117.117]
-
-Package fontspec Info: 
-(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
-
- [118.118]
-
-Package fontspec Info: 
-(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
-
+[118.118]) (./sections/10-sustainability.tex
 
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
  [119.119] [120.120]
 
+LaTeX Warning: Citation 'forgejo' on page 121 undefined on input line 91.
+
+
+LaTeX Warning: Citation 'codeberg' on page 121 undefined on input line 92.
+
+
 Package fontspec Info: 
 (fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
- [121.121] [122.122] [123.123] [124.124]) [125.125] [126.126
+[121.121] [122.122]
+
+Package fontspec Info: 
+(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
 
 
-] [127.127] [128.128]
+Package fontspec Info: 
+(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
+
+ [123.123] [124.124]
+
+Package fontspec Info: 
+(fontspec)             FiraSans-Regular scale = 0.9127096266098397.
+
+ [125.125] [126.126] [127.127]) [128.128] [129.129
+
+
+] [130.130] [131.131]
 Overfull \hbox (13.99483pt too wide) in paragraph at lines 98--98
 []\TU/XCharter(0)/m/n/10.95 NL-net Foun-da-tion. \TU/XCharter(0)/m/it/10.95 NL-n
 et Foun-da-tion\TU/XCharter(0)/m/n/10.95 . \TU/XCharter(0)/m/sc/10.95 󰀠󰀝
@@ -3700,7 +3722,7 @@ et Foun-da-tion\TU/XCharter(0)/m/n/10.95 . \TU/XCharter(0)/m/sc/10.95 󰀠󰀝
 󰃢). 
  []
 
-[129.129]
+[132.132]
 Overfull \hbox (10.92746pt too wide) in paragraph at lines 98--98
 []\TU/XCharter(0)/m/n/10.95 Tail-wind Labs. \TU/XCharter(0)/m/it/10.95 Tail-wind
  CSS\TU/XCharter(0)/m/n/10.95 . \TU/XCharter(0)/m/sc/10.95 󰀠󰀝󰀗\TU/XCha
@@ -3717,12 +3739,12 @@ arter(0)/m/n/10.95 : []$\TU/FiraSans(0)/m/n/10.95 https : / / www . qt . io$[]
 \TU/XCharter(0)/m/n/10.95 (vis-ited on 󰃟󰃝󰃟󰃣-󰃝󰃟-󰃞󰃦). 
  []
 
-[130.130] (/usr/share/texmf-dist/tex/generic/stringenc/se-utf32be.def
+[133.133] (/usr/share/texmf-dist/tex/generic/stringenc/se-utf32be.def
 File: se-utf32be.def 2019/11/29 v1.12 stringenc: UTF-32BE
 )
 (/usr/share/texmf-dist/tex/generic/stringenc/se-pdfdoc.def
 File: se-pdfdoc.def 2019/11/29 v1.12 stringenc: PDFDocEncoding
-) [131.131]
+) [134.134]
 (./main.aux)
  ***********
 LaTeX2e <2025-11-01>
@@ -3746,15 +3768,15 @@ Package logreq Info: Writing requests to 'main.run.xml'.
 )
 
 Here is how much of LuaTeX's memory you used:
- 60524 strings out of 476076
- 596190,2373549 words of node,token memory allocated
+ 60574 strings out of 476076
+ 745234,2373549 words of node,token memory allocated
  1272 words of node memory still in use:
    7 hlist, 2 vlist, 2 rule, 1 local_par, 4 glue, 4 kern, 1 penalty, 3 glyph, 10
 7 attribute, 88 glue_spec, 54 attribute_list, 3 write, 43 pdf_action nodes
-   avail lists: 1:10,2:14529,3:2169,4:13622,5:11919,6:343,7:21746,8:124,9:26908,
-10:40,11:1186,12:4
- 79984 multiletter control sequences out of 65536+600000
- 245 fonts using 43095839 bytes
+   avail lists: 1:10,2:15926,3:2171,4:15506,5:12945,6:343,7:22051,8:124,9:29528,
+10:40,11:1301,12:4
+ 80007 multiletter control sequences out of 65536+600000
+ 245 fonts using 43096479 bytes
  94i,21n,142p,11228b,2791s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
 warning  (pdf backend): unreferenced destination with name 'P:authorinfo:Tim\040
@@ -3769,10 +3791,10 @@ raSans-SemiBold.otf></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10
 .pfb></usr/share/texmf-dist/fonts/type1/public/mathdesign/mdbch/md-chr7y.pfb></u
 sr/share/texmf-dist/fonts/type1/public/mathdesign/mdbch/md-chri7m.pfb></usr/shar
 e/texmf-dist/fonts/type1/public/mathdesign/mdbch/md-chrma.pfb>
-Output written on main.pdf (131 pages, 736951 bytes).
+Output written on main.pdf (134 pages, 753129 bytes).
 
-PDF statistics: 2941 PDF objects out of 2984 (max. 8388607)
- 2740 compressed objects within 28 object streams
- 1483 named destinations out of 1728 (max. 1048576)
+PDF statistics: 2976 PDF objects out of 2984 (max. 8388607)
+ 2772 compressed objects within 28 object streams
+ 1510 named destinations out of 1728 (max. 1048576)
  765 words of extra memory for PDF output out of 10000 (max. 100000000)
 

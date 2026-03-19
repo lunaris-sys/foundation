@@ -216,11 +216,11 @@ store anything. Figure~\ref{fig:event-flow} shows the full pipeline.
 	\node[proc, minimum width=2.2cm, minimum height=5.4cm, text width=1.8cm]
 	(bus) at (7.0, 2.25) {Event Bus\\(Unix socket\\+ protobuf)};
 	
-	% Graph Writer (x=10.2), SQLite (x=12.8), Kuzu (x=12.8 lower)
+	% Graph Writer (x=10.2), SQLite (x=12.8), Ladybug (x=12.8 lower)
 	\node[proc]  (gw)     at (10.2, 2.25) {Graph\\Writer};
 	\node[store] (sqlite) at (12.8, 2.25) {SQLite\\(writes)};
 	\node[proc]  (promo)  at (12.8, -0.6) {Promotion\\pass};
-	\node[store] (kuzu)   at (10.2, -0.6) {Kuzu\\(queries)};
+	\node[store] (ladybug)   at (10.2, -0.6) {Ladybug\\(queries)};
 	
 	% Source arrows
 	\draw[arr] (ebpf)    -- (norm);
@@ -230,11 +230,11 @@ store anything. Figure~\ref{fig:event-flow} shows the full pipeline.
 	\draw[arr] (journal) -- (parser);
 	\draw[arr] (parser)  -- (bus.west |- parser);
 	
-	% Bus -> Writer -> SQLite, SQLite -> Promotion -> Kuzu
+	% Bus -> Writer -> SQLite, SQLite -> Promotion -> Ladybug
 	\draw[arr] (bus.east) -- (gw);
 	\draw[arr] (gw)     -- (sqlite);
 	\draw[arr] (sqlite) -- (promo);
-	\draw[arr] (promo)  -- (kuzu);
+	\draw[arr] (promo)  -- (ladybug);
 	
 \end{tikzpicture}
 \caption{Event pipeline. Raw kernel events pass through the eBPF normalizer
@@ -243,7 +243,7 @@ through a rule-based parser. First-party app events and compositor events
 arrive already structured. All sources converge on the Event Bus, which
 validates and forwards to the Graph Writer Daemon. The Graph Writer writes
 to SQLite at full event throughput; a background promotion pass periodically
-moves semantically valuable nodes into Kuzu for graph traversal queries.}
+moves semantically valuable nodes into Ladybug for graph traversal queries.}
 \label{fig:event-flow}
 \end{figure}
 
@@ -322,26 +322,47 @@ Anomaly Detector.
 
 Raw eBPF events are retained in SQLite for 30 days and then discarded. They
 serve the anomaly detection window and nothing else; they are never promoted
-to Kuzu.
+to Ladybug.
 
-\paragraph{Kuzu as the query store.}
-\emph{Kuzu}~\cite{kuzu} is the query store: an embedded graph database written
+\paragraph{Ladybug as the query store.}
+\emph{Ladybug}~\cite{ladybug} is the query store: an embedded graph database written
 in C++ with first-class Rust bindings, released under the MIT license.
 Embedded means it runs inside the Graph Daemon process with no separate server
-process, no network port, and no additional service to manage. Kuzu uses
+process, no network port, and no additional service to manage. Ladybug uses
 \emph{Cypher}~\cite{opencypher} as its query language, which is the interface
 the AI daemon, first-party applications, and the FUSE timeline daemon all use
 for graph traversal.
 
-Kuzu operates on a curated graph, not a raw event log. Raw eBPF noise never
+Ladybug is a community fork of \emph{Kuzu}~\cite{kuzu}, an embedded graph
+database originally developed by Kùzu Inc. and based on research published at
+VLDB. In October 2025, Kùzu Inc. was acquired by Apple and archived the
+open-source Kuzu repository without a migration path. Ladybug emerged as the
+primary community-maintained continuation: it carries the full Kuzu codebase,
+Cypher API, and Rust bindings forward under the same MIT license, with active
+releases continuing from where Kuzu left off.
+
+This dependency carries a known risk that is acknowledged rather than
+minimised. Ladybug's contributor base is small and its long-term governance is
+not yet as established as projects like SQLite or DuckDB. The mitigation is
+architectural: the Graph Daemon is the sole component that opens the Ladybug
+database files directly. No other part of the system has a compile-time or
+runtime dependency on Ladybug's API. A migration to an alternative embedded
+graph database -- whether DuckDB with its \texttt{duckpgq} graph extension,
+a future stable fork, or a custom SQLite-based traversal layer -- would be
+contained entirely within the Graph Daemon and require no changes to any
+consumer of the graph query interface. This isolation is a deliberate design
+choice that applies the same dependency containment principle used throughout
+the rest of the system.
+
+Ladybug operates on a curated graph, not a raw event log. Raw eBPF noise never
 reaches it. Only semantically valuable nodes are promoted here: \texttt{File},
 \texttt{App}, \texttt{Session}, \texttt{Project}, \texttt{UserAction}, and
-their relationships. This keeps the Kuzu graph clean and traversal queries
+their relationships. This keeps the Ladybug graph clean and traversal queries
 fast.
 
 \paragraph{Promotion pipeline.}
 A background promotion pass runs periodically during idle periods, reading
-from SQLite and writing promoted nodes and edges to Kuzu. The pass is
+from SQLite and writing promoted nodes and edges to Ladybug. The pass is
 incremental: it tracks a high-water mark in SQLite and processes only new
 records since the last run. Promotion criteria are deterministic: \texttt{Event}
 nodes that have been correlated into \texttt{UserAction} clusters, \texttt{File}
@@ -350,11 +371,11 @@ nodes that have been accessed more than once, and all \texttt{Session} and
 have not been correlated are not promoted.
 
 The two stores have different query surfaces. SQLite answers time-range
-lookups over recent raw events; Kuzu answers multi-hop graph traversals over
+lookups over recent raw events; Ladybug answers multi-hop graph traversals over
 semantic history. The Graph Daemon presents a unified query interface to all
 callers; the layer boundary is an implementation detail they never see.
 
-\begin{lstlisting}[language=SQL, caption={Example Cypher query against Kuzu: files accessed last Tuesday}]
+\begin{lstlisting}[language=SQL, caption={Example Cypher query against Ladybug: files accessed last Tuesday}]
 MATCH (f:File)-[:OPENED_BY]->(a:App)
 WHERE f.last_modified > datetime('2026-03-01')
 RETURN f.path, a.name
@@ -377,8 +398,8 @@ models the domain naturally.
 
 The write architecture that feeds the graph is described in
 Section~\ref{sec:backpressure}: SQLite absorbs the high-frequency event
-stream, and a promotion pipeline moves semantically valuable data into Kuzu
-for graph traversal. This section describes the Kuzu graph itself: its schema,
+stream, and a promotion pipeline moves semantically valuable data into Ladybug
+for graph traversal. This section describes the Ladybug graph itself: its schema,
 ingestion tiers, and the data that lives in it.
 
 \paragraph{Why not RDF and SPARQL.}
@@ -409,7 +430,7 @@ Figure~\ref{fig:kg-schema} shows the core node types and their relationships.
 The schema is intentionally minimal at this stage; it will grow as the system
 matures. \texttt{File}, \texttt{App}, \texttt{Session}, \texttt{Project},
 \texttt{Event}, and \texttt{UserAction} are the primary entities. Every raw
-occurrence from the event pipeline lands in SQLite first; promotion to Kuzu
+occurrence from the event pipeline lands in SQLite first; promotion to Ladybug
 happens after correlation into higher-level nodes. \texttt{UserAction} nodes
 are derived abstractions built from clusters of related events and represent
 meaningful activity rather than individual syscalls.
@@ -418,7 +439,7 @@ meaningful activity rather than individual syscalls.
 Not all event sources are equal in structure or volume, and the ingestion
 strategy reflects that. Three tiers operate independently. All three write
 to SQLite first via the write architecture described in
-Section~\ref{sec:backpressure}; promotion to Kuzu follows asynchronously.
+Section~\ref{sec:backpressure}; promotion to Ladybug follows asynchronously.
 
 \emph{Tier~1: structured sources.} eBPF events, compositor events, and
 first-party app events arrive already typed and schema-validated. They are
@@ -714,14 +735,14 @@ policy defines how long data lives, with user control at every tier.
 Raw eBPF events (SQLite) &
   30 days &
   High-volume, low-semantic-value syscall events. Retained for the
-  anomaly detection window; never promoted to Kuzu and discarded
+  anomaly detection window; never promoted to Ladybug and discarded
   after expiry. \\
-Semantic nodes (Kuzu) &
+Semantic nodes (Ladybug) &
   12 months rolling &
   File, App, Session, and NetworkConnection nodes promoted from SQLite.
   This is where AI query value lives. Nodes past the window
   are summarized rather than deleted. \\
-Pinned nodes (Kuzu) &
+Pinned nodes (Ladybug) &
   Permanent &
   Nodes explicitly marked by the user, active Project nodes, and nodes
   recently referenced in AI queries. Only manual deletion removes these. \\

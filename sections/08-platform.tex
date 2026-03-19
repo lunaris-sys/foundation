@@ -580,7 +580,7 @@ The Knowledge Graph is the most sensitive component in the system. It
 accumulates a detailed record of everything the user does and its access
 control must be correspondingly rigorous.
 
-No application has direct access to the Kuzu database files. All graph access
+No application has direct access to the Ladybug database files. All graph access
 goes through the \emph{Graph Daemon}, a privileged system process that is the
 sole reader and writer of the graph. Every other component communicates only
 with the daemon over a defined IPC interface, and the daemon checks permissions
@@ -617,8 +617,8 @@ restricted regardless of node-level permissions: file content snippets, for
 example, require an explicit extra permission separate from general
 \texttt{File} node access.
 
-\paragraph{Kuzu file protection.}
-The Kuzu database files are protected by three independent layers. At the
+\paragraph{Ladybug file protection.}
+The Ladybug database files are protected by three independent layers. At the
 filesystem layer, the Graph Daemon runs as a dedicated system user
 \texttt{graph-daemon} and the database files are owned exclusively by this
 user with \texttt{600} permissions. A successful sandbox escape by an
@@ -629,7 +629,7 @@ if filesystem permissions were bypassed. At the encryption layer, the graph
 directory lives inside a LUKS-encrypted loopback image that the daemon mounts
 at startup using a key retrieved from the Kernel Keyring. When the daemon
 stops, cleanly or via crash, the image is unmounted and the key is discarded
-from memory. During any period when the Graph Daemon is not running, the Kuzu
+from memory. During any period when the Graph Daemon is not running, the Ladybug
 files are LUKS-encrypted ciphertext unreadable even to root.
 
 \paragraph{Cypher injection prevention.}
@@ -719,10 +719,10 @@ traffic.
 A single daemon process that both writes graph data and answers queries is a
 larger attack surface than necessary. The Graph Daemon is therefore split into
 two cooperating processes: \texttt{graph-daemon-write} accepts events from the
-Event Bus and writes to Kuzu, and \texttt{graph-daemon-read} answers queries
+Event Bus and writes to Ladybug, and \texttt{graph-daemon-read} answers queries
 from applications and daemons.
 
-\texttt{graph-daemon-read} opens the Kuzu database in read-only mode. A
+\texttt{graph-daemon-read} opens the Ladybug database in read-only mode. A
 compromised read process cannot modify graph data. \texttt{graph-daemon-write}
 does not expose a query interface to external callers; a compromised write
 process cannot be queried for data it has written. The two processes communicate
@@ -747,7 +747,7 @@ serve data: the running process is the trust boundary.
 Several controls bound what an attacker can do from this position.
 \texttt{PrivateNetwork=true} means the data cannot be sent over the network
 from the daemon process itself; exfiltration requires additional steps through
-another compromised component. The read-only Kuzu handle prevents writing or
+another compromised component. The read-only Ladybug handle prevents writing or
 deleting data. The Anomaly Detector monitors the Audit Log for query volume
 spikes and unusual node-type access patterns; a compromised daemon issuing a
 full-graph dump will generate anomaly alerts unless the attacker also
@@ -1110,7 +1110,7 @@ than code execution.
 When multiple users share a system, their isolation goes deeper than
 traditional Unix file permissions because the Knowledge Graph, AI
 configuration, and Audit Log introduce sensitive state beyond the home
-directory. Each user has a separate Kuzu instance, a separate Graph Daemon
+directory. Each user has a separate Ladybug instance, a separate Graph Daemon
 process running under their own system user, and a separate Audit Log. These
 are not shared resources with access control layered on top; they are
 separate instances that other users' processes cannot reach.

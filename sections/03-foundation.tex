@@ -311,9 +311,12 @@ roughly 2018--2019.
 \textbf{Requirement} & \textbf{Reason} \\
 \midrule
 Linux kernel 6.6 or newer &
-  Required for the eBPF features used by the event monitoring system
-  (Section~\ref{sec:ebpf}) and for Intel CET hardware stack protection.
-  Included in current Fedora releases. \\
+  Required for the eBPF program types used by the event monitoring system
+  (Section~\ref{sec:ebpf}): \texttt{BPF\_PROG\_TYPE\_TRACEPOINT} for syscall
+  attachment, \texttt{BPF\_PROG\_TYPE\_PERF\_EVENT} for process lifecycle,
+  and CO-RE (Compile Once, Run Everywhere) via BTF type information for
+  portable eBPF binaries. Kernel 6.6 is the LTS release that ships with
+  current Fedora. \\
 Vulkan-capable GPU &
   Required for hardware-accelerated compositing and for Windows compatibility
   via DXVK and vkd3d-proton. Covered automatically on AMD and Intel via Mesa;
@@ -324,6 +327,26 @@ systemd 255 or newer &
 \bottomrule
 \end{tabularx}
 \end{table}
+
+\paragraph{eBPF program types and CO-RE.}
+The event monitoring system uses three eBPF program types. Tracepoint programs
+attach to kernel syscall entry and exit points (\texttt{openat},
+\texttt{execve}, \texttt{connect}, and others) and fire on every matching
+call across all processes. Perf event programs handle process lifecycle events
+including fork and exit. Ring buffer maps transfer collected events to
+userspace with low overhead and without copying data through the kernel I/O
+path.
+
+All eBPF programs are compiled to eBPF bytecode at build time using the
+\texttt{aya} framework and ship as pre-compiled binaries in the system image.
+No compiler is required on the end-user's machine. The programs use
+\emph{CO-RE} (Compile Once, Run Everywhere)~\cite{ebpf:core}, a mechanism
+introduced in Linux 5.2 that uses BTF (BPF Type Format) kernel debug
+information to make eBPF programs portable across kernel versions without
+recompilation. Kernel 6.6 guarantees that the required BTF information is
+present and that the specific tracepoint hooks this system attaches to are
+stable. Kernels older than 5.8 lack ring buffer support entirely; kernels
+between 5.8 and 6.5 may work but are not tested and not supported.
 
 \paragraph{Vulkan.}
 \emph{Vulkan}~\cite{vulkan} is a low-level graphics and
@@ -337,6 +360,30 @@ vkd3d-proton. On AMD and Intel hardware, Vulkan support is provided by
 driver stack included with Fedora. Nvidia hardware requires
 Nvidia's proprietary driver because the open-source \texttt{nouveau} driver does
 not provide Vulkan support on most hardware generations.
+
+\paragraph{Hardware support scope.}
+The design principle ``works on first boot'' requires an honest statement of
+scope. It means: on supported hardware classes, the system boots, the desktop
+starts, networking works, and audio works without manual configuration. It does
+not mean every piece of hardware on the market works automatically, and it does
+not compete with the decades of work that distributions like Ubuntu have put
+into hardware compatibility at scale.
+
+The supported hardware classes where this principle holds are mainstream x86-64
+laptops and desktops with Intel or AMD CPUs released after 2018, with
+integrated or discrete Intel or AMD graphics. This covers the large majority
+of consumer hardware available today.
+
+Two known categories fall outside this guarantee. Nvidia discrete GPUs require
+the proprietary driver, which Fedora does not install by default for licensing
+reasons. The installer detects Nvidia hardware and provides a guided path to
+the proprietary driver, but this is a manual step with a restart, not a
+transparent first-boot experience. Broadcom Wi-Fi adapters, found in some
+Apple hardware and a smaller set of laptops, require a proprietary driver that
+is not included in the Fedora kernel and needs manual installation. These
+limitations are structural to the Linux driver ecosystem and not specific to
+this project; they are documented explicitly rather than discovered by users
+after installation.
 
 \subsection{Configuration Format}
 \label{sec:config}

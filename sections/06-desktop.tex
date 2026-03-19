@@ -178,6 +178,36 @@ provides full modern web rendering capabilities without the memory cost of an
 Electron-style approach. The shell is a Wayland client that uses
 \texttt{wlr-layer-shell} to anchor its surfaces to screen edges.
 
+\paragraph{WebKitGTK on Fedora.}
+WebKitGTK is the GTK port of the WebKit rendering engine and is the WebView
+backend Tauri uses on Linux. It is worth addressing its known weaknesses
+directly, because the argument ``WebKitGTK is already present on any modern
+Linux desktop'' can sound more reassuring than the reality warrants.
+
+WebKitGTK has historically lagged behind WebKit upstream in JavaScript engine
+performance and in adopting newer web platform features. It has also shown
+rendering inconsistencies between distributions when the installed version
+differs. On some distributions, the packaged version trails upstream by several
+months, creating a fragmented target for applications that rely on specific CSS
+or JavaScript behaviour.
+
+Fedora as the base distribution is the concrete mitigation for these problems.
+Fedora packages a recent WebKitGTK version promptly after upstream releases
+and carries security patches quickly. The project targets only Fedora, which
+means the WebKitGTK version in the OBS repository and in user systems is
+known and controlled. Applications are tested against this specific version.
+The fragmentation problem that affects multi-distribution projects -- where the
+same application must run correctly on WebKitGTK versions that differ by a
+year or more -- does not apply here.
+
+The remaining risk is JavaScript performance for complex UI interactions. This
+is a real trade-off relative to Chromium-based WebViews. For the use cases in
+this project -- settings panels, file browsers, launchers, and notification
+centers -- the performance difference is not perceptible. The trade-off would
+matter for applications with continuous animation at 60 frames per second or
+with heavy computational JavaScript; those use cases are not part of this
+system's first-party application set.
+
 \paragraph{What GTK is.}
 \emph{GTK} (GIMP Toolkit, now branded simply as GTK) is the most widely used
 UI toolkit on Linux~\cite{gtk}. It provides the standard set of interface
@@ -1454,24 +1484,98 @@ community themes work. A theme is not limited to colors: it can cover cursor,
 sounds, wallpaper, typography, motion, shadows, icons, the login screen, and
 the terminal prompt alongside the visual layer.
 
+\paragraph{Design principles.}
+Seven principles govern the visual design language. They are constraints on
+all design decisions, not aspirations.
+
+Content comes first. The shell recedes visually. Colors, shadows, and
+animations exist to frame content, not to be noticed. A user who is working
+should forget the shell is there.
+
+Consistency comes from the system, not from discipline. No developer decides
+an arbitrary spacing value. All visual decisions come from the token system.
+What is not in the token system does not exist.
+
+Depth is used sparingly and always communicates meaning. A popup floats above
+content; a sidebar sits behind an active window. Shadows are not decoration.
+Elevation always means something.
+
+Motion is informative, not decorative. No animation exists that does not
+convey direction, feedback, or causality. Elements that appear come from
+somewhere. Elements that disappear go somewhere.
+
+Typography is the primary visual element. Strong typographic hierarchy reduces
+the need for decorative elements. Bold for primary labels, regular for content,
+light for metadata. Italic is reserved for figure labels in diagrams.
+
+Color communicates state, not style. The accent color marks interactive
+elements and active state. Semantic colors -- red, amber, green -- mark error,
+warning, and success respectively. No color exists purely for decoration.
+
+Accessibility is not a feature. High Contrast is a fully designed built-in
+theme, not an afterthought. Reduce Motion is always respected. Font size is
+scalable system-wide.
+
+\paragraph{Surface token hierarchy.}
+Themes use a surface-aware token hierarchy rather than flat global tokens.
+This is what makes the Panda theme possible: different surfaces declare
+different background colors while sharing accent, border, and semantic colors.
+The hierarchy is:
+
+\begin{lstlisting}[language=bash, caption={Surface token hierarchy}]
+color.bg.shell      # topbar, sidebar, dock
+color.bg.app        # application window background
+color.bg.card       # cards, elevated elements within apps
+color.bg.overlay    # popups, modals, dropdowns
+color.bg.input      # text fields, search inputs
+color.fg.primary    # primary text
+color.fg.secondary  # secondary and metadata text
+color.fg.disabled   # disabled state
+color.accent        # interactive elements, active state
+color.border        # dividers and outlines
+\end{lstlisting}
+
+ui-kit components reference these surface-specific tokens rather than a single
+\texttt{--color-bg}. A button inside a card uses \texttt{--color-bg-card}; a
+dropdown uses \texttt{--color-bg-overlay}. Theme authors set these values per
+surface; the shell renders each surface with the correct background
+automatically.
+
+\paragraph{Built-in themes.}
+Four themes ship with the system, all generated from the same token structure.
+
+\emph{Panda} is the default. It uses a split-surface design: shell surfaces
+(topbar, sidebar, dock) use a dark background, while application surfaces use
+a light background. This creates a high-contrast frame around the working area
+-- the shell is the tool, the application is the focus. When the user is in
+full-screen, the distinction disappears gracefully because only the application
+surface is visible. The Panda theme works because the surface token hierarchy
+makes it a first-class design choice rather than a hack: \texttt{color.bg.shell}
+is set dark and \texttt{color.bg.app} is set light, and every component that
+uses these tokens renders correctly without any per-component special casing.
+
+\emph{Light} sets all surfaces to light variants. \emph{Dark} sets all
+surfaces to dark variants. Both are fully supported and receive the same design
+attention as Panda. A user who prefers a uniform desktop has an equally polished
+option.
+
+\emph{High Contrast} targets \emph{WCAG~AAA}~\cite{wcag} accessibility
+compliance, which requires a minimum contrast ratio of 7:1 between text and
+its background. It uses no transparency effects, no gradients, and conveys no
+information through color alone. It has both a dark and light variant and is
+generated from the same token system as the others. \texttt{blur.enabled} is
+set to \texttt{false} automatically for this theme.
+
 \paragraph{Token system.}
 All themes are defined in TOML and compiled to platform-specific outputs by
 the build system. The TOML file is the single source of truth; no theme value
-exists anywhere else. From one \texttt{tokens.toml}, the build generates:
-
-\begin{itemize}
-  \item CSS custom properties for the Tauri shell and all first-party
-    applications, applied via a root stylesheet loaded at startup.
-  \item A GTK4 CSS theme, applied via \texttt{gtk-theme-name} in
-    \texttt{\textasciitilde/.config/gtk-4.0/settings.ini}.
-  \item A Wine \texttt{.msstyles} file. Wine~\cite{archwiki:wine} is the
-    compatibility layer that runs Windows applications on Linux; it has a
-    visual theme system based on Microsoft's \texttt{.msstyles} format, the
-    same format used for Windows XP visual styles. Generating one from tokens
-    means Windows applications running under Wine use the same accent color and
-    surface colors as the rest of the desktop.
-  \item Base dark and light palettes for GTK3 and Qt.
-\end{itemize}
+exists anywhere else. From one \texttt{tokens.toml}, the build generates CSS
+custom properties for the Tauri shell and all first-party applications applied
+via a root stylesheet loaded at startup; a GTK4 CSS theme applied via
+\texttt{gtk-theme-name} in \texttt{\textasciitilde/.config/gtk-4.0/settings.ini};
+a Wine \texttt{.msstyles} file so that Windows applications running under
+Wine use the same accent color and surface colors as the rest of the desktop;
+and base dark and light palettes for GTK3 and Qt.
 
 Changing the accent color in the TOML file propagates to every output on the
 next build; in a live switch (see below), the CSS custom property update is
@@ -1488,23 +1592,6 @@ immediately without a reload. When Focus Mode deactivates, the user's
 configured theme accent is restored. Project accent colors do not affect GTK4,
 Qt, or Wine theming; they apply to the Tauri shell and first-party applications
 only. This scope is disclosed in Settings.
-
-\paragraph{Built-in themes.}
-Four themes ship with the system. Dark and Light are standard high-contrast
-variants. High Contrast targets
-\emph{WCAG~AAA}~\cite{wcag} accessibility compliance, which requires a minimum
-contrast ratio of 7:1 between text and its background. WCAG (Web Content
-Accessibility Guidelines) is the international standard for digital
-accessibility maintained by the W3C; AAA is the highest of three conformance
-levels. The High Contrast theme uses no transparency effects, no gradients,
-and conveys no information through color alone; it is generated from the same
-token system as the others and has both a dark and light variant.
-
-Panda is the default and the most distinctive: a deliberate split-surface
-design where different UI regions are intentionally dark or light based on
-their function, creating a high-contrast frame around bright content. The
-exact palette values for all four themes are determined in the design phase;
-the token structure is fixed.
 
 \paragraph{GTK and Qt coverage.}
 GTK4 receives a full custom theme generated from tokens. GTK3 and Qt receive

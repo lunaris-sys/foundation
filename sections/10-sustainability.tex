@@ -33,7 +33,7 @@ store-backend           <- Store API service, PostgreSQL schema,
 compositor              <- cosmic-comp fork (standalone repo, not a
                            GitHub fork; upstream tracked via git remote)
 kernel-layer            <- eBPF programs, Event Bus daemon
-knowledge               <- SQLite write store, Kuzu query store,
+knowledge               <- SQLite write store, Ladybug query store,
                            Graph Daemon, promotion pipeline
 ai-layer                <- provider abstraction, MCP client, AI daemon
 notification-daemon     <- Notification daemon (Rust)
@@ -489,7 +489,7 @@ and collecting basic system events. The base distribution decision between
 Fedora and OpenSUSE Slowroll is pending and will be made before Phase 1 begins.
 A sustained write benchmark of the SQLite write store under simulated eBPF load
 targeting 5,000 events per second, combined with validation of the promotion
-pipeline into Kuzu for graph queries, is a Phase 0 exit criterion.
+pipeline into Ladybug for graph queries, is a Phase 0 exit criterion.
 
 \paragraph{Phase 1 and beyond.}
 Phase scope will be defined once Phase 0 is complete. The ordering of
