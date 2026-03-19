@@ -25,14 +25,20 @@ wiki                    <- user-facing wiki, API reference landing page,
 
 # OS image and distribution
 distro                  <- mkosi configuration, ISO generation,
-                           meta-packages, VM scripts, CI image pipeline
+                           meta-packages, VM scripts, CI image pipeline,
+                           top-level justfile, workspace-deps.toml
 store-backend           <- Store API service, PostgreSQL schema,
                            object storage integration
 
 # System layer
 compositor              <- cosmic-comp fork (standalone repo, not a
-                           GitHub fork; upstream tracked via git remote)
-kernel-layer            <- eBPF programs, Event Bus daemon
+                           GitHub fork; upstream tracked via git remote;
+                           own patches maintained as numbered series in
+                           patches/)
+kernel-layer            <- eBPF programs only (aya, cross-compiled to
+                           eBPF bytecode; developed and tested in VM only)
+event-bus               <- Event Bus daemon, protobuf schema definitions,
+                           Unix socket transport, event validation
 knowledge               <- SQLite write store, Ladybug query store,
                            Graph Daemon, promotion pipeline
 ai-layer                <- provider abstraction, MCP client, AI daemon
@@ -57,10 +63,10 @@ app-viewers             <- PDF Viewer, Image Viewer, Archive Manager
 
 # Shared libraries
 ui-kit                  <- component library, design token system
-os-sdk                  <- Rust crate + TypeScript shell API
-                           (first-party apps)
-module-sdk              <- shell API subset, module scaffolding
-                           (third-party modules)
+sdk                     <- os-sdk (Rust crate + TypeScript shell API for
+                           first-party apps) and module-sdk (public subset,
+                           re-exported from os-sdk; third-party modules);
+                           single repo, two crates/packages, one version
 themes                  <- GTK4 theme, Wine .msstyles, token source
 
 # Community
@@ -155,6 +161,46 @@ container. It integrates cleanly with the Open Build Service. Confirming that
 mkosi handles the full build pipeline in practice is an open item pending
 actual use.
 
+\emph{just}~\cite{just} is the task runner for all development and CI
+workflows. Unlike \texttt{make}, \texttt{just} has no implicit rules, no
+file-dependency semantics, and no whitespace pitfalls. Every task is an
+explicit named recipe. The \texttt{distro} repository contains the top-level
+\texttt{justfile} that serves as the single entry point for all common
+operations:
+
+\begin{lstlisting}[language=bash, caption={Top-level just recipes (distro repo)}]
+just dev          # start Event Bus, Graph Daemon, and shell daemons
+                  # in the current session for daemon-level development
+just test         # run unit tests across all repos in dependency order
+just build-iso    # produce a production ISO via mkosi
+just build-dev    # produce a developer ISO with SSH and debug symbols
+just vm           # boot the developer ISO in QEMU with KVM acceleration
+just vm-nested    # run the shell inside the current Wayland session
+                  # (no VM; compositor-level development only)
+just vm-debug     # boot with GDB server exposed on port 1234
+just bench        # run graph-scale benchmarks against synthetic datasets
+just check-deps   # verify all repos are on the pinned dependency versions
+\end{lstlisting}
+
+Component repositories each have their own \texttt{justfile} for
+component-specific tasks. The top-level \texttt{justfile} delegates to them
+and handles cross-repo orchestration. A developer working on a single
+component never needs to leave that repository; the top-level recipes exist
+for integration work and release builds.
+
+The Rust codebase is organized into three Cargo workspaces, each scoped to
+a deployment boundary rather than an architectural layer. The
+\emph{system workspace} contains components that run with elevated privileges
+or as system daemons: \texttt{event-bus}, \texttt{kernel-layer},
+\texttt{knowledge}, \texttt{ai-layer}, \texttt{notification-daemon}, and
+\texttt{install-daemon}. The \emph{desktop workspace} contains components
+that run in the user session: \texttt{compositor}, \texttt{desktop-shell},
+\texttt{sdk}, and \texttt{app-lock-screen}. The \emph{apps workspace} contains
+first-party applications. Cross-workspace dependencies are only permitted
+over stable IPC interfaces, never via Cargo path dependencies. This boundary
+is enforced by the workspace structure: a component in the system workspace
+cannot import a crate from the desktop workspace at compile time.
+
 The \emph{Open Build Service}~\cite{obs} (OBS) handles packaging for all
 custom components. OBS is an openSUSE-hosted build infrastructure that takes
 RPM spec files and produces binary packages for multiple distributions and
@@ -246,8 +292,76 @@ European digital autonomy stance: the infrastructure that distributes software
 to users should be under the project's control and subject to European law.
 
 \paragraph{CI/CD pipeline.}
-Tests run at three levels of integration. Table~\ref{tab:ci-triggers} shows
-when each level runs.
+Every repository inherits a shared CI template maintained in
+\texttt{foundation}. The template defines the required jobs; repositories can
+add jobs but cannot remove or weaken the required set. This ensures a uniform
+quality gate across all components without duplicating workflow configuration.
+
+Tests run at four levels of integration.
+
+\emph{Unit tests} run on every push and every pull request, per repository,
+with a target runtime under 60 seconds. All external dependencies are mocked
+using the official mocks from \texttt{sdk}. Rust components use
+\texttt{cargo test}; TypeScript components use \emph{Vitest}~\cite{vitest},
+a Vite-native test framework with Jest-compatible API. No pull request merges
+without green unit tests.
+
+\emph{Integration tests} run on every merge to \texttt{main}, per repository,
+with a target runtime under 5 minutes. They start the directly involved
+daemons as real subprocesses against real Unix sockets and verify end-to-end
+behavior without a full system boot. A failing integration test with passing
+unit tests indicates interface drift between repositories, which is the primary
+failure mode this level exists to catch. Representative examples: an event
+emitted by the Event Bus lands correctly as a node in Ladybug after the
+promotion pass; a theme token change propagates from Settings to all running
+Tauri processes; a keybinding action dispatched by the shell reaches the
+correct handler in the Input Manager.
+
+\emph{eBPF tests} are a special case. eBPF programs require a real kernel with
+\texttt{CAP\_BPF} and BTF support; they cannot run against mocks. Rather than
+requiring a dedicated self-hosted runner, the CI job uses nested virtualization
+available on standard GitHub Actions Ubuntu runners: a minimal QEMU instance
+is started inside the CI job, eBPF tests run inside it, and the VM is
+discarded on completion. This adds approximately 15 seconds of overhead per
+run. eBPF tests run on every merge to \texttt{main} in the
+\texttt{kernel-layer} repository only.
+
+\emph{System tests} boot a complete ISO in QEMU and run a defined smoke
+scenario: system boots without crash; Waypointer opens and launches an
+application; eBPF events arrive in the Knowledge Graph; theme switch
+propagates; module install and uninstall complete correctly. These tests are
+slow (15 to 30 minutes) and run only on release candidates, triggered
+manually. The ISO is built by the same mkosi configuration used for real
+releases; there is no separate test image. A caching mechanism in
+\texttt{distro} stores the base image between runs and invalidates it only
+when \texttt{distro} or \texttt{kernel-layer} changes; component-only updates
+patch the cached image rather than rebuilding from scratch.
+
+\emph{Interface compatibility checks} run on every pull request that touches
+a public API. For Rust-to-Rust interfaces, a stored baseline of the generated
+protobuf bindings and \texttt{sdk} types is compared against the proposed
+change; a breaking change without a major version bump causes the check to
+fail. For the Rust-to-TypeScript boundary in \texttt{sdk}, the
+\texttt{ts-rs}~\cite{ts-rs} crate generates TypeScript type definitions
+directly from Rust structs via derive macros. The generated \texttt{.ts} files
+are committed to the repository. CI verifies that the committed files match
+the output of a fresh \texttt{cargo build}; a mismatch means the Rust types
+were changed without regenerating the bindings. This eliminates an entire
+class of runtime type mismatches between the Rust backend and the TypeScript
+frontend.
+
+\emph{Graph performance benchmarks} run after every merge to \texttt{main}
+in the \texttt{knowledge} repository. Using \texttt{criterion}~\cite{criterion},
+the benchmark suite exercises the most common query patterns against synthetic
+graphs of three sizes: 1,000 nodes, 50,000 nodes, and 500,000 nodes. The
+benchmark results are stored as GitHub Actions artifacts, providing a
+longitudinal record of query latency as the codebase evolves. The benchmark
+does not automatically fail the build; it produces a comment on the merge
+commit with the delta against the previous run. Automatic failure is triggered
+only if latency exceeds twice the established baseline, indicating a
+significant regression rather than normal variance.
+
+Table~\ref{tab:ci-triggers} summarizes when each level runs.
 
 \begin{table}[htbp]
 \caption{CI trigger summary}
@@ -256,39 +370,15 @@ when each level runs.
 \toprule
 \textbf{Trigger} & \textbf{What runs} \\
 \midrule
-Every push or pull request     & Unit tests for the affected repository \\
-Pull request merge to main     & Unit tests, lint, and build check \\
-Daily at 02:00                 & Cross-component integration tests against all main branches \\
-Release candidate              & Full VM tests and smoke tests \\
-\texttt{kernel-layer} push     & Unit tests plus VM-based eBPF tests \\
+Every push or pull request     & Unit tests; interface compatibility check if public API touched \\
+Merge to \texttt{main}         & Unit tests, lint, clippy, integration tests \\
+Merge to \texttt{main} in \texttt{kernel-layer} & Above plus eBPF tests in QEMU \\
+Merge to \texttt{main} in \texttt{knowledge}    & Above plus graph performance benchmark \\
+Release candidate (manual)     & Full system tests in QEMU \\
+Weekly (scheduled)             & Upstream cosmic-comp rebase check; dependency drift check \\
 \bottomrule
 \end{tabularx}
 \end{table}
-
-Unit tests run per repository against mocks from \texttt{os-sdk}. Rust components use \texttt{cargo test}; TypeScript components use
-\emph{Vitest}~\cite{vitest}, a Vite-native unit test framework with
-Jest-compatible API and fast execution via native ES modules. No PR
-merges without green unit tests. The \texttt{kernel-layer} is a special case:
-eBPF logic that can be tested without a real kernel runs on the host as normal
-Rust unit tests, while eBPF programs themselves run in a minimal QEMU instance
-that CI spins up automatically.
-
-Cross-component integration tests verify that two or more components
-communicate correctly over their real IPC interfaces. They run on the host
-without a full system boot, starting only the directly involved daemons as real
-processes against real IPC sockets. A failing integration test with all unit
-tests passing means interface drift between repositories, which is the primary
-failure mode this level exists to catch. Examples: the Event Bus emits a
-\texttt{FileAccessEvent} and the Graph Daemon writes correctly to SQLite; a theme
-token change in Settings propagates to all running Tauri processes; the shell
-sends a keybinding action and the Input Manager calls the correct handler.
-
-Full VM tests boot a complete system image in QEMU and run smoke tests: system
-boots without crash; Waypointer opens, finds an application, and launches it;
-eBPF events arrive and land in the Knowledge Graph; theme switch propagates
-correctly; module install and uninstall behave as expected. These tests are
-slow and run on release candidates only. The VM image is built by the same
-script used for real releases; no separate test image exists.
 
 \paragraph{Local development workflow.}
 Development happens at three levels of integration, each suited to a different
@@ -330,6 +420,56 @@ use os_sdk::graph_daemon::client::GraphDaemonClient as GraphDaemon;
 
 There are no per-repository custom stubs and no fixture files that can drift
 from the real schema. The mock is the contract.
+
+\paragraph{Dependency management.}
+Shared dependencies across repositories are pinned in a
+\texttt{workspace-deps.toml} file in the \texttt{distro} repository. This
+file declares the authoritative versions of common crates (tokio, serde,
+protobuf, and others) that all repositories are expected to use. A
+\texttt{check-deps} recipe in the top-level \texttt{justfile} verifies that
+every repository's \texttt{Cargo.toml} matches the pinned versions and fails
+with a diff if not. Dependabot runs only on the \texttt{distro} repository
+and opens pull requests against \texttt{workspace-deps.toml}. When such a
+pull request merges, a workflow automatically opens follow-up pull requests in
+all affected repositories updating them to the new version. No repository
+manually tracks shared dependency versions; all version decisions flow
+downstream from \texttt{distro}.
+
+\paragraph{Compositor upstream tracking.}
+The \texttt{compositor} repository tracks the cosmic-comp upstream as a git
+remote named \texttt{upstream}. The project's own modifications are maintained
+as a numbered patch series in \texttt{compositor/patches/}, following the
+convention established by projects such as OpenWRT and Buildroot:
+
+\begin{lstlisting}[language=bash, caption={Compositor patch series structure}]
+compositor/patches/
+  0001-remove-cosmic-shell-ipc.patch
+  0002-add-custom-event-socket.patch
+  0003-expose-focus-events-to-event-bus.patch
+\end{lstlisting}
+
+A weekly scheduled CI job attempts to rebase the patch series onto the latest
+\texttt{upstream/main}. If the rebase fails, the job opens a GitHub issue
+identifying the specific patch that produced the conflict. If it succeeds, the
+rebased branch is proposed as a pull request for review before merging. This
+surfaces upstream conflicts immediately rather than accumulating them silently.
+
+Any modification that does not require project-specific behavior is submitted
+as a pull request to the cosmic-comp upstream repository first. If accepted,
+it is removed from the patch series. Keeping the patch series as short as
+possible is an explicit maintenance goal; every patch that gets accepted
+upstream is one less patch to rebase.
+
+\paragraph{Secrets management.}
+A \texttt{secrets.env.example} file in the \texttt{distro} repository
+documents every environment variable that CI and release tooling require, with
+a description and a placeholder value. CI jobs reference only environment
+variables, never hardcoded secret names from any specific secret store. A
+single mapping file translates the CI platform's secret storage (currently
+GitHub Actions Secrets) to the canonical variable names. Migrating to a
+different CI platform or secret store requires changing only this mapping file;
+no workflow or script elsewhere in the codebase references platform-specific
+secret syntax.
 
 \paragraph{Project planning tooling.}
 A project of this scope has cross-cutting concerns that span multiple
@@ -477,25 +617,200 @@ is incorporated, not negotiated afterward under time pressure.
 \subsection{Roadmap}
 \label{sec:roadmap}
 
-The roadmap is intentionally sparse at this stage. Defining detailed phase
-scope before the foundational components are proven would produce a plan that
-reflects assumptions rather than reality. Phases 1 through the public release
-will be scoped as Phase 0 concludes and the first components are built and
-measured.
+The system has two independent development tracks that converge at a defined
+integration point. The \emph{data track} covers kernel instrumentation, the
+event pipeline, and the Knowledge Graph: components that can be built, tested,
+and benchmarked without any desktop present. The \emph{desktop track} covers
+the compositor fork and the shell: components that require a Wayland environment
+but not a working graph. The tracks run in parallel through Phase~2; they
+merge in Phase~3 when the graph is connected to the shell for the first time.
 
-\paragraph{Phase 0 - Foundation (current).}
-Architecture and design decisions are documented in this blueprint. The proof
-of concept consists of the Event Bus and Knowledge Graph running as a daemon
-and collecting basic system events. The base distribution decision between Fedora and OpenSUSE
-Slowroll~\cite{opensuse:slowroll} is pending and will be made before Phase 1
-begins.
-A sustained write benchmark of the SQLite write store under simulated eBPF load
-targeting 5,000 events per second, combined with validation of the promotion
-pipeline into Ladybug for graph queries, is a Phase 0 exit criterion.
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  box/.style={
+    draw, thick, rectangle, rounded corners=2pt,
+    minimum width=3.6cm, minimum height=0.75cm,
+    font=\small, align=center, inner sep=5pt
+  },
+  merge/.style={
+    draw, thick, rectangle, rounded corners=2pt,
+    minimum width=8.0cm, minimum height=0.75cm,
+    font=\small, align=center, inner sep=5pt
+  },
+  arr/.style={->, thick},
+  lbl/.style={font=\footnotesize\itshape},
+]
 
-\paragraph{Phase 1 and beyond.}
-Phase scope will be defined once Phase 0 is complete. The ordering of
-subsequent phases follows the architectural dependency graph: kernel layer and
-event infrastructure before the graph, the graph before the AI layer, the
-compositor before the shell, the shell before Store and module infrastructure.
-Public release comes after a stable, tested combination of all layers exists.
+\node[box] (p0)    at (0, 5.0)  {Phase 0: Foundation};
+
+\node[box] (p1a)   at (-2.4, 3.5) {Phase 1A: Data Stack};
+\node[box] (p1b)   at ( 2.4, 3.5) {Phase 1B: Desktop Stack};
+
+\node[box] (p2a)   at (-2.4, 2.0) {Phase 2A: Graph complete};
+\node[box] (p2b)   at ( 2.4, 2.0) {Phase 2B: Shell skeleton};
+
+\node[merge] (p3)  at (0, 0.5)  {Phase 3: First Integration};
+\node[merge] (p4)  at (0, -0.8) {Phase 4: Ecosystem};
+\node[merge] (p5)  at (0, -2.1) {Phase 5: Public Release};
+
+\draw[arr] (p0)  -- (p1a);
+\draw[arr] (p0)  -- (p1b);
+\draw[arr] (p1a) -- (p2a);
+\draw[arr] (p1b) -- (p2b);
+\draw[arr] (p2a) -- (p3);
+\draw[arr] (p2b) -- (p3);
+\draw[arr] (p3)  -- (p4);
+\draw[arr] (p4)  -- (p5);
+
+\end{tikzpicture}
+\caption{Phase dependency structure. Phases~1 and~2 run as parallel tracks;
+neither blocks the other. Phase~3 is the first point at which both tracks must
+be simultaneously stable. Phases~4 and~5 are sequential.}
+\label{fig:roadmap}
+\end{figure}
+
+Three types of milestone appear in each phase. \emph{Technical gates} are
+binary, automatically verifiable conditions that must pass before the next
+phase begins: a specific CI job is green, a benchmark hits a defined threshold,
+or an interface check passes. \emph{UX milestones} are qualitative judgments
+about usability that require a human to verify: a defined task completed
+without assistance by a target user type. \emph{Sustainability milestones}
+track organizational and community progress that runs in parallel with
+technical development.
+
+\paragraph{Phase 0: Foundation (current).}
+Architecture and design decisions are documented in this blueprint. The
+repository organization, CI template, and shared tooling are established before
+component code is written. The base distribution decision between Fedora and
+OpenSUSE Slowroll~\cite{opensuse:slowroll} is made and recorded. The
+\texttt{event-bus} protobuf schema is defined; the \texttt{sdk} crate structure
+is initialized with the public API as traits before any implementation exists.
+This ordering is intentional: schema and interface decisions are the most
+expensive to change once downstream components exist.
+
+\emph{Technical gates:} SQLite write store sustains 5,000 synthetic events per
+second under continuous load without data loss; promotion pipeline moves events
+into Ladybug and a Cypher query returns correct results; CI template deployed
+and all initial repositories pass the required jobs; \texttt{just dev} starts
+the Event Bus and Graph Daemon locally in under 10 seconds.
+
+\emph{Sustainability milestones:} GitHub organization created with all
+repositories; \texttt{foundation} repository public with this document;
+ORCID and Zenodo record created for the architecture document.
+
+\paragraph{Phase 1A: Data Stack.}
+The eBPF Normalizer is operational, deduplicating and filtering raw kernel
+events before they reach the Event Bus. The promotion pipeline is stable under
+real desktop load, not only synthetic load. The Graph Daemon exposes a complete
+Cypher query interface over its Unix socket. All components have integration
+tests that run against real IPC sockets. The \texttt{knowledge} benchmark
+suite is established and producing baseline measurements.
+
+eBPF programs are developed and tested exclusively inside the QEMU developer
+VM from this point forward. A bad eBPF program can produce a kernel panic; VM
+isolation is mandatory, not optional.
+
+\emph{Technical gates:} eBPF test job green in CI using nested QEMU on GitHub
+Actions runners; integration test suite passes for the full pipeline from raw
+eBPF event to Ladybug node; graph query latency baseline established for 1k,
+50k, and 500k node datasets.
+
+\paragraph{Phase 1B: Desktop Stack.}
+The \texttt{compositor} repository is initialized as a standalone fork of
+cosmic-comp with the COSMIC shell IPC removed and the custom Event Bus socket
+added as the first patch in the series. The upstream tracking process is
+operational: the weekly rebase CI job runs, and the patch series is clean
+against current upstream. The compositor runs in nested mode inside an existing
+Wayland session. No shell is connected yet.
+
+\emph{Technical gates:} compositor starts in nested mode without crash;
+upstream rebase CI job runs and produces no conflicts against current
+\texttt{upstream/main}; patch series contains no more than five patches.
+
+\paragraph{Phase 2A: Graph Complete.}
+The full Knowledge Graph schema is implemented and stable. All node types
+documented in Section~\ref{sec:knowledge-graph} exist and are populated by
+real system activity. The temporal filesystem view at
+\texttt{\textasciitilde/.timeline/} is functional. Retention policy and
+summarization are implemented. The Graph Daemon is considered feature-complete
+for the purposes of AI layer integration.
+
+\emph{Technical gates:} all node types populated from a 24-hour real usage
+session; \texttt{\textasciitilde/.timeline/} lists correct files for a
+given date; retention pass runs and compacts nodes correctly.
+
+\paragraph{Phase 2B: Shell Skeleton.}
+The shell runs on the compositor fork. The taskbar, Waypointer (without graph
+integration), the global menu bar, and the Appearance section of Settings are
+functional. The theme system is operational: token-based switching propagates
+to all Tauri surfaces and GTK4 applications. A developer can use this
+environment as a basic desktop without requiring a terminal for routine tasks.
+
+\emph{Technical gates:} Panda, Light, Dark, and High Contrast themes all
+apply correctly and switch without a session restart; Waypointer launches
+applications; the global menu bar renders menus from a first-party application.
+
+\emph{UX milestone:} a developer who did not build the system can complete
+five predefined tasks using only the shell, without referring to documentation.
+
+\paragraph{Phase 3: First Integration.}
+The two tracks are connected. Waypointer queries the Knowledge Graph for recent
+files and project context. Focus Mode is fully implemented. The AI Daemon
+operates with a local provider. The Connections system and Settings AI category
+are functional. This is the first phase where the system is used as a daily
+driver by the primary developer.
+
+The daily driver criterion is not aspirational language. It is a concrete
+testing strategy: running the system as the primary work environment for a
+minimum of 30 consecutive days surfaces bugs and rough edges that no scripted
+test scenario will find.
+
+\emph{Technical gates:} Waypointer returns graph-sourced recent files
+correctly; Focus Mode activates and deactivates all documented side effects;
+AI Daemon responds to a graph query with a local provider configured.
+
+\emph{UX milestone:} a non-technical test user completes a defined set of
+daily tasks (web browsing, document editing, file management, calendar review)
+without opening a terminal and without asking for help.
+
+\emph{Sustainability milestones:} first public blog post or video documenting
+the project; Sovereign Tech Fund and NLnet grant applications submitted.
+
+\paragraph{Phase 4: Ecosystem.}
+The Store is operational. The Install Daemon handles Integration Package
+matching. The Module Runtime is functional. The first external developers are
+onboarded with documentation and the \texttt{module-sdk}. Signed Profile
+Packages for managed environments are supported. The project planning tool
+decision is made and the chosen tool is in use.
+
+\emph{Technical gates:} a Store application submitted by a developer outside
+the core team installs and runs correctly end-to-end; a module declared in a
+\texttt{.project} file activates and deactivates with Focus Mode.
+
+\emph{UX milestone:} an external developer builds and submits a Store
+application using only the published documentation, without asking the core
+team for help.
+
+\emph{Sustainability milestones:} first external contributor with a merged
+pull request; Store infrastructure operational on Hetzner; first grant
+funding received or first enterprise inquiry received.
+
+\paragraph{Phase 5: Public Release.}
+No new features. Hardware compatibility is validated against a defined target
+list. The Nvidia first-boot detection and driver installation flow is tested on
+real hardware. The installer is polished and the out-of-box experience meets
+the bar set in Phase~3's UX milestone at scale. Documentation covers
+installation, first use, and the most common troubleshooting scenarios.
+
+\emph{Technical gates:} system tests green on release candidate ISO; Nvidia
+driver flow completes without manual intervention on a tested device; installer
+completes without errors on three distinct hardware configurations.
+
+\emph{UX milestone:} a non-technical user installs the system from USB without
+reading any documentation beyond the installer prompts, and reaches a working
+desktop.
+
+\emph{Sustainability milestones:} migration timeline from GitHub to
+Forgejo/Codeberg defined; incorporation decision made based on available
+funding and community size.
