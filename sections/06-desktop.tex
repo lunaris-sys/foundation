@@ -101,8 +101,8 @@ custom Unix socket channel described in Section~\ref{sec:compositor-intro}.
 \paragraph{Wayland protocol extensions.}
 The core Wayland protocol covers only the basics: surfaces (drawable regions),
 input routing, and output (monitor) management. Everything a desktop actually
-needs -- panels anchored to screen edges, a taskbar that knows about open
-windows, workspace switching -- requires \emph{protocol extensions}: additional
+needs: panels anchored to screen edges, a taskbar that knows about open
+windows, workspace switching. All of this requires \emph{protocol extensions}: additional
 interface definitions that the compositor implements and clients can use if
 present. Table~\ref{tab:wayland-protocols} lists the extensions this compositor
 implements and what each enables.
@@ -170,8 +170,8 @@ recorded in the audit log whenever X11 applications are active.
 \subsection{Shell and Application Framework}
 \label{sec:shell}
 
-The shell -- global menu bar, taskbar, app launcher, notification center,
-quick settings panel, and lock screen -- is built with Tauri (introduced in
+The shell, comprising the global menu bar, taskbar, app launcher, notification center,
+quick settings panel, and lock screen, is built with Tauri (introduced in
 Section~\ref{sec:tauri-intro}) using TypeScript and \emph{Tailwind CSS} for the
 interface layer. Tauri renders the UI in a \emph{WebKitGTK} WebView, which
 provides full modern web rendering capabilities without the memory cost of an
@@ -196,14 +196,14 @@ Fedora packages a recent WebKitGTK version promptly after upstream releases
 and carries security patches quickly. The project targets only Fedora, which
 means the WebKitGTK version in the OBS repository and in user systems is
 known and controlled. Applications are tested against this specific version.
-The fragmentation problem that affects multi-distribution projects -- where the
+The fragmentation problem that affects multi-distribution projects, where the
 same application must run correctly on WebKitGTK versions that differ by a
-year or more -- does not apply here.
+year or more, does not apply here.
 
 The remaining risk is JavaScript performance for complex UI interactions. This
 is a real trade-off relative to Chromium-based WebViews. For the use cases in
-this project -- settings panels, file browsers, launchers, and notification
-centers -- the performance difference is not perceptible. The trade-off would
+this project, covering settings panels, file browsers, launchers, and notification
+centers, the performance difference is not perceptible. The trade-off would
 matter for applications with continuous animation at 60 frames per second or
 with heavy computational JavaScript; those use cases are not part of this
 system's first-party application set.
@@ -211,7 +211,7 @@ system's first-party application set.
 \paragraph{What GTK is.}
 \emph{GTK} (GIMP Toolkit, now branded simply as GTK) is the most widely used
 UI toolkit on Linux~\cite{gtk}. It provides the standard set of interface
-components -- buttons, text inputs, dialogs, menus, scrollable lists -- and is
+components: buttons, text inputs, dialogs, menus, and scrollable lists. It is
 the foundation for applications such as GNOME, Nautilus, and most of the Linux
 application ecosystem. \emph{GTK4} is the current major version, a significant
 rewrite from GTK3 with a new rendering pipeline (using GPU shaders via
@@ -424,8 +424,8 @@ shell.annotations.onChanged({
 \end{lstlisting}
 
 The filter callback in context menu and annotation queries receives graph
-metadata about the target -- project membership, last accessed timestamp,
-which application last modified the file -- enabling precise conditional
+metadata about the target, including project membership, last accessed timestamp,
+and which application last modified the file, enabling precise conditional
 logic without a separate graph query.
 
 \paragraph{Intents.}
@@ -536,7 +536,7 @@ shell.badges.clear()
 \end{lstlisting}
 
 \paragraph{Context menu.}
-Applications add entries to system context menus -- right-click on files,
+Applications add entries to system context menus: right-click menus on files,
 directories, or Waypointer results. Filter callbacks receive graph metadata
 about the target, enabling precise conditional entries.
 
@@ -605,8 +605,8 @@ shell.onboarding.register({
 irrelevant step.
 
 \paragraph{Ambient.}
-Applications influence the visual state of the desktop subtly -- a slow pulse
-of the accent color while a build runs, a warning tint when tests fail. Ambient
+Applications influence the visual state of the desktop subtly, such as a slow pulse
+of the accent color while a build runs or a warning tint when tests fail. Ambient
 effects are peripheral rather than interruptive: they are perceptible without
 demanding attention. The user can disable all ambient effects globally in
 Settings. Only colors from the token system are permitted; arbitrary hex values
@@ -794,7 +794,7 @@ the current graph state without the application maintaining its own history.
 \paragraph{Context tags.}
 Menu items can carry optional context tags. When Focus Mode is active and the
 active project carries matching tags, items tagged accordingly receive a subtle
-visual marker in the menu -- a small indicator, not a structural change. This
+visual marker in the menu, a small indicator rather than a structural change. This
 surfaces project-relevant actions without reordering or hiding anything. An
 export action tagged \texttt{"project"} is marked when a project is focused;
 an action tagged \texttt{"git"} is marked when the project carries the
@@ -829,7 +829,7 @@ shell.toolbar.setQuickActions([
 \end{lstlisting}
 
 A Breadcrumb replaces the quick actions slot when the application is in a
-navigable hierarchy -- a file manager in a deep directory, a settings panel
+navigable hierarchy, such as a file manager in a deep directory or a settings panel
 several levels in. The shell renders it as a compact inline path with each
 segment clickable:
 
@@ -889,7 +889,7 @@ application code is involved.
 The popup opens in a keyboard-ready state: the first top-level item is
 focused, arrow keys navigate, Enter selects, Escape closes. The pointer
 remains where it was; the user does not need to move it. Mouse hover works
-in parallel -- moving the pointer over items highlights them normally. The
+in parallel: moving the pointer over items highlights them normally. The
 two input modes are fully composable within a single popup session.
 
 The bar highlights the active application's menu section while the popup is
@@ -1023,8 +1023,8 @@ rendered. Every type has a defined data structure and a native render component
 in ui-kit; Integration Packages and modules deliver data in the correct format
 and Waypointer renders consistently regardless of which provider supplied the
 result. A GitHub Integration Package and a GitLab Integration Package both
-deliver \texttt{issue} type results -- the user sees the same layout
-independent of the underlying provider.
+deliver \texttt{issue} type results; the user sees the same layout
+regardless of the underlying provider.
 
 \begin{table}[htbp]
 \caption{Built-in Waypointer result types}
@@ -1048,7 +1048,7 @@ independent of the underlying provider.
 Typed results support inline expansion: pressing the right arrow key or a
 dedicated expand shortcut opens a detail panel inside the Waypointer overlay
 without opening a new window or leaving the current context. The expansion
-renders the full content of the result -- for an \texttt{issue} type this
+renders the full content of the result; for an \texttt{issue} type this
 means title, full description, status, assignee, labels, and available actions.
 
 Actions available from the inline expansion depend on the result type and the
@@ -1104,7 +1104,7 @@ and labels as part of its context window. Waypointer surfaces files that have
 been recently modified in sessions where this issue was active. The terminal
 opens in the project root. A \texttt{timeline} entry is created when the focus
 session ends, recording which files were touched and how long the session
-lasted -- giving the user a traceable record of work done per issue without
+lasted, giving the user a traceable record of work done per issue without
 any manual time tracking.
 
 \paragraph{Creating issues from context.}
@@ -1112,7 +1112,7 @@ From any file's context menu or from Waypointer directly, the user can create
 a new issue in the active project's tracker. The creation form is pre-filled
 with context: project name, the currently focused file if relevant, and the
 active branch name if the project has a git integration. The form is minimal
--- title and description only -- with a ``Open full editor in browser'' option
+with only a title and description field, plus an ``Open full editor in browser'' option
 for everything else. The created issue is immediately available as a Waypointer
 result without a manual refresh.
 
@@ -1125,8 +1125,9 @@ what the user can do. It adjusts the environment to match the active project
 so that switching context is a single action rather than a series of manual
 steps across multiple applications.
 
-Activating a project --- via Waypointer, the File Manager sidebar, or the
-project quick-switch keyboard shortcut --- triggers the following changes
+Activating a project triggers the following changes simultaneously. The entry
+points are Waypointer, the File Manager sidebar, and the project quick-switch
+keyboard shortcut. The changes are:
 simultaneously:
 
 The shell's accent color updates to the project's configured
@@ -1170,17 +1171,17 @@ first-party Tauri application built on ui-kit and os-sdk like any other
 first-party app, but with privileged write access to the configuration files
 of other system components. It is not a data store: every component owns its
 own TOML configuration file and Settings is a UI layer that reads and writes
-those files. Settings can crash, restart, or never be opened -- the system
+those files. Settings can crash, restart, or never be opened; the system
 functions regardless.
 
 \paragraph{Architecture.}
 Settings writes to component configuration files via the filesystem and signals
 changes via the Event Bus. Components observe their configuration files through
 \texttt{inotify} and reload automatically. For changes that must take effect
-immediately -- theme switches, AI access level, permission updates -- Settings
-additionally emits an Event Bus message and waits for a confirmation from the
+immediately, such as theme switches, AI access level changes, and permission updates.
+For these, Settings additionally emits an Event Bus message and waits for a confirmation from the
 affected daemon before marking the change as applied. For changes that take
-effect only after a restart -- keybinding profiles, profile type changes --
+effect only after a restart, such as keybinding profiles and profile type changes.
 Settings shows a ``Wirksam nach Neustart'' notice without forcing an immediate
 restart.
 
@@ -1237,7 +1238,7 @@ The Input category hosts the unified keybinding editor: a searchable list of
 every registered action from every application, module, and system component.
 Each entry shows the application or component name, the action label, the
 current binding, and whether it is a user override or the registered default.
-Conflicts -- two actions sharing the same binding -- are highlighted in red
+Conflicts, defined as two actions sharing the same binding, are highlighted in red
 with both conflicting entries visible simultaneously. The Global Input Manager
 is the authoritative source; Settings reads from and writes to it directly.
 No application manages its own bindings independently.
@@ -1258,7 +1259,7 @@ is one of four values: \texttt{local} for services running on the same machine,
 infrastructure, \texttt{encrypted} for end-to-end encrypted channels such as
 Signal or Matrix, and \texttt{third-party} for external services whose servers
 process the data. The classification is displayed prominently on the connection
-list and on each connection's detail page. It is not a warning -- it is
+list and on each connection's detail page. It is not a warning; it is
 information the user needs to make an informed decision about what to connect.
 
 Multiple connections to the same provider are fully supported. A user with two
@@ -1374,7 +1375,7 @@ other direction, described in Section~\ref{sec:store}.
 Every setting has a reset path. Individual settings show a reset icon that
 restores the system default. Each section header offers a ``Reset this section''
 option. Keybindings can be reset per action or for all actions at once. Resets
-never require confirmation for individual settings -- the action is immediately
+never require confirmation for individual settings, since the action is immediately
 reversible by setting the value again. Section resets show a single
 confirmation step.
 
@@ -1509,7 +1510,7 @@ the need for decorative elements. Bold for primary labels, regular for content,
 light for metadata. Italic is reserved for figure labels in diagrams.
 
 Color communicates state, not style. The accent color marks interactive
-elements and active state. Semantic colors -- red, amber, green -- mark error,
+elements and active state. Semantic colors, specifically red, amber, and green, mark error,
 warning, and success respectively. No color exists purely for decoration.
 
 Accessibility is not a feature. High Contrast is a fully designed built-in

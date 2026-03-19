@@ -54,7 +54,7 @@
 \contentsline {subsection}{\numberline {3.6}Configuration Format}{23}{subsection.3.6}%
 \contentsline {section}{\numberline {4}Event System and Knowledge Graph}{24}{section.4}%
 \contentsline {subsection}{\numberline {4.1}Overview}{24}{subsection.4.1}%
-\contentsline {subsection}{\numberline {4.2}Wayland as an Event Source}{25}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.2}Wayland as an Event Source}{24}{subsection.4.2}%
 \contentsline {subsection}{\numberline {4.3}Kernel Monitoring with eBPF}{25}{subsection.4.3}%
 \contentsline {paragraph}{\nonumberline Why aya.}{26}{paragraph*.36}%
 \contentsline {paragraph}{\nonumberline eBPF Normalizer.}{26}{paragraph*.37}%
@@ -62,7 +62,7 @@
 \contentsline {paragraph}{\nonumberline Event schema.}{27}{paragraph*.39}%
 \contentsline {paragraph}{\nonumberline D-Bus coexistence.}{28}{paragraph*.40}%
 \contentsline {subsection}{\numberline {4.5}Write Architecture}{28}{subsection.4.5}%
-\contentsline {paragraph}{\nonumberline SQLite as the write store.}{29}{paragraph*.41}%
+\contentsline {paragraph}{\nonumberline SQLite as the write store.}{28}{paragraph*.41}%
 \contentsline {paragraph}{\nonumberline Ladybug as the query store.}{29}{paragraph*.42}%
 \contentsline {paragraph}{\nonumberline Promotion pipeline.}{30}{paragraph*.43}%
 \contentsline {subsection}{\numberline {4.6}Knowledge Graph}{30}{subsection.4.6}%

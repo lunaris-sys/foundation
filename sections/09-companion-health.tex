@@ -14,9 +14,9 @@ The protocol is custom. \emph{KDE Connect}~\cite{kdeconnect} is a widely
 used open-source protocol and application that links Linux desktops and Android
 phones: clipboard sync, notification mirroring, file transfer, and remote
 input. It was evaluated and rejected as the foundation for this project. Its
-protocol encodes assumptions appropriate for a bolt-on integration layer --
+protocol encodes assumptions appropriate for a bolt-on integration layer,
 such as per-feature capability negotiation at the session level rather than at
-pairing time -- that would obstruct the deeper integration features planned for
+pairing time, that would obstruct the deeper integration features planned for
 later tiers. Building on top of it would mean working around its assumptions
 rather than designing for the actual requirements.
 
@@ -158,7 +158,7 @@ separate from the Graph Daemon. Data never leaves the device without an
 explicit user action. Clinical data uses \emph{FHIR R4}~\cite{fhir:r4} (Fast Healthcare
 Interoperability Resources, the international standard for structured health
 data interchange maintained by HL7). FHIR represents health records as typed
-REST resources -- Observation, Condition, MedicationRequest, and others -- with
+REST resources such as Observation, Condition, and MedicationRequest, with
 a defined JSON and XML serialization. Hospital and clinic systems across the EU
 are increasingly FHIR-capable, particularly following regulatory pressure in
 Germany (MIO/DiGA)~\cite{gematik:mio} and the broader eHealth interoperability

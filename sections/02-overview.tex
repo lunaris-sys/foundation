@@ -308,7 +308,7 @@ cosmic-panel, cosmic-launcher, cosmic-settings, and the rest of the COSMIC
 shell via custom Wayland protocol extensions and D-Bus interfaces designed
 specifically for that stack. Adopting COSMIC wholesale would mean inheriting
 its shell design, its theming system based on \emph{iced}, and its release
-cadence -- none of which align with this project. The goal is the compositor
+cadence, none of which align with this project. The goal is the compositor
 kernel, not the product.
 
 \paragraph{What the fork retains.}
@@ -323,8 +323,8 @@ only where this project's behaviour explicitly differs.
 The entire shell layer is replaced. cosmic-comp's custom IPC protocols for
 communicating with cosmic-panel and cosmic-launcher are removed. In their
 place the compositor exposes the standard \texttt{wlr-} Wayland protocol
-extensions -- \texttt{wlr-layer-shell}, \texttt{wlr-foreign-toplevel-management},
-\texttt{wlr-workspace-management} -- which the Tauri-based shell consumes
+extensions (\texttt{wlr-layer-shell}, \texttt{wlr-foreign-toplevel-management},
+\texttt{wlr-workspace-management}), which the Tauri-based shell consumes
 exactly as any other compliant shell client would. A minimal custom Unix
 socket channel handles events that have no standard Wayland equivalent: theme
 updates, Focus Mode signals, and graph notifications from the Event Bus.
@@ -332,7 +332,7 @@ The shell is not a privileged internal component of the compositor; it is a
 Wayland client with the same protocol access any shell would have.
 
 \paragraph{Maintenance posture and divergence cost.}
-Forking a actively developed project carries a real and ongoing cost that is
+Forking an actively developed project carries a real and ongoing cost that is
 acknowledged directly. System76 develops cosmic-comp actively for their own
 hardware and their own COSMIC desktop. Their upstream receives regular commits:
 bug fixes, Smithay version bumps, new Wayland protocol extensions, and

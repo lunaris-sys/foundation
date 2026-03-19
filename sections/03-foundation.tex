@@ -365,26 +365,24 @@ not provide Vulkan support on most hardware generations.
 \paragraph{Hardware support scope.}
 The design principle ``works on first boot'' requires an honest statement of
 scope. It means: on supported hardware classes, the system boots, the desktop
-starts, networking works, and audio works without manual configuration. It does
-not mean every piece of hardware on the market works automatically, and it does
-not compete with the decades of work that distributions like Ubuntu have put
-into hardware compatibility at scale.
+starts, networking works, and audio works without manual configuration.
 
 The supported hardware classes where this principle holds are mainstream x86-64
 laptops and desktops with Intel or AMD CPUs released after 2018, with
 integrated or discrete Intel or AMD graphics. This covers the large majority
 of consumer hardware available today.
 
-Two known categories fall outside this guarantee. Nvidia discrete GPUs require
-the proprietary driver, which Fedora does not install by default for licensing
-reasons~\cite{fedora:nvidia}. The installer detects Nvidia hardware and provides
-a guided path to the proprietary driver, but this is a manual step with a
-restart, not a transparent first-boot experience. Broadcom Wi-Fi adapters,
-found in some Apple hardware and a smaller set of laptops, require a proprietary
-driver that is not included in the Fedora kernel and needs manual
-installation~\cite{fedora:broadcom}. These limitations are structural to the
-Linux driver ecosystem and not specific to this project; they are documented
-explicitly rather than discovered by users after installation.
+Two known categories require additional handling. Nvidia discrete GPUs require
+the proprietary driver~\cite{fedora:nvidia}. RPM Fusion is configured as a
+repository source in the system image; on first boot, the installer detects
+Nvidia hardware and installs the proprietary driver automatically before the
+user reaches the desktop. No manual repository configuration is required.
+Broadcom Wi-Fi adapters, found in some Apple hardware and a smaller set of
+laptops, require a proprietary driver that is not included in the Fedora
+kernel~\cite{fedora:broadcom}. The same first-boot detection logic applies
+where a driver package is available; hardware without a packaged driver is
+documented explicitly in the compatibility list rather than discovered by
+users after installation.
 
 \subsection{Configuration Format}
 \label{sec:config}

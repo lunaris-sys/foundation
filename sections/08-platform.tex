@@ -690,8 +690,8 @@ arbitrary_query = false
 The Account Daemon can only issue a token whose scopes are a subset of what the
 Policy Store declares for that application ID. It cannot grant scopes that are
 absent from the Policy Store entry. A compromised Account Daemon can sign
-fraudulent tokens, but only within the ceilings the Policy Store enforces ---
-because the Graph Daemon independently reads the Policy Store and rejects any
+fraudulent tokens, but only within the ceilings the Policy Store enforces.
+The Graph Daemon independently reads the Policy Store and rejects any
 token whose scopes exceed the registered maximum for that application. Scope
 expansion requires a root-level file write, which is an observable, auditable
 action. New applications receive a restrictive default scope at install time;

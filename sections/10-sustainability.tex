@@ -88,8 +88,8 @@ activity, issues, and contributions is a credibility marker for a new project
 asking users to run it as their operating system.
 
 The migration path is planned and not open-ended.
-\emph{Forgejo}~\cite{forgejo} -- a fully open-source, self-hostable Git forge
--- is the target for self-hosted source control. \emph{Codeberg}~\cite{codeberg},
+\emph{Forgejo}~\cite{forgejo}, a fully open-source, self-hostable Git forge,
+is the target for self-hosted source control. \emph{Codeberg}~\cite{codeberg},
 a Forgejo-based hosting service operated by a German non-profit, is a viable
 intermediate step. Git repositories are trivially portable; the harder
 migration is Issues, PRs, and CI pipelines. That migration will be executed
@@ -160,7 +160,7 @@ custom components. OBS is an openSUSE-hosted build infrastructure that takes
 RPM spec files and produces binary packages for multiple distributions and
 architectures in parallel, without requiring the developer to provision
 build machines for each target. Packages are signed with the project GPG
-key -- \emph{GPG} (GNU Privacy Guard~\cite{gnupg}) is the standard
+key; \emph{GPG} (GNU Privacy Guard~\cite{gnupg}) is the standard
 open-source implementation of the OpenPGP signing and encryption standard;
 package signatures let end-user systems verify that a package was built and
 signed by this project and has not been tampered with. OBS hosts the resulting
@@ -211,8 +211,8 @@ clear message. The only resolution is applying the pending system update.
 The project operates two distinct distribution channels with different
 infrastructure requirements.
 
-\emph{System package repository.} All core system components -- the compositor,
-shell, daemons, and first-party applications -- are distributed as RPMs via the
+\emph{System package repository.} All core system components, comprising the compositor,
+shell, daemons, and first-party applications, are distributed as RPMs via the
 Open Build Service. OBS builds, signs, and hosts the repository. End-user
 systems add the repository once:
 
@@ -305,8 +305,8 @@ needed. This covers the majority of shell and compositor development; eBPF and
 kernel-level components are not active in nested mode.
 
 Full system work requires \emph{QEMU}~\cite{qemu}, a machine emulator and
-virtualizer. QEMU can emulate a complete x86-64 machine -- CPU, RAM, storage,
-network, and display -- entirely in software, or accelerate execution via KVM
+virtualizer. QEMU can emulate a complete x86-64 machine, including CPU, RAM, storage,
+network, and display, entirely in software, or accelerate execution via KVM
 (the Linux kernel's hardware virtualization support) to near-native speed when
 running on matching hardware. This covers eBPF development, the boot sequence,
 the update system, and anything that requires a real kernel or a complete

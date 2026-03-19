@@ -56,8 +56,8 @@ application windows; \texttt{wlr-foreign-toplevel-management} extends it to
 allow the shell to observe all open windows including those from other clients.
 
 \emph{Focus transitions.} The compositor controls which surface receives
-keyboard input at any given moment. Every focus change -- the user switching
-windows, clicking into a different app, or the active window closing -- is an
+keyboard input at any given moment. Every focus change (the user switching
+windows, clicking into a different app, or the active window closing) is an
 event the compositor observes before any application does. Focus events carry
 the incoming and outgoing app IDs and the timestamp, giving the graph an
 accurate record of how attention moves across applications.
@@ -78,8 +78,8 @@ What Wayland does \emph{not} provide, and what therefore requires eBPF or
 app-level instrumentation: filesystem access, network connections, what the
 user typed, the content of windows, or any in-application state beyond the
 window title. The compositor sees surfaces, not their contents. This is by
-design -- it is the same isolation property that makes Wayland more secure than
-X11 -- and it defines the boundary between what the compositor can contribute
+design: it is the same isolation property that makes Wayland more secure than
+X11, and it defines the boundary between what the compositor can contribute
 and what other event sources must cover.
 
 \subsection{Kernel Monitoring with eBPF}
@@ -168,7 +168,7 @@ Writer, and SQLite from processing it at all.
 Third, \emph{UUID assignment}: each surviving event receives a UUID~v7
 identifier. UUID~v7 embeds a millisecond-precision timestamp in its most
 significant bits, making events generated close together sort together
-lexicographically -- a property that improves write performance and
+lexicographically, a property that improves write performance and
 time-range query efficiency in SQLite.
 
 The normalizer runs in the same user-space process as the eBPF ring buffer
@@ -350,8 +350,8 @@ not yet as established as projects like SQLite or DuckDB. The mitigation is
 architectural: the Graph Daemon is the sole component that opens the Ladybug
 database files directly. No other part of the system has a compile-time or
 runtime dependency on Ladybug's API. A migration to an alternative embedded
-graph database -- whether DuckDB with its \texttt{duckpgq} graph extension,
-a future stable fork, or a custom SQLite-based traversal layer -- would be
+graph database (whether DuckDB with its \texttt{duckpgq} graph extension,
+a future stable fork, or a custom SQLite-based traversal layer) would be
 contained entirely within the Graph Daemon and require no changes to any
 consumer of the graph query interface. This isolation is a deliberate design
 choice that applies the same dependency containment principle used throughout
@@ -409,7 +409,7 @@ ingestion tiers, and the data that lives in it.
 \emph{RDF} (Resource Description Framework) and \emph{SPARQL} are W3C
 standards for the \emph{Semantic Web}: a vision of interlinked, publicly
 queryable knowledge graphs on the open internet. They are designed for
-schema-flexible, distributed, open data -- a fundamentally different problem
+schema-flexible, distributed, open data: a fundamentally different problem
 than this system's.
 
 This system's Knowledge Graph is local, private, schema-fixed, and
@@ -437,37 +437,6 @@ occurrence from the event pipeline lands in SQLite first; promotion to Ladybug
 happens after correlation into higher-level nodes. \texttt{UserAction} nodes
 are derived abstractions built from clusters of related events and represent
 meaningful activity rather than individual syscalls.
-
-\paragraph{Event ingestion tiers.}
-Not all event sources are equal in structure or volume, and the ingestion
-strategy reflects that. Three tiers operate independently. All three write
-to SQLite first via the write architecture described in
-Section~\ref{sec:backpressure}; promotion to Ladybug follows asynchronously.
-
-\emph{Tier~1: structured sources.} eBPF events, compositor events, and
-first-party app events arrive already typed and schema-validated. They are
-written to SQLite with no intermediate processing step. This tier handles
-the large majority of writes and is the only tier with hard latency
-requirements.
-
-\emph{Tier~2: rule-based parsing.} journald output from known system services
-(NetworkManager, bluetoothd, systemd-logind, and others) carries useful
-structured information in a line-oriented format. A rule-based parser with
-per-service patterns extracts this information synchronously. No machine
-learning is involved; the patterns are deterministic and fast. Unknown services
-and unmatched lines are discarded rather than approximated.
-
-\emph{Tier~3: semantic enrichment (opt-in).} For document content specifically
---- PDFs opened in the viewer, browser page titles, text file contents --- a small
-local model running at idle can extract topic labels and named entities and
-attach them as properties on the corresponding \texttt{File} or \texttt{Event}
-node. This is explicitly opt-in, runs only during idle periods, makes no
-real-time promises, and is the only tier that involves a language model.
-The appropriate model class is a sub-2B parameter instruction model
-(Qwen2.5-1.5B or similar) that can run on CPU without saturating it; the
-workload is low-frequency enrichment of user documents, not stream processing.
-The graph is fully functional without this tier enabled.
-The graph is fully functional without this tier enabled.
 
 \begin{figure}[htbp]
 \centering
@@ -510,6 +479,36 @@ edge, not a property of the file.}
 \label{fig:kg-schema}
 \end{figure}
 
+\paragraph{Event ingestion tiers.}
+Not all event sources are equal in structure or volume, and the ingestion
+strategy reflects that. Three tiers operate independently. All three write
+to SQLite first via the write architecture described in
+Section~\ref{sec:backpressure}; promotion to Ladybug follows asynchronously.
+
+\emph{Tier~1: structured sources.} eBPF events, compositor events, and
+first-party app events arrive already typed and schema-validated. They are
+written to SQLite with no intermediate processing step. This tier handles
+the large majority of writes and is the only tier with hard latency
+requirements.
+
+\emph{Tier~2: rule-based parsing.} journald output from known system services
+(NetworkManager, bluetoothd, systemd-logind, and others) carries useful
+structured information in a line-oriented format. A rule-based parser with
+per-service patterns extracts this information synchronously. No machine
+learning is involved; the patterns are deterministic and fast. Unknown services
+and unmatched lines are discarded rather than approximated.
+
+\emph{Tier~3: semantic enrichment (opt-in).} For document content specifically,
+such as PDFs opened in the viewer, browser page titles, and text file contents,
+a small local model running at idle can extract topic labels and named entities
+and attach them as properties on the corresponding \texttt{File} or \texttt{Event}
+node. This is explicitly opt-in, runs only during idle periods, makes no
+real-time promises, and is the only tier that involves a language model.
+The appropriate model class is a sub-2B parameter instruction model
+(Qwen2.5-1.5B or similar) that can run on CPU without saturating it; the
+workload is low-frequency enrichment of user documents, not stream processing.
+The graph is fully functional without this tier enabled.
+
 \subsection{Project System}
 \label{sec:projects}
 
@@ -522,11 +521,22 @@ membership can be established, changed, or removed without touching the file
 itself.
 
 \paragraph{Philosophy: emergent, not prescribed.}
-Projects are designed to arise from observed behavior and be confirmed by the
-user, not to be created upfront and maintained manually. The graph accumulates
-enough signal to infer that a coherent context exists; the user names and
-confirms it. Both paths are available: explicit creation is supported for users
-who prefer structure from the start, but it is not required.
+Most project management tools require the user to create structure before they
+can derive value from it: name the project, configure it, move the files, and
+only then does the tool become useful. This inverts the actual workflow: the
+work exists before the label does.
+
+This system takes the opposite approach. The graph accumulates enough signal
+from normal activity to infer that a coherent context exists, at which point
+the user is asked to confirm and name it rather than construct it from scratch.
+Value is immediate; the label is applied after the fact.
+
+Explicit upfront creation is fully supported for users who prefer to define
+structure before starting. The difference is that it is an option, not a
+prerequisite. A project that has never been named still accumulates a full
+activity history, supports AI context scoping, and surfaces correctly in
+Waypointer once it is confirmed. Nothing is lost by starting without a
+\texttt{.project} file.
 
 \paragraph{The \texttt{.project} file.}
 Every project can optionally carry a \texttt{.project} file at its root
@@ -663,8 +673,8 @@ Issue-scoped Focus Mode adds the issue as a sub-context layer on top of the
 active project. The AI daemon receives the issue title, description, and
 labels in its context window. When the focus session ends, a
 \texttt{UserAction} node is written to the graph recording which files were
-touched and the session duration -- automatic time tracking at the issue level
-without any manual input.
+touched and the session duration, giving automatic time tracking at the issue
+level without any manual input.
 
 Supported tracker providers, each delivered as a separate Integration Package:
 GitHub Issues, GitLab Issues, OpenProject, Plane, and Jira. The
