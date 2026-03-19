@@ -80,11 +80,10 @@ Bluetooth       & Small data only: clipboard, notifications, control commands \\
 \end{table}
 
 Pairing uses a Trust on First Use model. Both devices generate an
-\emph{Ed25519}~\cite{rfc8032} keypair on first launch. Ed25519 is an elliptic-curve
-digital signature scheme based on Curve25519; it produces 64-byte signatures, is
-fast to compute and verify, and has no known weaknesses from weak random number
-generation (a historical problem with earlier elliptic-curve schemes like
-ECDSA). The first connection uses \emph{TLS}~\cite{rfc8446} (Transport Layer
+\emph{Ed25519}~\cite{rfc8032} keypair on first launch. Ed25519 is an elliptic-curve digital signature scheme based on Curve25519;
+it produces 64-byte signatures, is fast to compute and verify, and has no
+known weaknesses from weak random number generation (a historical problem with
+earlier elliptic-curve schemes like ECDSA~\cite{bitcoin:ecdsa}). The first connection uses \emph{TLS}~\cite{rfc8446} (Transport Layer
 Security, the protocol underlying HTTPS) with self-signed certificates rather
 than certificates issued by a certificate authority. Self-signed certificates
 cannot be validated by the standard CA chain, but here that is intentional: the
@@ -162,8 +161,9 @@ data interchange maintained by HL7). FHIR represents health records as typed
 REST resources -- Observation, Condition, MedicationRequest, and others -- with
 a defined JSON and XML serialization. Hospital and clinic systems across the EU
 are increasingly FHIR-capable, particularly following regulatory pressure in
-Germany (MIO/DiGA) and the broader eHealth interoperability mandates; using
-FHIR natively enables direct import and export without format conversion. Non-clinical data such as steps,
+Germany (MIO/DiGA)~\cite{gematik:mio} and the broader eHealth interoperability
+mandates~\cite{eu:ehealth}; using FHIR natively enables direct import and export
+without format conversion. Non-clinical data such as steps,
 sleep stages, heart rate variability, and nutrition uses an open JSON schema
 with documented field definitions. There is no proprietary format; full export
 is always available.

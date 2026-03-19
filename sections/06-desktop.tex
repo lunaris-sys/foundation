@@ -179,17 +179,17 @@ Electron-style approach. The shell is a Wayland client that uses
 \texttt{wlr-layer-shell} to anchor its surfaces to screen edges.
 
 \paragraph{WebKitGTK on Fedora.}
-WebKitGTK is the GTK port of the WebKit rendering engine and is the WebView
-backend Tauri uses on Linux. It is worth addressing its known weaknesses
-directly, because the argument ``WebKitGTK is already present on any modern
-Linux desktop'' can sound more reassuring than the reality warrants.
+WebKitGTK~\cite{webkitgtk} is the GTK port of the WebKit rendering engine and
+is the WebView backend Tauri uses on Linux. It is worth addressing its known
+weaknesses directly, because the argument ``WebKitGTK is already present on any
+modern Linux desktop'' can sound more reassuring than the reality warrants.
 
 WebKitGTK has historically lagged behind WebKit upstream in JavaScript engine
-performance and in adopting newer web platform features. It has also shown
-rendering inconsistencies between distributions when the installed version
-differs. On some distributions, the packaged version trails upstream by several
-months, creating a fragmented target for applications that rely on specific CSS
-or JavaScript behaviour.
+performance and in adopting newer web platform features~\cite{tauri:webkit}. It
+has also shown rendering inconsistencies between distributions when the installed
+version differs. On some distributions, the packaged version trails upstream by
+several months, creating a fragmented target for applications that rely on
+specific CSS or JavaScript behaviour.
 
 Fedora as the base distribution is the concrete mitigation for these problems.
 Fedora packages a recent WebKitGTK version promptly after upstream releases

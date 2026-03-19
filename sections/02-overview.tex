@@ -167,9 +167,9 @@ are unaffected.
 \label{sec:rust-intro}
 
 All system daemons and Tauri application backends in this project are written in
-\emph{Rust}, a systems programming language developed by Mozilla Research with
-its 1.0 release in 2015. Understanding why requires a brief look at what systems
-programming has historically looked like.
+\emph{Rust}~\cite{rust-lang}, a systems programming language developed by
+Mozilla Research with its 1.0 release in 2015. Understanding why requires a
+brief look at what systems programming has historically looked like.
 
 C and C++ have dominated operating system components, daemons, and
 performance-critical software for decades. Their advantage is direct control
@@ -181,7 +181,7 @@ bounds, and without sharing it unsafely across threads. Memory safety bugs
 of exploitable vulnerabilities in system software. Google's Project Zero and
 Microsoft's Security Response Center have independently reported that roughly
 70\% of serious security vulnerabilities in their codebases are memory safety
-issues~\cite{msrc2019memory}.
+issues~\cite{msrc2019memory,google:projectzero2020}.
 
 Go is a more recent alternative with garbage collection and a simpler
 concurrency model, but its garbage collector introduces unpredictable pause
@@ -210,18 +210,18 @@ knowing which concrete backend is active at runtime.
 \subsection{Why Wayland}
 \label{sec:wayland-intro}
 
-\emph{Wayland} is a display server protocol: the specification that defines how
-applications communicate with the component responsible for drawing windows on
-the screen.
+\emph{Wayland}~\cite{wayland} is a display server protocol: the specification
+that defines how applications communicate with the component responsible for
+drawing windows on the screen.
 
 \emph{X11} (the X Window System) was designed in 1984 and has been the
 foundation of graphical Linux desktops ever since. Its architecture reflects its
 era: the display server is a separate process, and by default any application
 can inspect the input events and window contents of any other application on the
 same display. One X11 application can read keystrokes typed into another
-application's window. This is a keylogger-class capability that cannot be
-removed without a protocol redesign, and it makes X11 structurally incompatible
-with the isolation guarantees this project requires.
+application's window~\cite{x11:security}. This is a keylogger-class capability
+that cannot be removed without a protocol redesign, and it makes X11
+structurally incompatible with the isolation guarantees this project requires.
 
 Wayland redesigns this from scratch: each application communicates only with the
 compositor, not with other applications. Input events are delivered only to the
@@ -254,8 +254,8 @@ bridge handles it.
 The dominant alternative is \emph{Electron}, which takes the same split but
 bundles an entire Chromium browser and a Node.js runtime with every application.
 A minimal Electron application ships roughly 150\,MB of runtime dependencies and
-consumes around 300\,MB of RAM at idle. On a system with several Electron
-applications running, the memory cost is substantial.
+consumes around 300\,MB of RAM at idle~\cite{electron:overhead}. On a system
+with several Electron applications running, the memory cost is substantial.
 
 Tauri uses the operating system's existing WebView implementation instead of
 bundling one. On Linux this is \emph{WebKitGTK}, the GTK port of the WebKit

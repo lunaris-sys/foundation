@@ -349,16 +349,17 @@ in GitHub. The disadvantage is that dependency tracking is honor-system only
 with no enforcement, there is no proper roadmap view, and Epic-to-child
 linking is manual.
 
-The second option is Linear, a proprietary hosted tool with strong multi-repo
-GitHub integration, real Epics with child issues, a dependency graph, and a
-roadmap view. It has the best user experience for exactly this use case but
-is proprietary, hosted externally, and costs money at team scale.
+The second option is \emph{Linear}~\cite{linear}, a proprietary hosted tool
+with strong multi-repo GitHub integration, real Epics with child issues, a
+dependency graph, and a roadmap view. It has the best user experience for
+exactly this use case but is proprietary, hosted externally, and costs money
+at team scale.
 
-The third is Plane, an open-source Linear alternative that can be self-hosted.
-Feature parity with Linear is growing but not yet complete. Its advantage is
-that self-hosting fits the project's digital sovereignty philosophy with no
-external dependency; the disadvantage is additional operational overhead and
-some features that are still maturing.
+The third is \emph{Plane}~\cite{plane}, an open-source Linear alternative
+that can be self-hosted. Feature parity with Linear is growing but not yet
+complete. Its advantage is that self-hosting fits the project's digital
+sovereignty philosophy with no external dependency; the disadvantage is
+additional operational overhead and some features that are still maturing.
 
 The decision is not yet made. The requirement is clear: cross-repository Epic
 tracking with dependency enforcement and a roadmap view. GitHub Projects alone
@@ -485,8 +486,9 @@ measured.
 \paragraph{Phase 0 - Foundation (current).}
 Architecture and design decisions are documented in this blueprint. The proof
 of concept consists of the Event Bus and Knowledge Graph running as a daemon
-and collecting basic system events. The base distribution decision between
-Fedora and OpenSUSE Slowroll is pending and will be made before Phase 1 begins.
+and collecting basic system events. The base distribution decision between Fedora and OpenSUSE
+Slowroll~\cite{opensuse:slowroll} is pending and will be made before Phase 1
+begins.
 A sustained write benchmark of the SQLite write store under simulated eBPF load
 targeting 5,000 events per second, combined with validation of the promotion
 pipeline into Ladybug for graph queries, is a Phase 0 exit criterion.

@@ -77,9 +77,9 @@ The solution is a Rust trait that every AI backend implements. The AI layer
 constructs a \texttt{CompletionRequest}, passes it to whichever provider is
 configured, and receives a \texttt{CompletionResponse}. No provider-specific
 code is visible outside the provider module. The \texttt{\#[async\_trait]}
-macro is a Rust community crate that enables async methods in traits, which
-the stable Rust compiler does not yet support natively; it desugars the async
-methods into an equivalent form that compiles correctly.
+macro~\cite{async-trait} is a Rust community crate that enables async methods
+in traits, which the stable Rust compiler does not yet support natively; it
+desugars the async methods into an equivalent form that compiles correctly.
 
 \begin{lstlisting}[language=Rust, caption={AI provider trait}]
 #[async_trait]
@@ -137,12 +137,13 @@ on consumer hardware, originally developed by Georgi Gerganov in 2023. It
 achieves viability on consumer hardware through \emph{quantization}: a
 technique that reduces the numerical precision of a model's weight values
 (for example from 32-bit floats to 4-bit integers), shrinking both the memory
-footprint and computation cost at a modest quality trade-off. A 7-billion
-parameter model that would require roughly 28~GB of RAM at full 32-bit
-precision runs in approximately 4~GB after 4-bit quantization, which falls
-within the RAM budget of a typical consumer laptop. llama.cpp exposes an HTTP
-API compatible with the OpenAI request format, so any client written for the
-OpenAI API works against a local llama.cpp instance by changing the base URL.
+footprint and computation cost at a modest quality trade-off~\cite{llamacpp:quant}.
+A 7-billion parameter model that would require roughly 28~GB of RAM at full
+32-bit precision runs in approximately 4~GB after 4-bit quantization, which
+falls within the RAM budget of a typical consumer laptop. llama.cpp exposes
+an HTTP API compatible with the OpenAI request format, so any client written
+for the OpenAI API works against a local llama.cpp instance by changing the
+base URL.
 
 \emph{Ollama} wraps llama.cpp and other backends in a higher-level tool that
 adds model management (download, version tracking, storage), a simpler CLI,
@@ -183,9 +184,9 @@ and data sources~\cite{mcp:spec}. The core idea is a client/server split: the
 AI model talks to an \emph{MCP client}, which in turn dispatches to one or more
 \emph{MCP servers}. Each server exposes a list of \emph{tools} (functions the
 AI can call) and \emph{resources} (data the AI can read). The protocol runs
-over JSON-RPC~2.0, a lightweight remote procedure call format, typically over
-a Unix socket or stdio pipe for local servers and over HTTP/SSE for remote
-ones.
+over JSON-RPC~2.0~\cite{jsonrpc2}, a lightweight remote procedure call format,
+typically over a Unix socket or stdio pipe for local servers and over HTTP/SSE
+for remote ones.
 
 The key property of MCP is that the AI model does not need to know anything
 about the application it is talking to. A model that has never seen this OS

@@ -83,9 +83,10 @@ New technology gets used when it makes sense, not because it is trending. AI
 and the knowledge graph are here because they genuinely change what a personal
 computer can do for the user. The goal is a useful, trustworthy system, not a
 clean architecture. Where established standards exist, this project builds
-compatibility bridges rather than replacements. Apps built for other Linux
-desktops run here; standard hardware interfaces work; nothing is deliberately
-broken for the sake of purity. The system can explain what it is doing, in
+compatibility bridges rather than replacements. Native applications are
+distributed as RPM packages; Flatpak serves as a compatibility layer for
+third-party applications not distributed through the Store. Standard hardware
+interfaces work; nothing is deliberately broken for the sake of purity. The system can explain what it is doing, in
 plain language, in a place the user can see and act on it.
 
 \subsection{Positioning}
@@ -127,7 +128,7 @@ project aims to land. No system targeting mainstream usability currently occupie
 
   % Project target
   \node[font=\small\bfseries, align=center]
-    at (4.8, 5.5) {[Project]\\target};
+    at (4.8, 5.5) {This\\project};
 
 \end{tikzpicture}
 \caption{Design space: ease of use versus user sovereignty. The shaded quadrant

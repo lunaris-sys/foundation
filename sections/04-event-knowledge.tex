@@ -140,9 +140,12 @@ seconds, and the Python runtime overhead is significant for a background service
 \texttt{aya} is a Rust-native eBPF library~\cite{aya}. Both the eBPF programs
 (which run inside the kernel) and the user-space daemon are written in Rust.
 Programs are compiled to eBPF bytecode at build time using \texttt{cargo}, not
-at runtime, so no compiler is required on the end-user's machine. The result is
-a fully Rust codebase with no unsafe FFI boundaries, no runtime compilation, and
-no additional system dependencies beyond what the kernel already provides.
+at runtime, so no compiler is required on the end-user's machine. \texttt{aya}
+supports \emph{CO-RE} (Compile Once, Run Everywhere)~\cite{ebpf:core}, which
+uses BTF type information embedded in the kernel to make eBPF programs portable
+across kernel versions without recompilation. The result is a fully Rust
+codebase with no unsafe FFI boundaries, no runtime compilation, and no
+additional system dependencies beyond what the kernel already provides.
 
 \paragraph{eBPF Normalizer.}
 Raw eBPF events arrive at high frequency from the kernel ring buffer. Before
@@ -335,11 +338,11 @@ for graph traversal.
 
 Ladybug is a community fork of \emph{Kuzu}~\cite{kuzu}, an embedded graph
 database originally developed by Kùzu Inc. and based on research published at
-VLDB. In October 2025, Kùzu Inc. was acquired by Apple and archived the
-open-source Kuzu repository without a migration path. Ladybug emerged as the
-primary community-maintained continuation: it carries the full Kuzu codebase,
-Cypher API, and Rust bindings forward under the same MIT license, with active
-releases continuing from where Kuzu left off.
+VLDB~\cite{kuzu:vldb}. In October 2025, Kùzu Inc. was acquired by Apple and
+archived the open-source Kuzu repository without a migration path. Ladybug
+emerged as the primary community-maintained continuation: it carries the full
+Kuzu codebase, Cypher API, and Rust bindings forward under the same MIT
+license, with active releases continuing from where Kuzu left off.
 
 This dependency carries a known risk that is acknowledged rather than
 minimised. Ladybug's contributor base is small and its long-term governance is

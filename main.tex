@@ -33,47 +33,45 @@
 
 
 
-\title{A Privacy-First Operating System with Integrated Knowledge Infrastructure}
-\subtitle{Design, Architecture, and Philosophy}
-\titlerunning{A Privacy-First OS with Integrated Knowledge Infrastructure}
+\title{A Capability-Based, Event-Driven Linux Desktop: Knowledge Graph Architecture and Design Rationale}
+\titlerunning{A Capability-Based, Event-Driven Linux Desktop}
 
-\author{Tim Jochen Kicker}
-\affiliation{University of Innsbruck, Austria}
+\author{Tim Kicker}
+\affiliation{Independent Researcher, Innsbruck, Austria}
 
-\keywords{operating system, knowledge graph, privacy, user sovereignty, AI integration, Linux}
+\keywords{operating system, knowledge graph, capability tokens, eBPF, event-driven architecture, Linux desktop, AI integration, local-first}
 
 \begin{document}
 
 \maketitle
 
 \begin{abstract}
-Linux is already a capable, secure, and privacy-respecting foundation for a
-desktop operating system. What it lacks is integration: applications store data
-in isolation, there is no cross-application query layer, and making a modern
-Linux desktop accessible and coherent for non-technical users remains an
-unsolved problem. This work presents the design and architecture of a
-Linux-based desktop operating system that addresses this gap without
-compromising the properties that make Linux worth building on.
+Desktop operating systems accumulate rich contextual data about user activity,
+but this data is trapped in application silos with no shared query layer and no
+consistent permission model for cross-application access. This work presents
+the design and architecture of a Linux-based desktop operating system built
+around a structured, local-first Knowledge Graph as a first-class
+infrastructure component.
 
-At its core is a structured, local-first Knowledge Graph that records system
-activity as typed nodes and relationships, queryable across application
-boundaries and time. All system components (applications, background services,
-and an optional AI daemon etc.) access the graph through a single privileged daemon
-using cryptographically scoped capability tokens, with no component holding
-elevated trust by default.
+The Knowledge Graph records system activity as typed nodes and relationships
+queryable across application boundaries and time. A two-layer write
+architecture separates high-frequency event ingestion (SQLite) from semantic
+graph traversal (an embedded property graph database), connected by an
+asynchronous promotion pipeline. All components access the graph through a
+single privileged daemon using cryptographically scoped capability tokens; no
+component holds elevated trust by default.
 
-The design is organized around five non-negotiables: local data by default,
-zero telemetry, full offline operation, least-privilege permissions throughout,
-and security that does not compromise usability. This work covers the full
-system stack from the Wayland compositor and application framework through the
-event infrastructure, permission model, profile isolation, and security
-architecture, including an explicit threat model and honest treatment of the
-limits of the proposed mitigations.
+The architecture covers the full system stack: a forked Wayland compositor, a
+Tauri-based application framework with a shared design token system, an event
+pipeline driven by eBPF, a provider-agnostic AI layer with explicit MCP
+integration, profile isolation via systemd-homed, and a layered security model
+with an explicit threat model. Each design decision is documented with its
+rationale and trade-offs, including honest treatment of unresolved risks.
 
-The system is currently in the design and planning phase. The contribution of
-this work is the architecture itself: a concrete, implementable blueprint for a
-privacy-preserving Linux desktop that treats the Knowledge Graph as
-infrastructure rather than a feature.
+The system is currently in the design phase. The contribution of this work is
+the architecture itself: a concrete, implementable blueprint that treats the
+Knowledge Graph as operating system infrastructure rather than an application
+feature.
 \end{abstract}
 
 \tableofcontents

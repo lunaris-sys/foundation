@@ -338,15 +338,16 @@ userspace with low overhead and without copying data through the kernel I/O
 path.
 
 All eBPF programs are compiled to eBPF bytecode at build time using the
-\texttt{aya} framework and ship as pre-compiled binaries in the system image.
-No compiler is required on the end-user's machine. The programs use
-\emph{CO-RE} (Compile Once, Run Everywhere)~\cite{ebpf:core}, a mechanism
+\texttt{aya}~\cite{aya} framework and ship as pre-compiled binaries in the
+system image. No compiler is required on the end-user's machine. The programs
+use \emph{CO-RE} (Compile Once, Run Everywhere)~\cite{ebpf:core}, a mechanism
 introduced in Linux 5.2 that uses BTF (BPF Type Format) kernel debug
 information to make eBPF programs portable across kernel versions without
 recompilation. Kernel 6.6 guarantees that the required BTF information is
 present and that the specific tracepoint hooks this system attaches to are
-stable. Kernels older than 5.8 lack ring buffer support entirely; kernels
-between 5.8 and 6.5 may work but are not tested and not supported.
+stable. Kernels older than 5.8 lack ring buffer map support
+entirely~\cite{ebpf:ringbuf}; kernels between 5.8 and 6.5 may work but are
+not tested and not supported.
 
 \paragraph{Vulkan.}
 \emph{Vulkan}~\cite{vulkan} is a low-level graphics and
@@ -376,14 +377,14 @@ of consumer hardware available today.
 
 Two known categories fall outside this guarantee. Nvidia discrete GPUs require
 the proprietary driver, which Fedora does not install by default for licensing
-reasons. The installer detects Nvidia hardware and provides a guided path to
-the proprietary driver, but this is a manual step with a restart, not a
-transparent first-boot experience. Broadcom Wi-Fi adapters, found in some
-Apple hardware and a smaller set of laptops, require a proprietary driver that
-is not included in the Fedora kernel and needs manual installation. These
-limitations are structural to the Linux driver ecosystem and not specific to
-this project; they are documented explicitly rather than discovered by users
-after installation.
+reasons~\cite{fedora:nvidia}. The installer detects Nvidia hardware and provides
+a guided path to the proprietary driver, but this is a manual step with a
+restart, not a transparent first-boot experience. Broadcom Wi-Fi adapters,
+found in some Apple hardware and a smaller set of laptops, require a proprietary
+driver that is not included in the Fedora kernel and needs manual
+installation~\cite{fedora:broadcom}. These limitations are structural to the
+Linux driver ecosystem and not specific to this project; they are documented
+explicitly rather than discovered by users after installation.
 
 \subsection{Configuration Format}
 \label{sec:config}

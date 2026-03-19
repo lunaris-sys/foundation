@@ -24,6 +24,29 @@
   urldate = {2026-02-20},
 }
 
+@misc{google:projectzero2020,
+  author  = {Letcher, Matt},
+  title   = {The Chromium Chronicle: Memory Safety},
+  year    = {2020},
+  url     = {https://security.googleblog.com/2021/09/an-update-on-memory-safety-in-chrome.html},
+  urldate = {2026-03-19},
+  note    = {Google Security Blog; reports approx.\ 70\% of Chrome security bugs are memory safety issues.},
+}
+
+@misc{x11:security,
+  author  = {{Wayland contributors}},
+  title   = {Wayland vs.\ {X}: Security considerations},
+  url     = {https://wayland.freedesktop.org/docs/html/ch02.html},
+  urldate = {2026-03-19},
+}
+
+@misc{electron:overhead,
+  author  = {{Tauri contributors}},
+  title   = {Tauri vs.\ Electron: Comparison},
+  url     = {https://tauri.app/concept/size/},
+  urldate = {2026-03-19},
+}
+
 @misc{fedora,
   author  = {{Fedora Project}},
   title   = {Fedora Linux},
@@ -158,9 +181,44 @@
 
 @misc{kuzu,
   author  = {{Kùzu Inc.}},
-  title   = {Kùzu: Embeddable Graph Database},
-  url     = {https://kuzudb.com},
-  urldate = {2026-02-26},
+  title   = {Kùzu: Embeddable Graph Database (archived)},
+  year    = {2025},
+  url     = {https://github.com/kuzudb/kuzu},
+  urldate = {2026-03-19},
+  note    = {Repository archived October 2025 following acquisition by Apple Inc.},
+}
+
+@misc{ladybug,
+  author  = {{LadybugDB contributors}},
+  title   = {{LadybugDB}: Embedded Columnar Graph Database},
+  year    = {2025},
+  url     = {https://github.com/LadybugDB/ladybug},
+  urldate = {2026-03-19},
+  note    = {Community fork of Kùzu, MIT license.},
+}
+
+@misc{sqlite,
+  author  = {Hipp, D. Richard and others},
+  title   = {{SQLite}},
+  url     = {https://sqlite.org},
+  urldate = {2026-03-19},
+}
+
+@misc{ebpf:core,
+  author  = {Nakryiko, Andrii},
+  title   = {{BPF CO-RE} (Compile Once, Run Everywhere)},
+  year    = {2021},
+  url     = {https://nakryiko.com/posts/bpf-core-reference-guide/},
+  urldate = {2026-03-19},
+}
+
+@inproceedings{kuzu:vldb,
+  author    = {Jin, Xiyang and others},
+  title     = {Kùzu Graph Database Management System},
+  booktitle = {Proceedings of the {VLDB} Endowment},
+  year      = {2023},
+  url       = {https://vldb.org/cidrdb/papers/2023/p48-jin.pdf},
+  urldate   = {2026-03-19},
 }
 
 @misc{opencypher,
@@ -787,4 +845,168 @@
   title   = {i2pd: {C++} implementation of the {I2P} router},
   url     = {https://i2pd.website},
   urldate = {2026-03-06},
+}
+
+@misc{webkitgtk,
+  author  = {{WebKitGTK contributors}},
+  title   = {{WebKitGTK}: WebKit port for {GTK}},
+  url     = {https://webkitgtk.org},
+  urldate = {2026-03-19},
+}
+
+@misc{tauri:webkit,
+  author  = {{Tauri contributors}},
+  title   = {Tauri {Linux} Platform Support},
+  url     = {https://tauri.app/concept/webview/},
+  urldate = {2026-03-19},
+  note    = {Documents WebKitGTK as the Linux WebView backend and discusses platform differences.},
+}
+
+@misc{swaync,
+  author  = {Eriksen, Erik and others},
+  title   = {{SwayNotificationCenter (swaync)}},
+  url     = {https://github.com/ErikReider/SwayNotificationCenter},
+  urldate = {2026-03-04},
+}
+
+@misc{mpv,
+  author  = {{mpv contributors}},
+  title   = {mpv: a free, open source, and cross-platform media player},
+  url     = {https://mpv.io},
+  urldate = {2026-03-04},
+}
+
+@misc{starship,
+  author  = {{Starship contributors}},
+  title   = {Starship: The minimal, blazing-fast, and infinitely customizable prompt},
+  url     = {https://starship.rs},
+  urldate = {2026-03-04},
+}
+
+@misc{ext:session-lock,
+  author  = {{wayland-protocols contributors}},
+  title   = {ext-session-lock-v1 protocol},
+  url     = {https://gitlab.freedesktop.org/wayland/wayland-protocols/-/blob/main/staging/ext-session-lock/ext-session-lock-v1.xml},
+  urldate = {2026-03-19},
+}
+
+@misc{ebpf:ringbuf,
+  author  = {Nakryiko, Andrii},
+  title   = {{BPF} ring buffer},
+  year    = {2020},
+  url     = {https://nakryiko.com/posts/bpf-ringbuf/},
+  urldate = {2026-03-19},
+  note    = {Introduces BPF\_MAP\_TYPE\_RINGBUF, available from Linux 5.8.},
+}
+
+@misc{fedora:nvidia,
+  author  = {{RPM Fusion contributors}},
+  title   = {Howto/NVIDIA --- {RPM Fusion}},
+  url     = {https://rpmfusion.org/Howto/NVIDIA},
+  urldate = {2026-03-19},
+}
+
+@misc{fedora:broadcom,
+  author  = {{RPM Fusion contributors}},
+  title   = {Howto/Broadcom {STA} Wireless driver --- {RPM Fusion}},
+  url     = {https://rpmfusion.org/Howto/Broadcom},
+  urldate = {2026-03-19},
+}
+
+@misc{async-trait,
+  author  = {Tolnay, David},
+  title   = {async-trait: Type erasure for async trait methods},
+  url     = {https://crates.io/crates/async-trait},
+  urldate = {2026-03-19},
+}
+
+@misc{llamacpp:quant,
+  author  = {Gerganov, Georgi and others},
+  title   = {llama.cpp: {GGUF} quantization formats},
+  url     = {https://github.com/ggml-org/llama.cpp/blob/master/docs/quantization.md},
+  urldate = {2026-03-19},
+}
+
+@misc{jsonrpc2,
+  author  = {{JSON-RPC Working Group}},
+  title   = {{JSON-RPC 2.0} Specification},
+  year    = {2010},
+  url     = {https://www.jsonrpc.org/specification},
+  urldate = {2026-03-19},
+}
+
+@misc{intel:aes,
+  author  = {{Intel Corporation}},
+  title   = {Intel Advanced Encryption Standard New Instructions ({AES-NI})},
+  url     = {https://www.intel.com/content/www/us/en/developer/articles/technical/advanced-encryption-standard-instructions-aes-ni.html},
+  urldate = {2026-03-19},
+}
+
+@inproceedings{greshake2023prompt,
+  author    = {Greshake, Kai and others},
+  title     = {Not What You've Signed Up For: Compromising Real-World {LLM}-Integrated Applications with Indirect Prompt Injection},
+  booktitle = {Proceedings of the 2023 {ACM} Workshop on Artificial Intelligence and Security ({AISec})},
+  year      = {2023},
+  doi       = {10.1145/3605764.3623985},
+  urldate   = {2026-03-19},
+}
+
+@misc{gematik:mio,
+  author  = {{gematik GmbH}},
+  title   = {Medizinische Informationsobjekte ({MIO})},
+  url     = {https://mio.de},
+  urldate = {2026-03-19},
+  note    = {Defines standardized FHIR-based health data objects for the German healthcare system.},
+}
+
+@misc{eu:ehealth,
+  author  = {{European Commission}},
+  title   = {European Health Data Space},
+  year    = {2022},
+  url     = {https://health.ec.europa.eu/ehealth-digital-health-and-care/european-health-data-space_en},
+  urldate = {2026-03-19},
+}
+
+@misc{bitcoin:ecdsa,
+  author  = {Brengel, Michael and Rossow, Christian},
+  title   = {Identifying Key Leakage of Bitcoin Users},
+  year    = {2018},
+  url     = {https://dl.acm.org/doi/10.1145/3274694.3274757},
+  urldate = {2026-03-19},
+  note    = {Documents real-world ECDSA weak-nonce vulnerabilities; see also Sony PlayStation 3 ECDSA failure (2010).},
+}
+
+@misc{forgejo,
+  author  = {{Forgejo contributors}},
+  title   = {Forgejo: a self-hosted lightweight software forge},
+  url     = {https://forgejo.org},
+  urldate = {2026-03-19},
+}
+
+@misc{codeberg,
+  author  = {{Codeberg e.V.}},
+  title   = {Codeberg: Community-Maintained Free Software Collaboration Platform},
+  url     = {https://codeberg.org},
+  urldate = {2026-03-19},
+}
+
+@misc{linear,
+  author  = {{Linear Orbit, Inc.}},
+  title   = {Linear: The new standard for modern software development},
+  url     = {https://linear.app},
+  urldate = {2026-03-19},
+}
+
+@misc{plane,
+  author  = {{Plane contributors}},
+  title   = {Plane: Open-source project management tool},
+  url     = {https://plane.so},
+  urldate = {2026-03-19},
+}
+
+@misc{opensuse:slowroll,
+  author  = {{openSUSE Project}},
+  title   = {openSUSE Slowroll},
+  url     = {https://en.opensuse.org/openSUSE:Slowroll},
+  urldate = {2026-03-19},
 }

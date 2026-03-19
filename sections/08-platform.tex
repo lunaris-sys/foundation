@@ -447,8 +447,8 @@ decrypts it transparently at boot after credentials are provided.
 FDE is enabled by default. A stolen or lost device is a realistic threat for
 any user; without FDE, physical access means full access to all data. The
 performance concern that historically argued against FDE no longer applies:
-all modern x86 and ARM processors have hardware AES acceleration that makes
-encryption effectively free at current workloads.
+all modern x86 and ARM processors have hardware AES acceleration~\cite{intel:aes}
+that makes encryption effectively free at current workloads.
 
 The primary unlock mechanism is a passphrase entered at boot. On systems with
 a \emph{TPM} (Trusted Platform Module)~\cite{archwiki:tpm}, a dedicated
@@ -518,9 +518,9 @@ independently; bypassing one does not bypass the others.
 \toprule
 \textbf{Mechanism} & \textbf{Function} \\
 \midrule
-Linux Namespaces & Changes what the application can see \\
-AppArmor         & Blocks actions on resources the application can see \\
-seccomp          & Blocks specific syscalls regardless of resource visibility \\
+Linux Namespaces~\cite{archwiki:namespaces} & Changes what the application can see \\
+AppArmor~\cite{archwiki:apparmor}           & Blocks actions on resources the application can see \\
+seccomp~\cite{archwiki:seccomp}             & Blocks specific syscalls regardless of resource visibility \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -841,12 +841,12 @@ no active content, and no metadata that could carry instructions.
 
 These layers substantially reduce the attack surface and raise the cost of a
 successful injection, but they do not solve the underlying problem. Prompt
-injection is an open, unsolved problem across the AI industry. No current
-system can guarantee that a sufficiently sophisticated injection embedded in
-external content will be detected or neutralized. This system's position is to
-minimize exposure, make AI-triggered actions visible and reversible, and be
-transparent about the remaining risk rather than to claim a solution that does
-not exist.
+injection is an open, unsolved problem across the AI
+industry~\cite{greshake2023prompt}. No current system can guarantee that a
+sufficiently sophisticated injection embedded in external content will be
+detected or neutralized. This system's position is to minimize exposure, make
+AI-triggered actions visible and reversible, and be transparent about the
+remaining risk rather than to claim a solution that does not exist.
 
 \paragraph{AI network proxy.}
 The AI daemon has no direct network access. All cloud API calls go through a

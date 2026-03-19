@@ -129,6 +129,29 @@
     \field{urlyear}{2026}
   \endentry
 
+  \entry{archwiki:apparmor}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=A}{%
+         family={{Arch Linux Wiki contributors}},
+         familyi={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{A3}
+    \strng{fullhash}{A3}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{howpublished}{Arch Linux Wiki}
+    \field{title}{{AppArmor}}
+    \verb{url}
+    \verb https://wiki.archlinux.org/title/AppArmor
+    \endverb
+    \field{urlday}{24}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
+  \endentry
+
   \entry{archwiki:bluetooth}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=A}{%
@@ -267,6 +290,29 @@
     \field{urlyear}{2026}
   \endentry
 
+  \entry{archwiki:namespaces}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=A}{%
+         family={{Arch Linux Wiki contributors}},
+         familyi={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{A3}
+    \strng{fullhash}{A3}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{howpublished}{Arch Linux Wiki}
+    \field{title}{Linux namespaces}
+    \verb{url}
+    \verb https://wiki.archlinux.org/title/Linux_namespaces
+    \endverb
+    \field{urlday}{24}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
+  \endentry
+
   \entry{archwiki:iommu}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=A}{%
@@ -286,6 +332,29 @@
     \verb https://wiki.archlinux.org/title/PCI_passthrough_via_OVMF
     \endverb
     \field{urlday}{28}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{archwiki:seccomp}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=A}{%
+         family={{Arch Linux Wiki contributors}},
+         familyi={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{A3}
+    \strng{fullhash}{A3}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{howpublished}{Arch Linux Wiki}
+    \field{title}{Seccomp}
+    \verb{url}
+    \verb https://wiki.archlinux.org/title/Seccomp
+    \endverb
+    \field{urlday}{24}
     \field{urlmonth}{02}
     \field{urlyear}{2026}
   \endentry
@@ -429,29 +498,6 @@
     \field{urlyear}{2026}
   \endentry
 
-  \entry{archwiki:wine}{misc}{}{}
-    \name{author}{1}{}{%
-      {{hash=A}{%
-         family={{Arch Linux Wiki contributors}},
-         familyi={A\bibinitperiod},
-      }}%
-    }
-    \strng{namehash}{A3}
-    \strng{fullhash}{A3}
-    \field{labelnamesource}{author}
-    \field{labeltitlesource}{title}
-    \field{sortinit}{A}
-    \field{sortinithash}{A}
-    \field{howpublished}{Arch Linux Wiki}
-    \field{title}{Wine}
-    \verb{url}
-    \verb https://wiki.archlinux.org/title/Wine
-    \endverb
-    \field{urlday}{16}
-    \field{urlmonth}{02}
-    \field{urlyear}{2026}
-  \endentry
-
   \entry{archwiki:xwayland}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=A}{%
@@ -524,6 +570,39 @@
     \field{urlyear}{2026}
   \endentry
 
+  \entry{bitcoin:ecdsa}{misc}{}{}
+    \name{author}{2}{}{%
+      {{hash=BM}{%
+         family={Brengel},
+         familyi={B\bibinitperiod},
+         given={Michael},
+         giveni={M\bibinitperiod},
+      }}%
+      {{hash=RC}{%
+         family={Rossow},
+         familyi={R\bibinitperiod},
+         given={Christian},
+         giveni={C\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{BMRC1}
+    \strng{fullhash}{BMRC1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{B}
+    \field{sortinithash}{B}
+    \field{note}{Documents real-world ECDSA weak-nonce vulnerabilities; see
+  also Sony PlayStation 3 ECDSA failure (2010).}
+    \field{title}{Identifying Key Leakage of Bitcoin Users}
+    \verb{url}
+    \verb https://dl.acm.org/doi/10.1145/3274694.3274757
+    \endverb
+    \field{year}{2018}
+    \field{urlday}{19}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
+  \endentry
+
   \entry{bsi2022sisyphus}{report}{}{}
     \name{author}{1}{}{%
       {{hash=B}{%
@@ -583,6 +662,29 @@
     \field{urlyear}{2026}
   \endentry
 
+  \entry{codeberg}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=C}{%
+         family={{Codeberg e.V.}},
+         familyi={C\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{C1}
+    \strng{fullhash}{C1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{C}
+    \field{sortinithash}{C}
+    \field{title}{Codeberg: Community-Maintained Free Software Collaboration
+  Platform}
+    \verb{url}
+    \verb https://codeberg.org
+    \endverb
+    \field{urlday}{19}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
+  \endentry
+
   \entry{codemirror}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=C}{%
@@ -590,8 +692,8 @@
          familyi={C\bibinitperiod},
       }}%
     }
-    \strng{namehash}{C1}
-    \strng{fullhash}{C1}
+    \strng{namehash}{C2}
+    \strng{fullhash}{C2}
     \field{labelnamesource}{author}
     \field{labeltitlesource}{title}
     \field{sortinit}{C}
@@ -737,6 +839,56 @@
     \field{urlyear}{2026}
   \endentry
 
+  \entry{swaync}{misc}{}{}
+    \true{moreauthor}
+    \true{morelabelname}
+    \name{author}{1}{}{%
+      {{hash=EE}{%
+         family={Eriksen},
+         familyi={E\bibinitperiod},
+         given={Erik},
+         giveni={E\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{EE+1}
+    \strng{fullhash}{EE+1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{E}
+    \field{sortinithash}{E}
+    \field{title}{{SwayNotificationCenter (swaync)}}
+    \verb{url}
+    \verb https://github.com/ErikReider/SwayNotificationCenter
+    \endverb
+    \field{urlday}{04}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{eu:ehealth}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=E}{%
+         family={{European Commission}},
+         familyi={E\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{E1}
+    \strng{fullhash}{E1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{E}
+    \field{sortinithash}{E}
+    \field{title}{European Health Data Space}
+    \verb{url}
+    \verb https://health.ec.europa.eu/ehealth-digital-health-and-care/european-
+    \verb health-data-space_en
+    \endverb
+    \field{year}{2022}
+    \field{urlday}{19}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
+  \endentry
+
   \entry{ngi}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=E}{%
@@ -803,6 +955,28 @@
     \field{urlyear}{2026}
   \endentry
 
+  \entry{forgejo}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=F}{%
+         family={{Forgejo contributors}},
+         familyi={F\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{F3}
+    \strng{fullhash}{F3}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{F}
+    \field{sortinithash}{F}
+    \field{title}{Forgejo: a self-hosted lightweight software forge}
+    \verb{url}
+    \verb https://forgejo.org
+    \endverb
+    \field{urlday}{19}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
+  \endentry
+
   \entry{framework}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=F}{%
@@ -810,8 +984,8 @@
          familyi={F\bibinitperiod},
       }}%
     }
-    \strng{namehash}{F3}
-    \strng{fullhash}{F3}
+    \strng{namehash}{F4}
+    \strng{fullhash}{F4}
     \field{labelnamesource}{author}
     \field{labeltitlesource}{title}
     \field{sortinit}{F}
@@ -891,6 +1065,30 @@
     \field{urlyear}{2026}
   \endentry
 
+  \entry{gematik:mio}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=g}{%
+         family={{gematik GmbH}},
+         familyi={g\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{g1}
+    \strng{fullhash}{g1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{G}
+    \field{sortinithash}{G}
+    \field{note}{Defines standardized FHIR-based health data objects for the
+  German healthcare system.}
+    \field{title}{Medizinische Informationsobjekte ({MIO})}
+    \verb{url}
+    \verb https://mio.de
+    \endverb
+    \field{urlday}{19}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
+  \endentry
+
   \entry{llamacpp}{misc}{}{}
     \true{moreauthor}
     \true{morelabelname}
@@ -913,6 +1111,33 @@
     \verb https://github.com/ggml-org/llama.cpp
     \endverb
     \field{urlday}{01}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{llamacpp:quant}{misc}{}{}
+    \true{moreauthor}
+    \true{morelabelname}
+    \name{author}{1}{}{%
+      {{hash=GG}{%
+         family={Gerganov},
+         familyi={G\bibinitperiod},
+         given={Georgi},
+         giveni={G\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{GG+1}
+    \strng{fullhash}{GG+1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{G}
+    \field{sortinithash}{G}
+    \field{title}{llama.cpp: {GGUF} quantization formats}
+    \verb{url}
+    \verb https://github.com/ggml-org/llama.cpp/blob/master/docs/quantization.m
+    \verb d
+    \endverb
+    \field{urlday}{19}
     \field{urlmonth}{03}
     \field{urlyear}{2026}
   \endentry
@@ -1027,6 +1252,36 @@
     \field{urlyear}{2026}
   \endentry
 
+  \entry{greshake2023prompt}{inproceedings}{}{}
+    \true{moreauthor}
+    \true{morelabelname}
+    \name{author}{1}{}{%
+      {{hash=GK}{%
+         family={Greshake},
+         familyi={G\bibinitperiod},
+         given={Kai},
+         giveni={K\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{GK+1}
+    \strng{fullhash}{GK+1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{G}
+    \field{sortinithash}{G}
+    \field{booktitle}{Proceedings of the 2023 {ACM} Workshop on Artificial
+  Intelligence and Security ({AISec})}
+    \verb{doi}
+    \verb 10.1145/3605764.3623985
+    \endverb
+    \field{title}{Not What You've Signed Up For: Compromising Real-World
+  {LLM}-Integrated Applications with Indirect Prompt Injection}
+    \field{year}{2023}
+    \field{urlday}{19}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
+  \endentry
+
   \entry{rfc6749}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=HD}{%
@@ -1072,6 +1327,32 @@
     \verb https://ghostty.org
     \endverb
     \field{urlday}{04}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{sqlite}{misc}{}{}
+    \true{moreauthor}
+    \true{morelabelname}
+    \name{author}{1}{}{%
+      {{hash=HDR}{%
+         family={Hipp},
+         familyi={H\bibinitperiod},
+         given={D.\bibnamedelima Richard},
+         giveni={D\bibinitperiod\bibinitdelim R\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{HDR+1}
+    \strng{fullhash}{HDR+1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{H}
+    \field{sortinithash}{H}
+    \field{title}{{SQLite}}
+    \verb{url}
+    \verb https://sqlite.org
+    \endverb
+    \field{urlday}{19}
     \field{urlmonth}{03}
     \field{urlyear}{2026}
   \endentry
@@ -1167,6 +1448,58 @@
     \field{urlyear}{2026}
   \endentry
 
+  \entry{intel:aes}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=I}{%
+         family={{Intel Corporation}},
+         familyi={I\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{I1}
+    \strng{fullhash}{I1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{I}
+    \field{sortinithash}{I}
+    \field{title}{Intel Advanced Encryption Standard New Instructions
+  ({AES-NI})}
+    \verb{url}
+    \verb https://www.intel.com/content/www/us/en/developer/articles/technical/
+    \verb advanced-encryption-standard-instructions-aes-ni.html
+    \endverb
+    \field{urlday}{19}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{kuzu:vldb}{inproceedings}{}{}
+    \true{moreauthor}
+    \true{morelabelname}
+    \name{author}{1}{}{%
+      {{hash=JX}{%
+         family={Jin},
+         familyi={J\bibinitperiod},
+         given={Xiyang},
+         giveni={X\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{JX+1}
+    \strng{fullhash}{JX+1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{J}
+    \field{sortinithash}{J}
+    \field{booktitle}{Proceedings of the {VLDB} Endowment}
+    \field{title}{Kùzu Graph Database Management System}
+    \verb{url}
+    \verb https://vldb.org/cidrdb/papers/2023/p48-jin.pdf
+    \endverb
+    \field{year}{2023}
+    \field{urlday}{19}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
+  \endentry
+
   \entry{rfc8032}{misc}{}{}
     \name{author}{2}{}{%
       {{hash=JS}{%
@@ -1196,6 +1529,29 @@
     \field{year}{2017}
     \field{urlday}{20}
     \field{urlmonth}{02}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{jsonrpc2}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=J}{%
+         family={{JSON-RPC Working Group}},
+         familyi={J\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{J1}
+    \strng{fullhash}{J1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{J}
+    \field{sortinithash}{J}
+    \field{title}{{JSON-RPC 2.0} Specification}
+    \verb{url}
+    \verb https://www.jsonrpc.org/specification
+    \endverb
+    \field{year}{2010}
+    \field{urlday}{19}
+    \field{urlmonth}{03}
     \field{urlyear}{2026}
   \endentry
 
@@ -1285,12 +1641,67 @@
     \field{labeltitlesource}{title}
     \field{sortinit}{K}
     \field{sortinithash}{K}
-    \field{title}{Kùzu: Embeddable Graph Database}
+    \field{note}{Repository archived October 2025 following acquisition by
+  Apple Inc.}
+    \field{title}{Kùzu: Embeddable Graph Database (archived)}
     \verb{url}
-    \verb https://kuzudb.com
+    \verb https://github.com/kuzudb/kuzu
     \endverb
-    \field{urlday}{26}
-    \field{urlmonth}{02}
+    \field{year}{2025}
+    \field{urlday}{19}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{ladybug}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=L}{%
+         family={{LadybugDB contributors}},
+         familyi={L\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{L1}
+    \strng{fullhash}{L1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{L}
+    \field{sortinithash}{L}
+    \field{note}{Community fork of Kùzu, MIT license.}
+    \field{title}{{LadybugDB}: Embedded Columnar Graph Database}
+    \verb{url}
+    \verb https://github.com/LadybugDB/ladybug
+    \endverb
+    \field{year}{2025}
+    \field{urlday}{19}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{google:projectzero2020}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=LM}{%
+         family={Letcher},
+         familyi={L\bibinitperiod},
+         given={Matt},
+         giveni={M\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{LM1}
+    \strng{fullhash}{LM1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{L}
+    \field{sortinithash}{L}
+    \field{note}{Google Security Blog; reports approx.\ 70\% of Chrome security
+  bugs are memory safety issues.}
+    \field{title}{The Chromium Chronicle: Memory Safety}
+    \verb{url}
+    \verb https://security.googleblog.com/2021/09/an-update-on-memory-safety-in
+    \verb -chrome.html
+    \endverb
+    \field{year}{2020}
+    \field{urlday}{19}
+    \field{urlmonth}{03}
     \field{urlyear}{2026}
   \endentry
 
@@ -1362,6 +1773,28 @@
     \field{urlyear}{2026}
   \endentry
 
+  \entry{linear}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=L}{%
+         family={{Linear Orbit, Inc.}},
+         familyi={L\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{L1}
+    \strng{fullhash}{L1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{L}
+    \field{sortinithash}{L}
+    \field{title}{Linear: The new standard for modern software development}
+    \verb{url}
+    \verb https://linear.app
+    \endverb
+    \field{urlday}{19}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
+  \endentry
+
   \entry{clang:cfi}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=L}{%
@@ -1369,8 +1802,8 @@
          familyi={L\bibinitperiod},
       }}%
     }
-    \strng{namehash}{L1}
-    \strng{fullhash}{L1}
+    \strng{namehash}{L2}
+    \strng{fullhash}{L2}
     \field{labelnamesource}{author}
     \field{labeltitlesource}{title}
     \field{sortinit}{L}
@@ -1470,6 +1903,79 @@
     \verb https://mozilla.github.io/pdf.js/
     \endverb
     \field{urlday}{03}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{mpv}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=m}{%
+         family={{mpv contributors}},
+         familyi={m\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{m1}
+    \strng{fullhash}{m1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{M}
+    \field{sortinithash}{M}
+    \field{title}{mpv: a free, open source, and cross-platform media player}
+    \verb{url}
+    \verb https://mpv.io
+    \endverb
+    \field{urlday}{04}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{ebpf:core}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=NA}{%
+         family={Nakryiko},
+         familyi={N\bibinitperiod},
+         given={Andrii},
+         giveni={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{NA1}
+    \strng{fullhash}{NA1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{N}
+    \field{sortinithash}{N}
+    \field{title}{{BPF CO-RE} (Compile Once, Run Everywhere)}
+    \verb{url}
+    \verb https://nakryiko.com/posts/bpf-core-reference-guide/
+    \endverb
+    \field{year}{2021}
+    \field{urlday}{19}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{ebpf:ringbuf}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=NA}{%
+         family={Nakryiko},
+         familyi={N\bibinitperiod},
+         given={Andrii},
+         giveni={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{NA1}
+    \strng{fullhash}{NA1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{N}
+    \field{sortinithash}{N}
+    \field{note}{Introduces BPF\_MAP\_TYPE\_RINGBUF, available from Linux 5.8.}
+    \field{title}{{BPF} ring buffer}
+    \verb{url}
+    \verb https://nakryiko.com/posts/bpf-ringbuf/
+    \endverb
+    \field{year}{2020}
+    \field{urlday}{19}
     \field{urlmonth}{03}
     \field{urlyear}{2026}
   \endentry
@@ -1612,7 +2118,7 @@
     \field{urlyear}{2026}
   \endentry
 
-  \entry{opensuse}{misc}{}{}
+  \entry{opensuse:slowroll}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=o}{%
          family={{openSUSE Project}},
@@ -1625,34 +2131,12 @@
     \field{labeltitlesource}{title}
     \field{sortinit}{O}
     \field{sortinithash}{O}
-    \field{title}{openSUSE Linux}
+    \field{title}{openSUSE Slowroll}
     \verb{url}
-    \verb https://www.opensuse.org
+    \verb https://en.opensuse.org/openSUSE:Slowroll
     \endverb
-    \field{urlday}{14}
-    \field{urlmonth}{02}
-    \field{urlyear}{2026}
-  \endentry
-
-  \entry{zypper}{misc}{}{}
-    \name{author}{1}{}{%
-      {{hash=o}{%
-         family={{openSUSE Project}},
-         familyi={o\bibinitperiod},
-      }}%
-    }
-    \strng{namehash}{o2}
-    \strng{fullhash}{o2}
-    \field{labelnamesource}{author}
-    \field{labeltitlesource}{title}
-    \field{sortinit}{O}
-    \field{sortinithash}{O}
-    \field{title}{SDB:Zypper usage}
-    \verb{url}
-    \verb https://en.opensuse.org/SDB:Zypper_usage
-    \endverb
-    \field{urlday}{15}
-    \field{urlmonth}{02}
+    \field{urlday}{19}
+    \field{urlmonth}{03}
     \field{urlyear}{2026}
   \endentry
 
@@ -1697,6 +2181,28 @@
     \endverb
     \field{urlday}{15}
     \field{urlmonth}{02}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{plane}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=P}{%
+         family={{Plane contributors}},
+         familyi={P\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{P2}
+    \strng{fullhash}{P2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{P}
+    \field{sortinithash}{P}
+    \field{title}{Plane: Open-source project management tool}
+    \verb{url}
+    \verb https://plane.so
+    \endverb
+    \field{urlday}{19}
+    \field{urlmonth}{03}
     \field{urlyear}{2026}
   \endentry
 
@@ -1750,6 +2256,50 @@
     \field{urlyear}{2026}
   \endentry
 
+  \entry{fedora:broadcom}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=R}{%
+         family={{RPM Fusion contributors}},
+         familyi={R\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{R1}
+    \strng{fullhash}{R1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{R}
+    \field{sortinithash}{R}
+    \field{title}{Howto/Broadcom {STA} Wireless driver --- {RPM Fusion}}
+    \verb{url}
+    \verb https://rpmfusion.org/Howto/Broadcom
+    \endverb
+    \field{urlday}{19}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{fedora:nvidia}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=R}{%
+         family={{RPM Fusion contributors}},
+         familyi={R\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{R1}
+    \strng{fullhash}{R1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{R}
+    \field{sortinithash}{R}
+    \field{title}{Howto/NVIDIA --- {RPM Fusion}}
+    \verb{url}
+    \verb https://rpmfusion.org/Howto/NVIDIA
+    \endverb
+    \field{urlday}{19}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
+  \endentry
+
   \entry{dnf}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=R}{%
@@ -1757,8 +2307,8 @@
          familyi={R\bibinitperiod},
       }}%
     }
-    \strng{namehash}{R1}
-    \strng{fullhash}{R1}
+    \strng{namehash}{R2}
+    \strng{fullhash}{R2}
     \field{labelnamesource}{author}
     \field{labeltitlesource}{title}
     \field{sortinit}{R}
@@ -1864,6 +2414,29 @@
     \field{urlyear}{2026}
   \endentry
 
+  \entry{starship}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=S}{%
+         family={{Starship contributors}},
+         familyi={S\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{S4}
+    \strng{fullhash}{S4}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{S}
+    \field{sortinithash}{S}
+    \field{title}{Starship: The minimal, blazing-fast, and infinitely
+  customizable prompt}
+    \verb{url}
+    \verb https://starship.rs
+    \endverb
+    \field{urlday}{04}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
+  \endentry
+
   \entry{cosmic:comp}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=S}{%
@@ -1871,8 +2444,8 @@
          familyi={S\bibinitperiod},
       }}%
     }
-    \strng{namehash}{S4}
-    \strng{fullhash}{S4}
+    \strng{namehash}{S5}
+    \strng{fullhash}{S5}
     \field{labelnamesource}{author}
     \field{labeltitlesource}{title}
     \field{sortinit}{S}
@@ -1952,6 +2525,52 @@
     \field{urlyear}{2026}
   \endentry
 
+  \entry{tauri:webkit}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=T}{%
+         family={{Tauri contributors}},
+         familyi={T\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{T2}
+    \strng{fullhash}{T2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{T}
+    \field{sortinithash}{T}
+    \field{note}{Documents WebKitGTK as the Linux WebView backend and discusses
+  platform differences.}
+    \field{title}{Tauri {Linux} Platform Support}
+    \verb{url}
+    \verb https://tauri.app/concept/webview/
+    \endverb
+    \field{urlday}{19}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{electron:overhead}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=T}{%
+         family={{Tauri contributors}},
+         familyi={T\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{T2}
+    \strng{fullhash}{T2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{T}
+    \field{sortinithash}{T}
+    \field{title}{Tauri vs.\ Electron: Comparison}
+    \verb{url}
+    \verb https://tauri.app/concept/size/
+    \endverb
+    \field{urlday}{19}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
+  \endentry
+
   \entry{i2p}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=T}{%
@@ -1996,6 +2615,28 @@
     \field{urlyear}{2026}
   \endentry
 
+  \entry{rust-lang}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=T}{%
+         family={{The Rust Project Developers}},
+         familyi={T\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{T5}
+    \strng{fullhash}{T5}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{T}
+    \field{sortinithash}{T}
+    \field{title}{The Rust Programming Language}
+    \verb{url}
+    \verb https://www.rust-lang.org
+    \endverb
+    \field{urlday}{14}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
+  \endentry
+
   \entry{tor}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=T}{%
@@ -2003,8 +2644,8 @@
          familyi={T\bibinitperiod},
       }}%
     }
-    \strng{namehash}{T5}
-    \strng{fullhash}{T5}
+    \strng{namehash}{T6}
+    \strng{fullhash}{T6}
     \field{labelnamesource}{author}
     \field{labeltitlesource}{title}
     \field{sortinit}{T}
@@ -2018,6 +2659,30 @@
     \field{urlyear}{2026}
   \endentry
 
+  \entry{async-trait}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=TD}{%
+         family={Tolnay},
+         familyi={T\bibinitperiod},
+         given={David},
+         giveni={D\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{TD1}
+    \strng{fullhash}{TD1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{T}
+    \field{sortinithash}{T}
+    \field{title}{async-trait: Type erasure for async trait methods}
+    \verb{url}
+    \verb https://crates.io/crates/async-trait
+    \endverb
+    \field{urlday}{19}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
+  \endentry
+
   \entry{tuxedo}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=T}{%
@@ -2025,8 +2690,8 @@
          familyi={T\bibinitperiod},
       }}%
     }
-    \strng{namehash}{T6}
-    \strng{fullhash}{T6}
+    \strng{namehash}{T7}
+    \strng{fullhash}{T7}
     \field{labelnamesource}{author}
     \field{labeltitlesource}{title}
     \field{sortinit}{T}
@@ -2128,28 +2793,6 @@
     \field{urlyear}{2026}
   \endentry
 
-  \entry{virtiofs}{misc}{}{}
-    \name{author}{1}{}{%
-      {{hash=v}{%
-         family={{virtio-fs contributors}},
-         familyi={v\bibinitperiod},
-      }}%
-    }
-    \strng{namehash}{v1}
-    \strng{fullhash}{v1}
-    \field{labelnamesource}{author}
-    \field{labeltitlesource}{title}
-    \field{sortinit}{V}
-    \field{sortinithash}{V}
-    \field{title}{virtiofs: A Shared File System for Virtual Machines}
-    \verb{url}
-    \verb https://virtio-fs.gitlab.io
-    \endverb
-    \field{urlday}{28}
-    \field{urlmonth}{02}
-    \field{urlyear}{2026}
-  \endentry
-
   \entry{vitest}{misc}{}{}
     \name{author}{1}{}{%
       {{hash=V}{%
@@ -2157,8 +2800,8 @@
          familyi={V\bibinitperiod},
       }}%
     }
-    \strng{namehash}{V1}
-    \strng{fullhash}{V1}
+    \strng{namehash}{V2}
+    \strng{fullhash}{V2}
     \field{labelnamesource}{author}
     \field{labeltitlesource}{title}
     \field{sortinit}{V}
@@ -2225,6 +2868,95 @@
     \field{year}{2014}
     \field{urlday}{26}
     \field{urlmonth}{02}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{wayland}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=W}{%
+         family={{Wayland contributors}},
+         familyi={W\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{W2}
+    \strng{fullhash}{W2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{W}
+    \field{sortinithash}{W}
+    \field{title}{Wayland}
+    \verb{url}
+    \verb https://wayland.freedesktop.org
+    \endverb
+    \field{urlday}{27}
+    \field{urlmonth}{02}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{x11:security}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=W}{%
+         family={{Wayland contributors}},
+         familyi={W\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{W2}
+    \strng{fullhash}{W2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{W}
+    \field{sortinithash}{W}
+    \field{title}{Wayland vs.\ {X}: Security considerations}
+    \verb{url}
+    \verb https://wayland.freedesktop.org/docs/html/ch02.html
+    \endverb
+    \field{urlday}{19}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{ext:session-lock}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=w}{%
+         family={{wayland-protocols contributors}},
+         familyi={w\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{w1}
+    \strng{fullhash}{w1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{W}
+    \field{sortinithash}{W}
+    \field{title}{ext-session-lock-v1 protocol}
+    \verb{url}
+    \verb https://gitlab.freedesktop.org/wayland/wayland-protocols/-/blob/main/
+    \verb staging/ext-session-lock/ext-session-lock-v1.xml
+    \endverb
+    \field{urlday}{19}
+    \field{urlmonth}{03}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{webkitgtk}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=W}{%
+         family={{WebKitGTK contributors}},
+         familyi={W\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{W1}
+    \strng{fullhash}{W1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{W}
+    \field{sortinithash}{W}
+    \field{title}{{WebKitGTK}: WebKit port for {GTK}}
+    \verb{url}
+    \verb https://webkitgtk.org
+    \endverb
+    \field{urlday}{19}
+    \field{urlmonth}{03}
     \field{urlyear}{2026}
   \endentry
 
