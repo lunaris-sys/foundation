@@ -391,8 +391,8 @@ The \texttt{compatible\_with} field declares which application versions the
 Integration Package supports. When the application updates beyond the declared
 range, Settings displays a compatibility warning on the application page with
 a direct link to the Store listing of the Integration Package. The adapter
-remains active, since most configuration keys do not change between application
-versions, but the warning signals that the package maintainer should review
+remains active -- most configuration keys do not change between application
+versions -- but the warning signals that the package maintainer should review
 and update the package.
 
 Integration Package updates are independent of application updates. The Install
@@ -524,8 +524,8 @@ suggestions.
 
 \paragraph{Offline queue.}
 When an application is installed without network access, the daemon stores a
-pending lookup entry locally. The next time the network becomes available,
-detected via a NetworkManager event on the Event Bus, the daemon processes
+pending lookup entry locally. The next time the network becomes available --
+detected via a NetworkManager event on the Event Bus -- the daemon processes
 queued entries and applies the normal matching policy. Queue entries expire
 after 30 days without resolution.
 
